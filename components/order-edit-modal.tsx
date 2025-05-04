@@ -1,0 +1,983 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  useShop,
+  type Order,
+  type DeliveryType,
+  type DeliveryCompany,
+  type ConfirmationStatus,
+  type StockStatus,
+} from "@/context/shop-context"
+import { toast } from "@/components/ui/use-toast"
+import { X, Plus, Trash2, AlertTriangle, Clock } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+
+// Types pour les articles
+type ArticleVariant = {
+  id: string
+  size?: string
+  color?: string
+  quantity: number
+  price: number
+  inventoryVariantId?: string // Add this to track the original inventory variant
+  availableStock?: number // Add this to show available stock
+  stockStatus?: StockStatus // Add this to track stock status
+  expectedDate?: string // Add this for coming soon items
+}
+
+type Article = {
+  id: string
+  name: string
+  sku: string
+  variants: ArticleVariant[]
+}
+
+// Liste des articles disponibles
+const availableArticles = [
+  "Smartphone Samsung Galaxy S23",
+  "iPhone 15 Pro",
+  "Écouteurs sans fil",
+  "Montre connectée",
+  "Tablette iPad",
+  "Ordinateur portable",
+  "Caméra GoPro",
+  "Enceinte Bluetooth",
+  "Chargeur sans fil",
+  "Batterie externe",
+  "Casque audio",
+  "Clavier sans fil",
+  "Souris ergonomique",
+  "Imprimante laser",
+  "Routeur WiFi",
+]
+
+// Liste des tailles disponibles
+const availableSizes = ["XS", "S", "M", "L", "XL", "XXL", "Unique", "36", "38", "40", "42", "44"]
+
+// Liste des couleurs disponibles
+const availableColors = ["Noir", "Blanc", "Rouge", "Bleu", "Vert", "Jaune", "Orange", "Rose", "Violet", "Gris"]
+
+// Liste des wilayas
+const wilayas = [
+  "Alger",
+  "Oran",
+  "Constantine",
+  "Annaba",
+  "Blida",
+  "Tlemcen",
+  "Sétif",
+  "Batna",
+  "Béjaïa",
+  "Tizi Ouzou",
+  "Skikda",
+  "Chlef",
+  "Biskra",
+]
+
+// Liste des communes par wilaya
+const communesByWilaya: Record<string, string[]> = {
+  Alger: [
+    "Centre Ville",
+    "Bab El Oued",
+    "El Biar",
+    "Hydra",
+    "Kouba",
+    "Bir Mourad Raïs",
+    "Bouzareah",
+    "Chéraga",
+    "Dar El Beïda",
+    "Rouiba",
+  ],
+  Oran: ["Centre Ville", "Bir El Djir", "Es Senia", "Arzew", "Aïn El Turk", "Mers El Kébir"],
+  Constantine: ["Centre Ville", "Sidi Mabrouk", "Zouaghi", "Ali Mendjeli", "El Khroub", "Hamma Bouziane"],
+  // Ajouter d'autres wilayas et communes au besoin
+}
+
+// Liste des entreprises de livraison
+const deliveryCompanies: DeliveryCompany[] = ["Yalidin", "DHL", "Aramex", "EMS", "Autre"]
+
+// Liste des types de livraison
+const deliveryTypes: DeliveryType[] = ["Domicile", "Point de relais", "Express"]
+
+// Liste des statuts de confirmation
+const confirmationStatuses: ConfirmationStatus[] = [
+  "En attente",
+  "Confirmé",
+  "Annulé",
+  "Reporté",
+  "Double",
+  "Ne répond pas 1",
+  "Ne répond pas 2",
+  "Ne répond pas 3",
+]
+
+// Liste des points de relais
+const pickupPoints = [
+  "Bureau de poste central",
+  "Agence commerciale",
+  "Supermarché Carrefour",
+  "Station-service",
+  "Centre commercial",
+  "Boutique partenaire",
+]
+
+// Liste des sources
+const sources = ["Facebook", "Instagram", "Site Web", "Téléphone", "Recommandation"]
+
+// Liste des confirmatrices
+const confirmatrices = ["Amina", "Fatima", "Leila", "Samira", "Yasmine", "Karima"]
+
+type OrderEditModalProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  order?: Order
+  isNew?: boolean
+}
+
+export function OrderEditModal({ open, onOpenChange, order, isNew = false }: OrderEditModalProps) {
+  const { updateOrder, addOrder, getOrdersByStatus, inventory, getInventoryItem, updateInventoryStock } = useShop()
+  const [formData, setFormData] = useState<Partial<Order>>({})
+  const [selectedWilaya, setSelectedWilaya] = useState<string>("")
+  const [communes, setCommunes] = useState<string[]>([])
+  const [selectedArticles, setSelectedArticles] = useState<Article[]>([])
+  const [isExchange, setIsExchange] = useState(false)
+  const [previousOrders, setPreviousOrders] = useState<Order[]>([])
+  const [selectedPreviousOrder, setSelectedPreviousOrder] = useState<string>("")
+
+  // Initialiser le formulaire avec les données de la commande
+  useEffect(() => {
+    if (order) {
+      setFormData(order)
+      setSelectedWilaya(order.wilaya)
+      setCommunes(communesByWilaya[order.wilaya] || [])
+
+      // Convertir les articles de la commande en format structuré
+      const articleNames = order.articles.split(", ")
+      const structuredArticles: Article[] = articleNames.map((name, index) => ({
+        id: `article-${index}`,
+        name,
+        sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+        variants: [
+          {
+            id: `variant-${index}-0`,
+            size: "Unique",
+            color: "Noir",
+            quantity: 1,
+            price: Math.floor(500 + Math.random() * 1500),
+            stockStatus: "available",
+          },
+        ],
+      }))
+
+      setSelectedArticles(structuredArticles)
+    } else {
+      // Valeurs par défaut pour une nouvelle commande
+      const newOrderId = `CMD-${Math.floor(1000 + Math.random() * 9000)}`
+      const today = new Date().toLocaleDateString("fr-FR")
+
+      setFormData({
+        id: newOrderId,
+        status: "Confirmés",
+        confirmationStatus: "En attente",
+        date: today,
+        lastUpdated: new Date().toLocaleString("fr-FR"),
+        smsStatus: "Non envoyé",
+        trackingId: `TRK-${Math.floor(Math.random() * 100000)
+          .toString()
+          .padStart(6, "0")}`,
+      })
+      setSelectedArticles([])
+      setSelectedWilaya("")
+      setCommunes([])
+    }
+
+    // Charger les commandes précédentes pour l'échange
+    const deliveredOrders = getOrdersByStatus("Livrés")
+    setPreviousOrders(deliveredOrders)
+  }, [order, getOrdersByStatus])
+
+  // Mettre à jour les communes lorsque la wilaya change
+  useEffect(() => {
+    if (selectedWilaya) {
+      setCommunes(communesByWilaya[selectedWilaya] || [])
+      // Réinitialiser la commune si elle n'existe pas dans la nouvelle liste
+      if (formData.commune && !communesByWilaya[selectedWilaya]?.includes(formData.commune)) {
+        setFormData((prev) => ({ ...prev, commune: "" }))
+      }
+    } else {
+      setCommunes([])
+    }
+  }, [selectedWilaya])
+
+  // Gérer les changements dans le formulaire
+  const handleChange = (field: keyof Order, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  // Ajouter un nouvel article
+  const addNewArticle = () => {
+    const newArticle: Article = {
+      id: `article-${Date.now()}`,
+      name: "",
+      sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      variants: [
+        {
+          id: `variant-${Date.now()}-0`,
+          size: "Unique",
+          color: "Noir",
+          quantity: 1,
+          price: 0,
+          stockStatus: "available",
+        },
+      ],
+    }
+    setSelectedArticles([...selectedArticles, newArticle])
+  }
+
+  // Supprimer un article
+  const removeArticle = (articleId: string) => {
+    setSelectedArticles(selectedArticles.filter((article) => article.id !== articleId))
+  }
+
+  // Mettre à jour un article
+  const updateArticle = (articleId: string, field: keyof Article, value: any) => {
+    if (field === "name") {
+      // When article name changes, fetch inventory data
+      const inventoryItem = getInventoryItem(value)
+
+      setSelectedArticles(
+        selectedArticles.map((article) => {
+          if (article.id === articleId) {
+            // If inventory item exists, update variants with stock info
+            if (inventoryItem) {
+              const updatedVariants = inventoryItem.variants.map((invVariant) => ({
+                id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                size: invVariant.size || "Unique",
+                color: invVariant.color || "Noir",
+                quantity: 1,
+                price: invVariant.price,
+                inventoryVariantId: invVariant.id,
+                availableStock: invVariant.stock,
+                stockStatus: invVariant.stockStatus,
+                expectedDate: invVariant.expectedDate,
+              }))
+
+              return {
+                ...article,
+                [field]: value,
+                sku: inventoryItem.sku,
+                variants: updatedVariants.length > 0 ? updatedVariants : article.variants,
+              }
+            } else {
+              // If no inventory item, just update the name
+              return { ...article, [field]: value }
+            }
+          }
+          return article
+        }),
+      )
+    } else {
+      // For other fields, just update normally
+      setSelectedArticles(
+        selectedArticles.map((article) => (article.id === articleId ? { ...article, [field]: value } : article)),
+      )
+    }
+  }
+
+  // Ajouter une variante à un article
+  const addVariant = (articleId: string) => {
+    setSelectedArticles(
+      selectedArticles.map((article) => {
+        if (article.id === articleId) {
+          return {
+            ...article,
+            variants: [
+              ...article.variants,
+              {
+                id: `variant-${articleId}-${article.variants.length}`,
+                size: "Unique",
+                color: "Noir",
+                quantity: 1,
+                price: article.variants[0]?.price || 0,
+                stockStatus: "available",
+              },
+            ],
+          }
+        }
+        return article
+      }),
+    )
+  }
+
+  // Supprimer une variante
+  const removeVariant = (articleId: string, variantId: string) => {
+    setSelectedArticles(
+      selectedArticles.map((article) => {
+        if (article.id === articleId) {
+          return {
+            ...article,
+            variants: article.variants.filter((variant) => variant.id !== variantId),
+          }
+        }
+        return article
+      }),
+    )
+  }
+
+  // Mettre à jour une variante
+  const updateVariant = (articleId: string, variantId: string, field: keyof ArticleVariant, value: any) => {
+    setSelectedArticles(
+      selectedArticles.map((article) => {
+        if (article.id === articleId) {
+          return {
+            ...article,
+            variants: article.variants.map((variant) =>
+              variant.id === variantId ? { ...variant, [field]: value } : variant,
+            ),
+          }
+        }
+        return article
+      }),
+    )
+  }
+
+  // Charger les articles d'une commande précédente
+  const loadPreviousOrderArticles = () => {
+    if (!selectedPreviousOrder) return
+
+    const previousOrder = previousOrders.find((order) => order.id === selectedPreviousOrder)
+    if (!previousOrder) return
+
+    const articleNames = previousOrder.articles.split(", ")
+    const structuredArticles: Article[] = articleNames.map((name, index) => ({
+      id: `article-${index}`,
+      name,
+      sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      variants: [
+        {
+          id: `variant-${index}-0`,
+          size: "Unique",
+          color: "Noir",
+          quantity: 1,
+          price: Math.floor(500 + Math.random() * 1500),
+          stockStatus: "available",
+        },
+      ],
+    }))
+
+    setSelectedArticles(structuredArticles)
+  }
+
+  // Calculer le prix total
+  const calculateTotalPrice = () => {
+    let total = 0
+    selectedArticles.forEach((article) => {
+      article.variants.forEach((variant) => {
+        total += variant.price * variant.quantity
+      })
+    })
+    return total
+  }
+
+  // Gérer la soumission du formulaire
+  const handleSubmit = () => {
+    // Vérifier les champs obligatoires
+    if (!formData.name || !formData.phone || selectedArticles.length === 0 || !selectedWilaya || !formData.commune) {
+      toast({
+        title: "Champs obligatoires manquants",
+        description: "Veuillez remplir tous les champs obligatoires.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Update inventory stock for each article variant
+    selectedArticles.forEach((article) => {
+      const inventoryItem = getInventoryItem(article.name)
+      if (inventoryItem) {
+        article.variants.forEach((variant) => {
+          if (variant.inventoryVariantId) {
+            updateInventoryStock(inventoryItem.id, variant.inventoryVariantId, variant.quantity)
+          }
+        })
+      }
+    })
+
+    // Convert the articles structured in format simple for the command
+    const articlesString = selectedArticles
+      .map((article) => {
+        const variantsText = article.variants
+          .map((v) => `${article.name} (${v.size || "Unique"}, ${v.color || "Standard"}, Qté: ${v.quantity})`)
+          .join(", ")
+        return variantsText
+      })
+      .join(", ")
+
+    // Calculate the total price
+    const totalPrice = calculateTotalPrice() + (formData.deliveryPrice || 0)
+
+    // Update the articles and total price
+    const updatedFormData = {
+      ...formData,
+      articles: articlesString,
+      wilaya: selectedWilaya,
+      totalPrice: totalPrice,
+    }
+
+    if (isNew) {
+      addOrder(updatedFormData as Order)
+      toast({
+        title: "Commande ajoutée",
+        description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
+      })
+    } else {
+      updateOrder(order!.id, updatedFormData)
+      toast({
+        title: "Commande mise à jour",
+        description: `La commande ${order!.id} a été mise à jour avec succès.`,
+      })
+    }
+
+    onOpenChange(false)
+  }
+
+  // Function to render stock status with appropriate styling
+  const renderStockStatus = (variant: ArticleVariant) => {
+    if (!variant.stockStatus || variant.stockStatus === "available") {
+      return (
+        <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-green-900/20 text-green-400">
+          {variant.availableStock !== undefined ? variant.availableStock : "En stock"}
+        </div>
+      )
+    } else if (variant.stockStatus === "coming_soon") {
+      return (
+        <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-yellow-900/20 text-yellow-400">
+          <Clock className="h-3 w-3 mr-1" />
+          Bientôt disponible {variant.expectedDate ? `(${variant.expectedDate})` : ""}
+        </div>
+      )
+    } else {
+      return (
+        <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-red-900/20 text-red-400">
+          <AlertTriangle className="h-3 w-3 mr-1" />
+          Non disponible
+        </div>
+      )
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{isNew ? "Ajouter une commande" : `Modifier la commande ${order?.id}`}</DialogTitle>
+          <DialogDescription>
+            {isNew
+              ? "Remplissez les informations pour ajouter une nouvelle commande."
+              : "Modifiez les informations de la commande."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          {/* Informations client */}
+          <div className="space-y-4 md:col-span-2">
+            <h3 className="text-lg font-medium">Informations client</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom du client *</Label>
+                <Input
+                  id="name"
+                  value={formData.name || ""}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  className="bg-slate-800/50 border-slate-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Téléphone principal *</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone || ""}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  className="bg-slate-800/50 border-slate-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone2">Téléphone secondaire</Label>
+                <Input
+                  id="phone2"
+                  value={formData.phone2 || ""}
+                  onChange={(e) => handleChange("phone2", e.target.value)}
+                  className="bg-slate-800/50 border-slate-700"
+                />
+              </div>
+              <div className="space-y-2 flex items-center">
+                <div className="flex items-center space-x-2">
+                  <Switch id="isExchange" checked={isExchange} onCheckedChange={setIsExchange} />
+                  <Label htmlFor="isExchange">Commande d'échange</Label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Commande d'échange */}
+          {isExchange && (
+            <div className="space-y-4 md:col-span-2">
+              <h3 className="text-lg font-medium">Détails de l'échange</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="previousOrder">Commande précédente</Label>
+                  <Select value={selectedPreviousOrder} onValueChange={setSelectedPreviousOrder}>
+                    <SelectTrigger id="previousOrder" className="bg-slate-800/50 border-slate-700">
+                      <SelectValue placeholder="Sélectionner une commande" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-800">
+                      {previousOrders.map((prevOrder) => (
+                        <SelectItem key={prevOrder.id} value={prevOrder.id}>
+                          {prevOrder.id} - {prevOrder.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 flex items-end">
+                  <Button
+                    onClick={loadPreviousOrderArticles}
+                    disabled={!selectedPreviousOrder}
+                    className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
+                  >
+                    Charger les articles
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Articles */}
+          <div className="space-y-4 md:col-span-2">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium">Articles *</h3>
+              <Button
+                onClick={addNewArticle}
+                size="sm"
+                className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter un article
+              </Button>
+            </div>
+
+            {selectedArticles.length === 0 ? (
+              <div className="text-center py-8 border border-dashed border-slate-700 rounded-md">
+                <p className="text-slate-400">Aucun article sélectionné. Ajoutez un article pour continuer.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {selectedArticles.map((article, index) => (
+                  <div key={article.id} className="p-4 border border-slate-700 rounded-md bg-slate-800/30">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium">Article {index + 1}</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeArticle(article.id)}
+                        className="text-red-400 hover:text-red-300 hover:bg-slate-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <Label htmlFor={`article-name-${article.id}`}>Nom de l'article *</Label>
+                        <Select
+                          value={article.name}
+                          onValueChange={(value) => updateArticle(article.id, "name", value)}
+                        >
+                          <SelectTrigger id={`article-name-${article.id}`} className="bg-slate-800/50 border-slate-700">
+                            <SelectValue placeholder="Sélectionner un article" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-900 border-slate-800">
+                            {availableArticles.map((name) => (
+                              <SelectItem key={name} value={name}>
+                                {name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`article-sku-${article.id}`}>SKU</Label>
+                        <Input
+                          id={`article-sku-${article.id}`}
+                          value={article.sku}
+                          onChange={(e) => updateArticle(article.id, "sku", e.target.value)}
+                          className="bg-slate-800/50 border-slate-700"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h5 className="text-sm font-medium">Variantes</h5>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addVariant(article.id)}
+                          className="text-xs border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Ajouter une variante
+                        </Button>
+                      </div>
+
+                      {article.variants.map((variant) => (
+                        <div
+                          key={variant.id}
+                          className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
+                        >
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
+                              Taille
+                            </Label>
+                            <Select
+                              value={variant.size || "Unique"}
+                              onValueChange={(value) => updateVariant(article.id, variant.id, "size", value)}
+                            >
+                              <SelectTrigger
+                                id={`variant-size-${variant.id}`}
+                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                              >
+                                <SelectValue placeholder="Taille" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-900 border-slate-800">
+                                {availableSizes.map((size) => (
+                                  <SelectItem key={size} value={size}>
+                                    {size}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
+                              Couleur
+                            </Label>
+                            <Select
+                              value={variant.color || "Noir"}
+                              onValueChange={(value) => updateVariant(article.id, variant.id, "color", value)}
+                            >
+                              <SelectTrigger
+                                id={`variant-color-${variant.id}`}
+                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                              >
+                                <SelectValue placeholder="Couleur" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-900 border-slate-800">
+                                {availableColors.map((color) => (
+                                  <SelectItem key={color} value={color}>
+                                    {color}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-quantity-${variant.id}`} className="text-xs">
+                              Quantité
+                            </Label>
+                            <Input
+                              id={`variant-quantity-${variant.id}`}
+                              type="number"
+                              min="1"
+                              max={variant.stockStatus === "available" ? variant.availableStock : 0}
+                              value={variant.quantity}
+                              onChange={(e) =>
+                                updateVariant(article.id, variant.id, "quantity", Number.parseInt(e.target.value) || 1)
+                              }
+                              className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                              disabled={variant.stockStatus !== "available"}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
+                              Stock disponible
+                            </Label>
+                            {renderStockStatus(variant)}
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-price-${variant.id}`} className="text-xs">
+                              Prix unitaire (DA)
+                            </Label>
+                            <Input
+                              id={`variant-price-${variant.id}`}
+                              type="number"
+                              min="0"
+                              value={variant.price}
+                              onChange={(e) =>
+                                updateVariant(article.id, variant.id, "price", Number.parseInt(e.target.value) || 0)
+                              }
+                              className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                            />
+                          </div>
+
+                          <div className="flex justify-end">
+                            {article.variants.length > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeVariant(article.id, variant.id)}
+                                className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-slate-700"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Informations de livraison */}
+          <div className="space-y-4 md:col-span-2">
+            <h3 className="text-lg font-medium">Informations de livraison</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="wilaya">Wilaya *</Label>
+                <Select
+                  value={selectedWilaya}
+                  onValueChange={(value) => {
+                    setSelectedWilaya(value)
+                    handleChange("wilaya", value)
+                  }}
+                >
+                  <SelectTrigger id="wilaya" className="bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Sélectionner une wilaya" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    {wilayas.map((wilaya) => (
+                      <SelectItem key={wilaya} value={wilaya}>
+                        {wilaya}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="commune">Commune *</Label>
+                <Select
+                  value={formData.commune || ""}
+                  onValueChange={(value) => handleChange("commune", value)}
+                  disabled={!selectedWilaya}
+                >
+                  <SelectTrigger id="commune" className="bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Sélectionner une commune" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    {communes.map((commune) => (
+                      <SelectItem key={commune} value={commune}>
+                        {commune}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deliveryType">Type de livraison *</Label>
+                <Select
+                  value={formData.deliveryType || ""}
+                  onValueChange={(value) => handleChange("deliveryType", value)}
+                >
+                  <SelectTrigger id="deliveryType" className="bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Sélectionner un type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    {deliveryTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deliveryCompany">Entreprise de livraison *</Label>
+                <Select
+                  value={formData.deliveryCompany || ""}
+                  onValueChange={(value) => handleChange("deliveryCompany", value)}
+                >
+                  <SelectTrigger id="deliveryCompany" className="bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Sélectionner une entreprise" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    {deliveryCompanies.map((company) => (
+                      <SelectItem key={company} value={company}>
+                        {company}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.deliveryType === "Point de relais" && (
+                <div className="space-y-2">
+                  <Label htmlFor="pickupPoint">Point de relais *</Label>
+                  <Select
+                    value={formData.pickupPoint || ""}
+                    onValueChange={(value) => handleChange("pickupPoint", value)}
+                  >
+                    <SelectTrigger id="pickupPoint" className="bg-slate-800/50 border-slate-700">
+                      <SelectValue placeholder="Sélectionner un point de relais" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-800">
+                      {pickupPoints.map((point) => (
+                        <SelectItem key={point} value={point}>
+                          {point}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="address">Adresse *</Label>
+                <Textarea
+                  id="address"
+                  value={formData.address || ""}
+                  onChange={(e) => handleChange("address", e.target.value)}
+                  className="bg-slate-800/50 border-slate-700 min-h-[80px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="additionalInfo">Informations supplémentaires</Label>
+                <Textarea
+                  id="additionalInfo"
+                  value={formData.additionalInfo || ""}
+                  onChange={(e) => handleChange("additionalInfo", e.target.value)}
+                  className="bg-slate-800/50 border-slate-700 min-h-[80px]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Informations de paiement */}
+          <div className="space-y-4 md:col-span-2">
+            <h3 className="text-lg font-medium">Informations de paiement</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="deliveryPrice">Prix de livraison (DA) *</Label>
+                <Input
+                  id="deliveryPrice"
+                  type="number"
+                  value={formData.deliveryPrice || ""}
+                  onChange={(e) => handleChange("deliveryPrice", Number(e.target.value))}
+                  className="bg-slate-800/50 border-slate-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="calculatedTotalPrice">Prix total calculé (DA)</Label>
+                <Input
+                  id="calculatedTotalPrice"
+                  type="number"
+                  value={calculateTotalPrice() + (formData.deliveryPrice || 0)}
+                  disabled
+                  className="bg-slate-800/50 border-slate-700 opacity-70"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Informations supplémentaires */}
+          <div className="space-y-4 md:col-span-2">
+            <h3 className="text-lg font-medium">Informations supplémentaires</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="source">Source *</Label>
+                <Select value={formData.source || ""} onValueChange={(value) => handleChange("source", value)}>
+                  <SelectTrigger id="source" className="bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Sélectionner une source" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    {sources.map((source) => (
+                      <SelectItem key={source} value={source}>
+                        {source}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmatrice">Confirmatrice *</Label>
+                <Select
+                  value={formData.confirmatrice || ""}
+                  onValueChange={(value) => handleChange("confirmatrice", value)}
+                >
+                  <SelectTrigger id="confirmatrice" className="bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Sélectionner une confirmatrice" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    {confirmatrices.map((confirmatrice) => (
+                      <SelectItem key={confirmatrice} value={confirmatrice}>
+                        {confirmatrice}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmationStatus">Statut de confirmation *</Label>
+                <Select
+                  value={formData.confirmationStatus || ""}
+                  onValueChange={(value) => handleChange("confirmationStatus", value)}
+                >
+                  <SelectTrigger id="confirmationStatus" className="bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Sélectionner un statut" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    {confirmationStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
+          >
+            {isNew ? "Ajouter" : "Enregistrer"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
