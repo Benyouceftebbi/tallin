@@ -169,7 +169,7 @@ export function CustomersManagement({
                 </TableHeader>
                 <TableBody>
                   {filteredCustomers.length > 0 ? (
-                    filteredCustomers.map((customer) => (
+                    filteredCustomers?.map((customer) => (
                       <TableRow key={customer.id}>
                         <TableCell className="font-medium">{customer.name}</TableCell>
                         <TableCell>{customer.contact}</TableCell>

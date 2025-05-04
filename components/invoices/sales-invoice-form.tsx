@@ -176,7 +176,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
   // Mettre à jour une variante
   const updateVariant = (variantId: string, field: string, value: string | number | boolean) => {
     setCurrentVariants(
-      currentVariants.map((variant) => {
+      currentVariants?.map((variant) => {
         if (variant.id === variantId) {
           if (field === "quantity" || field === "packQuantity" || field === "unitPrice" || field === "packSize") {
             // Si on met à jour la quantité en unités, mettre à jour la quantité en packs
@@ -418,7 +418,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
       const packVariants = packVariantGroups[groupKey]
 
       // Créer un ensemble complet d'attributs en ajoutant les attributs manquants
-      const completeAttributes: { type: string; value: string }[] = packVariants.map((variant) => ({
+      const completeAttributes: { type: string; value: string }[] = packVariants?.map((variant) => ({
         type: variant.attribute,
         value: variant.value,
       }))
@@ -702,7 +702,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                       <SelectValue placeholder="Sélectionner un produit" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.map((product) => (
+                      {products?.map((product) => (
                         <SelectItem key={product.id} value={product.id}>
                           {product.name}
                         </SelectItem>
@@ -742,7 +742,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                           </Button>
                         </div>
 
-                        {currentVariants.map((variant, index) => {
+                        {currentVariants?.map((variant, index) => {
                           const matchingVariant = findMatchingVariant(variant.id)
 
                           return (
@@ -752,7 +752,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                               </CardHeader>
                               <CardContent>
                                 <div className="grid grid-cols-2 gap-4">
-                                  {selectedProduct.variantTypes.map((attrType: string) => (
+                                  {selectedProduct.variantTypes?.map((attrType: string) => (
                                     <div key={attrType} className="space-y-2">
                                       <Label htmlFor={`${variant.id}-${attrType}`}>
                                         {attrType === "size"
@@ -781,7 +781,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                                           />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          {getAttributeValues(attrType, variant.id).map((value) => (
+                                          {getAttributeValues(attrType, variant.id)?.map((value) => (
                                             <SelectItem key={value} value={value}>
                                               {value}
                                             </SelectItem>
@@ -901,7 +901,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                                 <SelectValue placeholder="Sélectionner un pack" />
                               </SelectTrigger>
                               <SelectContent>
-                                {packs.map((pack) => (
+                                {packs?.map((pack) => (
                                   <SelectItem key={pack.id} value={pack.id}>
                                     {pack.name}
                                   </SelectItem>
@@ -935,12 +935,12 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {invoiceItems.map((item) => (
+                        {invoiceItems?.map((item) => (
                           <TableRow key={item.id}>
                             <TableCell>{item.productName}</TableCell>
                             <TableCell>
                               <div className="flex flex-wrap gap-1">
-                                {item.attributes.map((attr, i) => (
+                                {item.attributes?.map((attr, i) => (
                                   <Badge key={i} variant="outline">
                                     {formatAttributeDisplay(attr)}
                                   </Badge>
@@ -1013,7 +1013,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {Object.keys(missingVariantTypes).map((groupKey) => {
+            {Object.keys(missingVariantTypes)?.map((groupKey) => {
               const [attribute, value] = groupKey.split(":")
               return (
                 <div key={groupKey} className="space-y-4">
@@ -1021,7 +1021,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                     Pour {attribute}: {value}
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
-                    {missingVariantTypes[groupKey].map((type) => (
+                    {missingVariantTypes[groupKey]?.map((type) => (
                       <div key={type} className="space-y-2">
                         <Label htmlFor={`missing-${groupKey}-${type}`}>
                           {type === "size"
@@ -1040,7 +1040,7 @@ export function SalesInvoiceForm({ open, onOpenChange }: SalesInvoiceFormProps) 
                             <SelectValue placeholder={`Sélectionner ${type}`} />
                           </SelectTrigger>
                           <SelectContent>
-                            {getProductAttributeValues(type).map((value) => (
+                            {getProductAttributeValues(type)?.map((value) => (
                               <SelectItem key={value} value={value}>
                                 {value}
                               </SelectItem>

@@ -206,7 +206,7 @@ export function SuppliersManagement({
   const handleSaveSupplier = (supplier: Supplier) => {
     if (editingSupplier) {
       // Mise à jour d'un fournisseur existant
-      setSuppliers(suppliers.map((s) => (s.id === supplier.id ? supplier : s)))
+      setSuppliers(suppliers?.map((s) => (s.id === supplier.id ? supplier : s)))
       setEditingSupplier(null)
       toast({
         title: "Fournisseur mis à jour",
@@ -270,7 +270,7 @@ export function SuppliersManagement({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {suppliers.map((supplier) => (
+                {suppliers?.map((supplier) => (
                   <TableRow key={supplier.id} className={selectable ? "cursor-pointer hover:bg-muted/50" : ""}>
                     <TableCell
                       className="font-medium"

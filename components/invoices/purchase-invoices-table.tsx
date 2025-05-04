@@ -160,7 +160,7 @@ export function PurchaseInvoicesTable({ filterStatus }: { filterStatus?: "pendin
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedInvoices.map((invoice) => (
+          {sortedInvoices?.map((invoice) => (
             <TableRow key={invoice.id}>
               <TableCell>
                 <Checkbox />

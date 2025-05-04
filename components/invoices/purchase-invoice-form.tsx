@@ -466,7 +466,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
   // Add a function to handle pack selection for a variant
   const handlePackSelection = (variantId: string, packId: string, pack: Pack) => {
     setCurrentVariants(
-      currentVariants.map((variant) => {
+      currentVariants?.map((variant) => {
         if (variant.id === variantId) {
           return {
             ...variant,
@@ -489,7 +489,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
   // Mettre à jour une variante
   const updateVariant = (variantId: string, field: string, value: string | number | boolean) => {
     setCurrentVariants(
-      currentVariants.map((variant) => {
+      currentVariants?.map((variant) => {
         if (variant.id === variantId) {
           if (field === "quantity" || field === "packQuantity" || field === "unitPrice" || field === "packSize") {
             // Si on met à jour la quantité en unités, mettre à jour la quantité en packs
@@ -926,7 +926,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                         <SelectValue placeholder="Sélectionner un produit" />
                       </SelectTrigger>
                       <SelectContent>
-                        {products.map((product) => (
+                        {products?.map((product) => (
                           <SelectItem key={product.id} value={product.id}>
                             {product.name} ({product.sku})
                           </SelectItem>
@@ -955,7 +955,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                             </Button>
                           </div>
 
-                          {currentVariants.map((variant, index) => {
+                          {currentVariants?.map((variant, index) => {
                             const matchingVariant = findMatchingVariant(variant.id)
 
                             return (
@@ -965,7 +965,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                                 </CardHeader>
                                 <CardContent>
                                   <div className="grid grid-cols-2 gap-4">
-                                    {selectedProduct.variantTypes.map((attrType) => (
+                                    {selectedProduct.variantTypes?.map((attrType) => (
                                       <div key={attrType} className="space-y-2">
                                         <Label htmlFor={`${variant.id}-${attrType}`}>
                                           {attrType === "size"
@@ -994,7 +994,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                                             />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            {getAttributeValues(attrType, variant.id).map((value) => (
+                                            {getAttributeValues(attrType, variant.id)?.map((value) => (
                                               <SelectItem key={value} value={value}>
                                                 {value}
                                               </SelectItem>
@@ -1094,7 +1094,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
 
                             {filteredPacks.length > 0 ? (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {filteredPacks.map((pack) => (
+                                {filteredPacks?.map((pack) => (
                                   <Card key={pack.id} className="overflow-hidden">
                                     <CardHeader className="pb-2">
                                       <CardTitle className="text-base">{pack.name}</CardTitle>
@@ -1107,12 +1107,12 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                                         <h5 className="text-sm font-medium">Combinaisons:</h5>
                                         <ul className="text-sm space-y-1">
                                           {pack.variants &&
-                                            pack.variants.map((variant, idx) => (
+                                            pack.variants?.map((variant, idx) => (
                                               <li key={idx} className="flex justify-between">
                                                 <span>
                                                   {Object.entries(variant)
                                                     .filter(([key]) => key !== "id" && key !== "unity")
-                                                    .map(
+                                                    ?.map(
                                                       ([key, value]) =>
                                                         `${key === "size" ? "Taille" : key === "color" ? "Couleur" : key === "material" ? "Matériau" : key}: ${value}`,
                                                     )
@@ -1214,12 +1214,12 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {invoiceItems.map((item) => (
+                      {invoiceItems?.map((item) => (
                         <TableRow key={item.id}>
                           <TableCell>{item.productName}</TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-1">
-                              {item.attributes.map((attr, i) => (
+                              {item.attributes?.map((attr, i) => (
                                 <span key={i} className="text-sm">
                                   {formatAttributeDisplay(attr)}
                                 </span>

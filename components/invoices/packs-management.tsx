@@ -136,7 +136,7 @@ export function PacksManagement({
 
     // Supprimer ce type de toutes les combinaisons
     setCombinations(
-      combinations.map((combo) => {
+      combinations?.map((combo) => {
         const newCombo = { ...combo }
         delete newCombo[type]
         return newCombo
@@ -205,7 +205,7 @@ export function PacksManagement({
   // Mettre à jour une combinaison existante
   const updateCombination = (comboId: string, attribute: string, value: string | number) => {
     setCombinations(
-      combinations.map((combo) => {
+      combinations?.map((combo) => {
         if (combo.id === comboId) {
           return {
             ...combo,
@@ -247,7 +247,7 @@ export function PacksManagement({
     if (editMode && currentPack) {
       // Mettre à jour un pack existant
       if (setPacks) {
-        setPacks(packs.map((p) => (p.id === currentPack.id ? packToSave : p)))
+        setPacks(packs?.map((p) => (p.id === currentPack.id ? packToSave : p)))
       }
       toast({
         title: "Succès",
@@ -322,7 +322,7 @@ export function PacksManagement({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {packs.map((pack) => (
+                      {packs?.map((pack) => (
                         <TableRow key={pack.id}>
                           <TableCell className="font-medium">{pack.name}</TableCell>
                           <TableCell>{pack.description || "-"}</TableCell>
@@ -336,7 +336,7 @@ export function PacksManagement({
                                       Object.keys(v).filter((k) => k !== "id" && k !== "unity"),
                                     ),
                                   ),
-                                ).map((attr) => (
+                                )?.map((attr) => (
                                   <Badge key={attr} variant="outline">
                                     {translateVariantType(attr)}
                                   </Badge>
@@ -416,7 +416,7 @@ export function PacksManagement({
                   <div className="space-y-2">
                     <h4 className="font-medium">Types de variantes</h4>
                     <div className="flex flex-wrap gap-2">
-                      {["size", "color", "material", "style"].map((type) => (
+                      {["size", "color", "material", "style"]?.map((type) => (
                         <Badge
                           key={type}
                           variant={selectedVariantTypes.includes(type as VariantType) ? "default" : "outline"}
@@ -456,7 +456,7 @@ export function PacksManagement({
                           />
                         </div>
 
-                        {selectedVariantTypes.map((type) => (
+                        {selectedVariantTypes?.map((type) => (
                           <div key={type} className="space-y-2">
                             <Label htmlFor={`new-${type}`}>{translateVariantType(type)}</Label>
                             <Select
@@ -467,7 +467,7 @@ export function PacksManagement({
                                 <SelectValue placeholder={`Sélectionner ${translateVariantType(type).toLowerCase()}`} />
                               </SelectTrigger>
                               <SelectContent>
-                                {presetValues[type].map((value) => (
+                                {presetValues[type]?.map((value) => (
                                   <SelectItem key={value} value={value}>
                                     {value}
                                   </SelectItem>
@@ -495,14 +495,14 @@ export function PacksManagement({
                           <TableHeader>
                             <TableRow>
                               <TableHead>Quantité</TableHead>
-                              {selectedVariantTypes.map((type) => (
+                              {selectedVariantTypes?.map((type) => (
                                 <TableHead key={type}>{translateVariantType(type)}</TableHead>
                               ))}
                               <TableHead className="w-[80px]">Actions</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {combinations.map((combo) => (
+                            {combinations?.map((combo) => (
                               <TableRow key={combo.id}>
                                 <TableCell>
                                   <Input
@@ -515,7 +515,7 @@ export function PacksManagement({
                                     className="w-20"
                                   />
                                 </TableCell>
-                                {selectedVariantTypes.map((type) => (
+                                {selectedVariantTypes?.map((type) => (
                                   <TableCell key={type}>{combo[type] || "-"}</TableCell>
                                 ))}
                                 <TableCell>
