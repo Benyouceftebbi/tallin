@@ -45,15 +45,26 @@ import {
 import { DateRangePicker, type DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { getAllWilayas, getCommunesByWilayaName, normalizeString } from "@/app/commandes/en-attente/data/algeria-regions"
+import { isStopDeskAvailable } from "@/app/commandes/en-attente/data/shipping-availability"
+import { getYalidinCentersForCommune } from "@/app/commandes/en-attente/data/yalidin-centers"
 
 export function EnAttenteTable() {
-  const { getOrdersByStatus, updateMultipleOrdersStatus, updateOrder, loading, updateConfirmationStatus } = useShop()
+  const {
+    getOrdersByStatus,
+    updateMultipleOrdersStatus,
+    updateOrder,
+    loading,
+    updateConfirmationStatus,
+    deliveryCompanies, // Assuming this comes from the shop context
+    deliveryCenters,workers,orders // Assuming this comes from the shop context
+  } = useShop()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false)
-  const [isConfirmatriceModalOpen, setIsConfirmatriceModalOpen] = useState("")
+  const [isConfirmatriceModalOpen, setIsConfirmatriceModalOpen] = useState(false)
   const [selectedConfirmatrice, setSelectedConfirmatrice] = useState("")
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
@@ -61,6 +72,7 @@ export function EnAttenteTable() {
   const [wilayaFilter, setWilayaFilter] = useState<string>("all")
   const [communeFilter, setCommuneFilter] = useState<string>("all")
   const [deliveryCompanyFilter, setDeliveryCompanyFilter] = useState<string>("all")
+  const [deliveryCenterFilter, setDeliveryCenterFilter] = useState<string>("all") // New filter for delivery center
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [sourceFilter, setSourceFilter] = useState<string>("all")
@@ -77,7 +89,8 @@ export function EnAttenteTable() {
     wilaya: true,
     commune: true,
     deliveryType: true,
-    deliveryCompany: true,
+    deliveryCompany: true, // Renamed from "entreprise"
+    deliveryCenter: true, // New column
     status: true,
     pickupPoint: false,
     deliveryPrice: true,
@@ -88,41 +101,49 @@ export function EnAttenteTable() {
     source: true,
   })
 
-  // Obtenir les commandes confirmées - mémorisé pour éviter des appels inutiles
-  const allOrders = useMemo(() => getOrdersByStatus("Confirmés"), [getOrdersByStatus])
+
+
 
   // Filtrer pour n'avoir que les commandes en attente
-  const orders = useMemo(() => {
-    return allOrders.filter(
-      (order) => order.confirmationStatus !== "Confirmé" && order.confirmationStatus !== undefined,
+const ordersWait = useMemo(() => {
+    return orders.filter(
+      (order) => order.confirmationStatus ==="En attente" || order.status==="en-attente",
     )
-  }, [allOrders])
+  }, [orders])
+
 
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
-  const wilayas = useMemo(() => Array.from(new Set(orders.map((order) => order.wilaya))), [orders])
-  const communes = useMemo(() => Array.from(new Set(orders.map((order) => order.commune))), [orders])
-  const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
-  const deliveryTypes = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryType))), [orders])
-  const confirmationStatuses = useMemo(
-    () => Array.from(new Set(orders.map((order) => order.confirmationStatus || "Non défini"))),
-    [orders],
+  const wilayas =getAllWilayas()
+    .sort((a, b) => a.name_ascii.localeCompare(b.name_ascii)) 
+
+
+  const deliveryCompanyList = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.deliveryCompany))), [ordersWait])
+  const deliveryCenterList = useMemo(
+    () => Array.from(new Set(ordersWait.map((order) => order.deliveryCenter || ""))),
+    [ordersWait],
   )
-  const sources = useMemo(() => Array.from(new Set(orders.map((order) => order.source))), [orders])
-  const confirmatrices = useMemo(() => Array.from(new Set(orders.map((order) => order.confirmatrice))), [orders])
+  const deliveryTypes = ["stopdesk","domicile"]
+  const confirmationStatuses = useMemo(
+    () => Array.from(new Set(ordersWait.map((order) => order.confirmationStatus || "Non défini"))),
+    [ordersWait],
+  )
+  const sources = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.source))), [ordersWait])
+  const confirmatrices = workers.filter(w=>w.role==='Confirmatrice').map(c=>c.name)
 
   // Extraire tous les articles uniques de toutes les commandes
   const articles = useMemo(() => {
-    const allArticles = new Set<string>()
-    orders.forEach((order) => {
-      const orderArticles = order.articles.split(", ")
-      orderArticles.forEach((article) => allArticles.add(article))
-    })
-    return Array.from(allArticles)
-  }, [orders])
+    const allArticles = new Set<string>();
+    ordersWait.forEach((order) => {
+      order.articles.forEach((article: { product_name: string }) => {
+        allArticles.add(article.product_name);
+      });
+    });
+    return Array.from(allArticles);
+  }, [ordersWait]);
 
   // Filtrer les commandes en fonction des critères - mémorisé pour éviter des recalculs
   const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
+    return ordersWait.filter((order) => {
       const matchesSearch =
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -133,6 +154,7 @@ export function EnAttenteTable() {
       const matchesWilaya = wilayaFilter === "all" || order.wilaya === wilayaFilter
       const matchesCommune = communeFilter === "all" || order.commune === communeFilter
       const matchesDeliveryCompany = deliveryCompanyFilter === "all" || order.deliveryCompany === deliveryCompanyFilter
+      const matchesDeliveryCenter = deliveryCenterFilter === "all" || order.deliveryCenter === deliveryCenterFilter
       const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter
       const matchesStatus = statusFilter === "all" || order.confirmationStatus === statusFilter
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
@@ -159,6 +181,7 @@ export function EnAttenteTable() {
         matchesWilaya &&
         matchesCommune &&
         matchesDeliveryCompany &&
+        matchesDeliveryCenter &&
         matchesDeliveryType &&
         matchesStatus &&
         matchesSource &&
@@ -168,11 +191,12 @@ export function EnAttenteTable() {
       )
     })
   }, [
-    orders,
+    ordersWait,
     searchTerm,
     wilayaFilter,
     communeFilter,
     deliveryCompanyFilter,
+    deliveryCenterFilter,
     deliveryTypeFilter,
     statusFilter,
     sourceFilter,
@@ -214,7 +238,7 @@ export function EnAttenteTable() {
     }
 
     selectedRows.forEach((id) => {
-      updateOrder(id, { confirmationStatus: "Confirmé" })
+      updateOrder(id, { confirmationStatus: "Confirmé",    status: "Confirmé", })
     })
 
     toast({
@@ -280,6 +304,8 @@ export function EnAttenteTable() {
     }
 
     selectedRows.forEach((id) => {
+      console.log("id");
+      
       updateOrder(id, { confirmatrice: selectedConfirmatrice })
     })
 
@@ -307,6 +333,7 @@ export function EnAttenteTable() {
     setWilayaFilter("all")
     setCommuneFilter("all")
     setDeliveryCompanyFilter("all")
+    setDeliveryCenterFilter("all")
     setDeliveryTypeFilter("all")
     setStatusFilter("all")
     setSourceFilter("all")
@@ -374,7 +401,7 @@ export function EnAttenteTable() {
   // Gérer le déplacement d'une commande individuelle - mémorisé
   const handleConfirmOrder = useCallback(
     (orderId: string) => {
-      updateOrder(orderId, { confirmationStatus: "Confirmé" })
+      updateOrder(orderId, { confirmationStatus: "Confirmé" ,status: "Confirmé"})
       toast({
         title: "Commande confirmée",
         description: `La commande a été confirmée.`,
@@ -383,6 +410,70 @@ export function EnAttenteTable() {
     [updateOrder],
   )
 
+  // Mettre à jour la société de livraison d'une commande
+  const handleUpdateDeliveryCompany = useCallback(
+    (orderId: string, companyId: string) => {
+      updateOrder(orderId, { deliveryCompany: companyId })
+      toast({
+        title: "Société de livraison mise à jour",
+        description: `La société de livraison a été mise à jour.`,
+      })
+    },
+    [updateOrder],
+  )
+
+  // Mettre à jour le centre de livraison d'une commande
+  const handleUpdateDeliveryCenter = useCallback(
+    (orderId: string, centerId: string) => {
+      updateOrder(orderId, { deliveryCenter: centerId })
+      toast({
+        title: "Centre de livraison mis à jour",
+        description: `Le centre de livraison a été mis à jour.`,
+      })
+    },
+    [updateOrder],
+  )
+
+  // Mettre à jour la wilaya d'une commande
+  const handleUpdateWilaya = useCallback(
+    (orderId: string, wilaya: string) => {
+      updateOrder(orderId, { wilaya })
+      toast({
+        title: "Wilaya mise à jour",
+        description: `La wilaya a été mise à jour.`,
+      })
+    },
+    [updateOrder],
+  )
+
+  // Mettre à jour la commune d'une commande
+  const handleUpdateCommune = useCallback(
+    (orderId: string, commune: string) => {
+      updateOrder(orderId, { commune })
+      toast({
+        title: "Commune mise à jour",
+        description: `La commune a été mise à jour.`,
+      })
+    },
+    [updateOrder],
+  )
+
+  // Mettre à jour le type de livraison d'une commande
+  const handleUpdateDeliveryType = useCallback(
+    (orderId: string, deliveryType: DeliveryType) => {
+      updateOrder(orderId, { deliveryType })
+      toast({
+        title: "Type de livraison mis à jour",
+        description: `Le type de livraison a été mis à jour.`,
+      })
+    },
+    [updateOrder],
+  )
+  const changeConfirmatrices = (e) => {
+ 
+  
+
+  }
   if (loading) {
     return (
       <div className="space-y-4">
@@ -423,7 +514,7 @@ export function EnAttenteTable() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Select value={selectedConfirmatrice} onValueChange={setSelectedConfirmatrice}>
+            <Select value={selectedConfirmatrice} onValueChange={(e)=>{setSelectedConfirmatrice(e);changeConfirmatrices(e)}}>
               <SelectTrigger className="bg-slate-800/50 border-slate-700">
                 <SelectValue placeholder="Sélectionner une confirmatrice" />
               </SelectTrigger>
@@ -592,7 +683,14 @@ export function EnAttenteTable() {
                 onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, deliveryCompany: checked })}
                 className="hover:bg-slate-800 focus:bg-slate-800"
               >
-                Entreprise de livraison
+                Société de livraison
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.deliveryCenter}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, deliveryCenter: checked })}
+                className="hover:bg-slate-800 focus:bg-slate-800"
+              >
+                Centre de livraison
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={visibleColumns.status}
@@ -681,36 +779,42 @@ export function EnAttenteTable() {
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Wilaya</SelectItem>
             {wilayas.map((wilaya) => (
-              <SelectItem key={wilaya} value={wilaya}>
-                {wilaya}
-              </SelectItem>
+  <SelectItem
+  key={wilaya.code}
+  value={wilaya.name_ascii}
+
+>
+  {wilaya.name_ascii} ({wilaya.name})
+</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select value={communeFilter} onValueChange={setCommuneFilter}>
-          <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700">
-            <SelectValue placeholder="Commune" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all">Commune</SelectItem>
-            {communes.map((commune) => (
-              <SelectItem key={commune} value={commune}>
-                {commune}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
 
         <Select value={deliveryCompanyFilter} onValueChange={setDeliveryCompanyFilter}>
           <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
-            <SelectValue placeholder="Entreprise" />
+            <SelectValue placeholder="Société de livraison" />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all">Entreprise</SelectItem>
-            {deliveryCompanies.map((company) => (
-              <SelectItem key={company} value={company}>
-                {company}
+            <SelectItem value="all">Société de livraison</SelectItem>
+            {[...deliveryCompanies,{companyId:"deliveryMen"}].map((company) => (
+              <SelectItem key={company.companyId} value={company.companyId}>
+                {company.companyId}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={deliveryCenterFilter} onValueChange={setDeliveryCenterFilter}>
+          <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
+            <SelectValue placeholder="Centre de livraison" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-900 border-slate-800">
+            <SelectItem value="all">Centre de livraison</SelectItem>
+            {deliveryCenterList.map((center) => (
+              <SelectItem key={center} value={center}>
+                {center || "Non défini"}
               </SelectItem>
             ))}
           </SelectContent>
@@ -832,7 +936,10 @@ export function EnAttenteTable() {
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Type de livraison</th>
                   )}
                   {visibleColumns.deliveryCompany && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Entreprise</th>
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Société de livraison</th>
+                  )}
+                  {visibleColumns.deliveryCenter && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Centre de livraison</th>
                   )}
                   {visibleColumns.status && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Statut</th>
@@ -938,18 +1045,147 @@ export function EnAttenteTable() {
                         </td>
                       )}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
-                      {visibleColumns.articles && <td className="p-3 text-slate-300">{order.articles}</td>}
-                      {visibleColumns.wilaya && <td className="p-3 text-slate-300">{order.wilaya}</td>}
-                      {visibleColumns.commune && <td className="p-3 text-slate-300">{order.commune}</td>}
+                      {visibleColumns.articles && (
+  <td className="p-3 text-slate-300">
+    {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
+  </td>
+)}
+                      {visibleColumns.wilaya && (
+                        <td className="p-3 text-slate-300">
+                          <Select
+                            defaultValue={order.wilaya}
+                            onValueChange={(value) => handleUpdateWilaya(order.id, value)}
+                          >
+                            <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
+                              <SelectValue placeholder="Wilaya" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {wilayas.map((wilaya) =>  {
+                  // Check if this wilaya matches the current value using normalized comparison
+                  const isSelected = normalizeString(wilaya.name_ascii) === normalizeString(order.wilaya)
+                  return (
+                    <SelectItem
+                      key={wilaya.code}
+                      value={wilaya.name_ascii}
+                      className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
+                    >
+                      {wilaya.name_ascii} ({wilaya.name}){isSelected && " ✓"}
+                    </SelectItem>
+                  )
+                })}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      )}
+                      {visibleColumns.commune && (
+                        <td className="p-3 text-slate-300">
+  <Select
+    defaultValue={order.commune}
+    onValueChange={(value) => handleUpdateCommune(order.id, value)}
+  >
+    <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
+      <SelectValue placeholder="Commune" />
+    </SelectTrigger>
+    <SelectContent className="bg-slate-900 border-slate-800">
+      {getCommunesByWilayaName(order.wilaya)
+        .map((commune) => ({
+          id: commune.id,
+          namefr: commune.commune_name_ascii,
+          namear: commune.commune_name,
+          normalizedName: normalizeString(commune.commune_name_ascii),
+        }))
+        .sort((a, b) => a.namefr.localeCompare(b.namefr))
+        .map((commune) => {
+          const isSelected =
+            normalizeString(commune.namefr) === normalizeString(order.commune)
+          const hasStopDesk = isStopDeskAvailable(commune.namefr)
+
+          return (
+            <SelectItem
+              key={commune.id}
+              value={commune.namefr}
+              className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
+            >
+              <div className="flex items-center justify-between w-full">
+                <span>
+                  {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
+                  {isSelected && " ✓"}
+                </span>
+                {!hasStopDesk && order.deliveryType === "stopdesk" && (
+                  <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
+          no stopdesk
+                  </span>
+                )}
+              </div>
+            </SelectItem>
+          )
+        })}
+    </SelectContent>
+  </Select>
+</td>
+                      )}
                       {visibleColumns.deliveryType && (
                         <td className="p-3 text-slate-300">
-                          <Badge className={getDeliveryTypeColor(order.deliveryType)} variant="outline">
-                            {order.deliveryType}
-                          </Badge>
+                          <Select
+                            defaultValue={order.deliveryType}
+                            onValueChange={(value) => handleUpdateDeliveryType(order.id, value as DeliveryType)}
+                          >
+                            <SelectTrigger
+                              className={cn("h-8 w-full border", getDeliveryTypeColor(order.deliveryType))}
+                            >
+                              <SelectValue placeholder="Type" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {deliveryTypes.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                  {type}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </td>
                       )}
                       {visibleColumns.deliveryCompany && (
-                        <td className="p-3 text-slate-300">{order.deliveryCompany}</td>
+                        <td className="p-3 text-slate-300">
+                          <Select
+                            defaultValue={order.deliveryCompany}
+                            onValueChange={(value) => handleUpdateDeliveryCompany(order.id, value)}
+                          >
+                            <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
+                              <SelectValue placeholder="Société de livraison" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {[...deliveryCompanies,{companyId:"deliveryMen"}].map((center) => (
+                                <SelectItem key={center.companyId} value={center.companyId}>
+                                  {center.companyId || "Non défini"}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      )}
+   {visibleColumns.deliveryCenter && (
+                        <td className="p-3 text-slate-300">
+                          <Select
+                            defaultValue={order.deliveryCenter || ""}
+                            onValueChange={(value) => handleUpdateDeliveryCenter(order.id, value)}
+                          >
+                            <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
+                              <SelectValue placeholder="Centre de livraison" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              { getYalidinCentersForCommune(order.commune) .sort((a, b) => a.name.localeCompare(b.name)).map((desk) => {
+                      // Use key for NOEST centers and center_id for Yalidin centers
+                      const centerId =desk.center_id
+                      return (
+                        <SelectItem key={centerId} value={centerId?.toString() || ""}>
+                          {desk.name}
+                        </SelectItem>
+                      )
+                    })}
+                            </SelectContent>
+                          </Select>
+                        </td>
                       )}
                       {visibleColumns.status && (
                         <td className="p-3 text-slate-300">

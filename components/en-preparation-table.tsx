@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { useState, useRef, useCallback, useMemo, useEffect } from "react"
 import {
   CheckCircle,
   MoreHorizontal,
@@ -65,9 +63,6 @@ const deliverymen = [
   "Amine Taleb",
 ]
 
-// Liste des sociétés de livraison
-const deliveryCompanies = ["Yassir Express", "Temtem", "Weslili", "DHL", "UPS", "FedEx", "Aramex"]
-
 // Type pour le mode de scan
 type ScanMode = "delivery_company" | "assign_deliveryman" | "dispatch_deliveryman" | null
 
@@ -76,8 +71,79 @@ type VisibleColumns = {
   [key: string]: boolean
 }
 
-export function EnPreparationTable() {
-  const { getOrdersByStatus, updateOrder, updateMultipleOrdersStatus, loading } = useShop()
+// Utility functions for audio feedback
+const playSuccessSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+
+    oscillator.type = "sine"
+    oscillator.frequency.setValueAtTime(1200, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1)
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.2)
+  } catch (error) {
+    console.error("Error playing success sound:", error)
+  }
+}
+
+const playAlertSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+
+    oscillator.type = "square"
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime)
+    oscillator.frequency.setValueAtTime(220, audioContext.currentTime + 0.1)
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime + 0.2)
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.3)
+  } catch (error) {
+    console.error("Error playing alert sound:", error)
+  }
+}
+
+const playWarningSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+
+    oscillator.type = "triangle"
+    oscillator.frequency.setValueAtTime(660, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(330, audioContext.currentTime + 0.3)
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.4)
+  } catch (error) {
+    console.error("Error playing warning sound:", error)
+  }
+}
+
+export default function EnPreparationTable() {
+  const { getOrdersByStatus, updateOrder, updateMultipleOrdersStatus, loading,deliveryMen} = useShop()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
@@ -86,7 +152,7 @@ export function EnPreparationTable() {
   const [barcodeValue, setBarcodeValue] = useState("")
   const barcodeInputRef = useRef<HTMLInputElement>(null)
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-
+  const deliverymen = deliveryMen?deliveryMen?.map(d=>d.name).map(d=>d.name):[]
   // Nouveaux états pour le mode de scan
   const [scanMode, setScanMode] = useState<ScanMode>(null)
   const [isScanModeDialogOpen, setIsScanModeDialogOpen] = useState(false)
@@ -117,7 +183,7 @@ export function EnPreparationTable() {
 
   // Obtenir les commandes en préparation - mémorisé pour éviter des appels inutiles
   const orders = useMemo(() => getOrdersByStatus("En préparation"), [getOrdersByStatus])
-
+  const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const uniqueDeliveryCompanies = useMemo(
     () => Array.from(new Set(orders.map((order) => order.deliveryCompany))),
@@ -291,8 +357,7 @@ export function EnPreparationTable() {
         // Assigner au livreur
         scannedOrders.forEach((order) => {
           updateOrder(order.id, {
-            deliveryCompany: "Deliveryman",
-            additionalInfo: selectedDeliveryman,
+            deliveryCompany: selectedDeliveryman, // Change to the selected deliveryman name
             trackingId: trackingId,
           })
         })
@@ -330,66 +395,6 @@ export function EnPreparationTable() {
     updateOrder,
     updateMultipleOrdersStatus,
   ])
-
-  // Gérer le scan de code-barres - mémorisé
-  const handleBarcodeSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault()
-
-      if (!barcodeValue.trim()) {
-        toast({
-          title: "Code-barres vide",
-          description: "Veuillez scanner un code-barres valide.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      // Vérifier si un mode de scan est sélectionné
-      if (!scanMode) {
-        toast({
-          title: "Mode de scan non sélectionné",
-          description: "Veuillez sélectionner un mode de scan avant de commencer.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      // Rechercher la commande par ID
-      const order = orders.find((o) => o.id === barcodeValue.trim())
-
-      if (order) {
-        // Vérifier si la commande a déjà été scannée
-        if (scannedOrders.some((o) => o.id === order.id)) {
-          toast({
-            title: "Commande déjà scannée",
-            description: `La commande ${order.id} a déjà été scannée dans cette session.`,
-            variant: "destructive",
-          })
-        } else {
-          // Ajouter la commande aux commandes scannées
-          setScannedOrders((prev) => [...prev, order])
-          toast({
-            title: "Commande scannée",
-            description: `La commande ${order.id} a été ajoutée à la session de scan.`,
-          })
-        }
-      } else {
-        toast({
-          title: "Code-barres non trouvé",
-          description: "Aucune commande en préparation trouvée avec ce code-barres.",
-          variant: "destructive",
-        })
-      }
-
-      // Réinitialiser et refocus sur l'input
-      setBarcodeValue("")
-      if (barcodeInputRef.current) {
-        barcodeInputRef.current.focus()
-      }
-    },
-    [barcodeValue, orders, scanMode, scannedOrders],
-  )
 
   // Réinitialiser les filtres - mémorisé
   const resetFilters = useCallback(() => {
@@ -454,6 +459,143 @@ export function EnPreparationTable() {
       [column]: !prev[column],
     }))
   }, [])
+
+  // Process barcode input
+  const processBarcode = useCallback(
+    (barcode: string) => {
+      if (!barcode.trim()) {
+        toast({
+          title: "Code-barres vide",
+          description: "Veuillez scanner un code-barres valide.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Vérifier si un mode de scan est sélectionné
+      if (!scanMode) {
+        toast({
+          title: "Mode de scan non sélectionné",
+          description: "Veuillez sélectionner un mode de scan avant de commencer.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Rechercher la commande par ID
+      const order = orders.find((o) => o.id === barcode.trim())
+
+      if (order) {
+        // Vérifier si la commande a déjà été scannée
+        if (scannedOrders.some((o) => o.id === order.id)) {
+          toast({
+            title: "Commande déjà scannée",
+            description: `La commande ${order.id} a déjà été scannée dans cette session.`,
+            variant: "destructive",
+          })
+          playAlertSound()
+          return
+        }
+
+        // Check for different delivery company
+        const hasDifferentDeliveryCompany =
+          scanMode === "delivery_company" &&
+          order.deliveryCompany &&
+          order.deliveryCompany !== selectedDeliveryCompany &&
+          order.deliveryCompany !== "Deliveryman"
+
+        if (hasDifferentDeliveryCompany) {
+          toast({
+            title: "Société de livraison différente",
+            description: `La commande ${order.id} est déjà assignée à ${order.deliveryCompany}. Elle n'a pas été ajoutée.`,
+            variant: "destructive",
+          })
+          playAlertSound()
+          return // Exit early without adding the order
+        }
+
+        // Check if in assign_deliveryman mode and order doesn't have "Deliveryman" as delivery company
+        if (scanMode === "assign_deliveryman" && order.deliveryCompany !== "Deliveryman") {
+          toast({
+            title: "Société de livraison incorrecte",
+            description: `La commande ${order.id} n'est pas assignée à "Deliveryman". Elle n'a pas été ajoutée.`,
+            variant: "destructive",
+          })
+          playAlertSound()
+          return // Exit early without adding the order
+        }
+
+        // Check for multiple articles
+        let hasMultipleArticles = false
+        if (order.articles && order.articles.length > 2) {
+          hasMultipleArticles = true
+          toast({
+            title: "Attention: Commande volumineuse",
+            description: `La commande ${order.id} contient ${order.articles.length} articles.`,
+            variant: "warning",
+          })
+          playWarningSound()
+        }
+
+        // Ajouter la commande aux commandes scannées
+        setScannedOrders((prev) => [...prev, order])
+
+        // Play success sound if no warnings
+        if (!hasDifferentDeliveryCompany && !hasMultipleArticles) {
+          playSuccessSound()
+        }
+
+        toast({
+          title: "Commande scannée",
+          description: `La commande ${order.id} a été ajoutée à la session de scan.`,
+        })
+      } else {
+        toast({
+          title: "Code-barres non trouvé",
+          description: "Aucune commande en préparation trouvée avec ce code-barres.",
+          variant: "destructive",
+        })
+        playAlertSound()
+      }
+
+      // Refocus sur l'input
+      if (barcodeInputRef.current) {
+        barcodeInputRef.current.focus()
+      }
+    },
+    [orders, scanMode, scannedOrders, selectedDeliveryCompany, toast],
+  )
+
+  // State to track if the barcode processing is active
+  const [isProcessingBarcode, setIsProcessingBarcode] = useState(false)
+
+  // Function to handle barcode processing
+  const handleBarcodeChange = useCallback(
+    (value: string) => {
+      setBarcodeValue(value)
+
+      // If already processing, ignore the change
+      if (isProcessingBarcode) {
+        return
+      }
+
+      // If the value is not empty and appears to be a complete barcode
+      if (value.trim() !== "" && value.length > 5) {
+        setIsProcessingBarcode(true) // Set processing flag
+
+        // Process immediately for barcode scanners
+        // Most barcode scanners complete input very quickly
+        processBarcode(value)
+        setBarcodeValue("")
+
+        // Reset processing flag after a short delay to prevent duplicate scans
+        setTimeout(() => {
+          setIsProcessingBarcode(false)
+        }, 300)
+      }
+    },
+    [processBarcode, isProcessingBarcode],
+  )
 
   if (loading) {
     return (
@@ -672,8 +814,9 @@ export function EnPreparationTable() {
               </Button>
             </div>
           </CardHeader>
+
           <CardContent>
-            <form onSubmit={handleBarcodeSubmit} className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4">
               <div className="relative flex-1">
                 <Barcode className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                 <Input
@@ -682,17 +825,13 @@ export function EnPreparationTable() {
                   placeholder="Scanner un code-barres..."
                   className="w-full pl-8 bg-slate-800/50 border-slate-700 focus-visible:ring-emerald-500"
                   value={barcodeValue}
-                  onChange={(e) => setBarcodeValue(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    handleBarcodeChange(value)
+                  }}
                 />
               </div>
-              <Button
-                type="submit"
-                className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400"
-              >
-                <ArrowRight className="h-4 w-4 mr-2" />
-                Scanner
-              </Button>
-            </form>
+            </div>
 
             {scannedOrders.length > 0 && (
               <div className="border border-slate-800 rounded-md overflow-hidden">
@@ -732,6 +871,7 @@ export function EnPreparationTable() {
               </div>
             )}
           </CardContent>
+
           <CardFooter>
             <div className="text-xs text-slate-500">
               {scanMode === "delivery_company" && `Les colis seront dispatchés pour ${selectedDeliveryCompany}`}
@@ -1048,7 +1188,11 @@ export function EnPreparationTable() {
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
-                      {visibleColumns.articles && <td className="p-3 text-slate-300">{order.articles}</td>}
+                      {visibleColumns.articles && (
+                        <td className="p-3 text-slate-300">
+                          {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
+                        </td>
+                      )}
                       {visibleColumns.wilaya && <td className="p-3 text-slate-300">{order.wilaya}</td>}
                       {visibleColumns.commune && <td className="p-3 text-slate-300">{order.commune}</td>}
                       {visibleColumns.deliveryType && (

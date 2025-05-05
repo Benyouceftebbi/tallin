@@ -1,9 +1,15 @@
 "use client"
 
-import type React from "react"
+import { useState, useEffect } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import {
   Dialog,
   DialogContent,
@@ -12,485 +18,517 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Switch } from "@/components/ui/switch"
-import { useToast } from "@/hooks/use-toast"
+import { Textarea } from "@/components/ui/textarea"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useShop, type Worker, type WorkerRole } from "@/context/shop-context"
 
-// Define worker types
-export type WorkerRole = "Confirmatrice" | "Préparateur" | "Dispatcher" | "Livreur"
-export type PaymentMethod = "Par commande" | "Par article" | "Confirmation uniquement" | "Tarif fixe" | "Tarif horaire"
-export type Region = "Alger" | "Oran" | "Constantine" | "Annaba" | "Blida" | "Tlemcen" | "Sétif"
-export type WorkerStatus = "Actif" | "En congé" | "Inactif"
+const roles = [
+  { label: "Livreur", value: "Livreur" },
+  { label: "Confirmatrice", value: "Confirmatrice" },
+  { label: "Préparateur", value: "Préparateur" },
+  { label: "Dispatcher", value: "Dispatcher" },
+  { label: "Admin", value: "Admin" },
+]
 
-// Update the paymentRate type to include commission fields
-export type Worker = {
-  id: number
-  name: string
-  role: WorkerRole
-  email: string
-  phone: string
-  status: WorkerStatus
-  region: Region
-  paymentMethod: PaymentMethod
-  paymentRate: {
-    perDelivery?: number
-    perReturn?: number
-    perConfirmation?: number
-    perDispatch?: number
-    perArticle?: number
-    confirmationOnly?: number
-    fixedRate?: number
-    hourlyRate?: number
-    commission?: {
-      type: "fixed" | "percentage"
-      value: number
-    }
-  }
-  parcelsDelivered: number
-  avatar?: string
-  dateHired?: string
-}
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Le nom doit contenir au moins 2 caractères.",
+  }),
+  phone: z.string().min(10, {
+    message: "Le numéro de téléphone doit contenir au moins 10 caractères.",
+  }),
+  role: z.enum(["Livreur", "Confirmatrice", "Préparateur", "Dispatcher", "Admin"]),
+  active: z.boolean().default(true),
+  joinDate: z.date(),
+  paymentType: z.enum(["fixed", "percentage"]),
+  paymentAmount: z.coerce.number().min(1, {
+    message: "Le montant doit être supérieur à 0.",
+  }),
+  hasCommission: z.boolean().default(false),
+  commissionType: z.enum(["fixed", "percentage"]).optional(),
+  commissionAmount: z.coerce.number().optional(),
+  hasThreshold: z.boolean().default(false),
+  thresholdValue: z.coerce.number().optional(),
+  thresholdType: z.enum(["orders", "amount"]).optional(),
+  notes: z.string().optional(),
+})
 
-// Props for the worker form
-type WorkerFormModalProps = {
+type FormValues = z.infer<typeof formSchema>
+
+interface WorkerFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  worker?: Worker
-  onSubmit: (worker: Omit<Worker, "id" | "parcelsDelivered">) => void
+  workerId: string | null
 }
 
-export function WorkerFormModal({ open, onOpenChange, worker, onSubmit }: WorkerFormModalProps) {
-  const { toast } = useToast()
+export function WorkerFormModal({ open, onOpenChange, workerId }: WorkerFormModalProps) {
+  const { workers, addWorker, updateWorker, getWorkerById } = useShop()
+  const [activeTab, setActiveTab] = useState("general")
 
-  const [formData, setFormData] = useState<Omit<Worker, "id" | "parcelsDelivered">>({
-    name: worker?.name || "",
-    role: worker?.role || "Confirmatrice",
-    email: worker?.email || "",
-    phone: worker?.phone || "",
-    status: worker?.status || "Actif",
-    region: worker?.region || "Alger",
-    paymentMethod: worker?.paymentMethod || "Par commande",
-    paymentRate: worker?.paymentRate || {},
-    dateHired: worker?.dateHired || new Date().toISOString().split("T")[0],
-    avatar: worker?.avatar || "",
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      role: "Livreur",
+      active: true,
+      joinDate: new Date(),
+      paymentType: "fixed",
+      paymentAmount: 100,
+      hasCommission: false,
+      hasThreshold: false,
+    },
   })
 
-  const handleChange = (field: string, value: string | number | object) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
-
-  const handlePaymentRateChange = (field: string, value: number | object) => {
-    setFormData((prev) => ({
-      ...prev,
-      paymentRate: {
-        ...prev.paymentRate,
-        [field]: value,
-      },
-    }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Validate form
-    if (!formData.name || !formData.phone || !formData.email) {
-      toast({
-        title: "Champs requis",
-        description: "Veuillez remplir tous les champs obligatoires.",
-        variant: "destructive",
+  // Charger les données du travailleur si on est en mode édition
+  useEffect(() => {
+    if (workerId) {
+      const worker = getWorkerById(workerId)
+      if (worker) {
+        form.reset({
+          name: worker.name,
+          phone: worker.phone,
+          role: worker.role,
+          active: worker.active,
+          joinDate: new Date(worker.joinDate.split("/").reverse().join("-")),
+          paymentType: worker.paymentStructure.type,
+          paymentAmount: worker.paymentStructure.amount,
+          hasCommission: !!worker.commission,
+          commissionType: worker.commission?.type,
+          commissionAmount: worker.commission?.amount,
+          hasThreshold: !!(worker.commission?.threshold && worker.commission?.thresholdType),
+          thresholdValue: worker.commission?.threshold,
+          thresholdType: worker.commission?.thresholdType,
+          notes: worker.notes || "",
+        })
+      }
+    } else {
+      form.reset({
+        name: "",
+        phone: "",
+        role: "Livreur",
+        active: true,
+        joinDate: new Date(),
+        paymentType: "fixed",
+        paymentAmount: 100,
+        hasCommission: false,
+        hasThreshold: false,
+        notes: "",
       })
-      return
+    }
+  }, [workerId, form, getWorkerById])
+
+  function onSubmit(data: FormValues) {
+    // Construire l'objet travailleur à partir des données du formulaire
+    const workerData = {
+      name: data.name,
+      phone: data.phone,
+      role: data.role as WorkerRole,
+      active: data.active,
+      joinDate: format(data.joinDate, "dd/MM/yyyy", { locale: fr }),
+      paymentStructure: {
+        type: data.paymentType,
+        amount: data.paymentAmount,
+      },
+      notes: data.notes,
+    } as Omit<Worker, "id">
+
+    // Ajouter la commission si elle est activée
+    if (data.hasCommission && data.commissionType && data.commissionAmount) {
+      workerData.commission = {
+        type: data.commissionType,
+        amount: data.commissionAmount,
+      }
+
+      // Ajouter le seuil si activé
+      if (data.hasThreshold && data.thresholdValue && data.thresholdType) {
+        workerData.commission.threshold = data.thresholdValue
+        workerData.commission.thresholdType = data.thresholdType
+      }
     }
 
-    onSubmit(formData)
+    // Mettre à jour ou ajouter le travailleur
+    if (workerId) {
+      updateWorker(workerId, workerData)
+    } else {
+      addWorker(workerData)
+    }
+
+    // Fermer le modal
     onOpenChange(false)
   }
 
+  // Déterminer si les champs de commission doivent être affichés
+  const showCommissionFields = form.watch("hasCommission")
+  const showThresholdFields = form.watch("hasThreshold") && showCommissionFields
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{worker ? "Modifier un travailleur" : "Ajouter un nouveau travailleur"}</DialogTitle>
+          <DialogTitle>{workerId ? "Modifier le travailleur" : "Ajouter un travailleur"}</DialogTitle>
           <DialogDescription>
-            {worker
+            {workerId
               ? "Modifiez les informations du travailleur ci-dessous."
               : "Remplissez les informations pour ajouter un nouveau travailleur."}
           </DialogDescription>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs defaultValue="info" className="w-full">
-            <TabsList className="grid grid-cols-2">
-              <TabsTrigger value="info">Informations générales</TabsTrigger>
-              <TabsTrigger value="payment">Configuration de paiement</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="info" className="space-y-4 pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">
-                    Nom complet <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
-                    placeholder="Nom et prénom"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="role">
-                    Rôle <span className="text-red-500">*</span>
-                  </Label>
-                  <Select value={formData.role} onValueChange={(value) => handleChange("role", value as WorkerRole)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un rôle" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Confirmatrice">Confirmatrice</SelectItem>
-                      <SelectItem value="Préparateur">Préparateur</SelectItem>
-                      <SelectItem value="Dispatcher">Dispatcher</SelectItem>
-                      <SelectItem value="Livreur">Livreur</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">
-                    Email <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                    placeholder="example@email.com"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">
-                    Téléphone <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleChange("phone", e.target.value)}
-                    placeholder="+213 XX XX XX XX"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="region">Région</Label>
-                  <Select value={formData.region} onValueChange={(value) => handleChange("region", value as Region)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une région" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Alger">Alger</SelectItem>
-                      <SelectItem value="Oran">Oran</SelectItem>
-                      <SelectItem value="Constantine">Constantine</SelectItem>
-                      <SelectItem value="Annaba">Annaba</SelectItem>
-                      <SelectItem value="Blida">Blida</SelectItem>
-                      <SelectItem value="Tlemcen">Tlemcen</SelectItem>
-                      <SelectItem value="Sétif">Sétif</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="status">Statut</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleChange("status", value as WorkerStatus)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Actif">Actif</SelectItem>
-                      <SelectItem value="En congé">En congé</SelectItem>
-                      <SelectItem value="Inactif">Inactif</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dateHired">Date d'embauche</Label>
-                  <Input
-                    id="dateHired"
-                    type="date"
-                    value={formData.dateHired}
-                    onChange={(e) => handleChange("dateHired", e.target.value)}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="payment" className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label>Méthode de paiement</Label>
-                <Select
-                  value={formData.paymentMethod}
-                  onValueChange={(value) => handleChange("paymentMethod", value as PaymentMethod)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une méthode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Par commande">Par commande</SelectItem>
-                    <SelectItem value="Par article">Par article</SelectItem>
-                    <SelectItem value="Confirmation uniquement">Confirmation uniquement</SelectItem>
-                    <SelectItem value="Tarif fixe">Tarif fixe</SelectItem>
-                    <SelectItem value="Tarif horaire">Tarif horaire</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Payment configuration based on role and method */}
-              <div className="space-y-4 border rounded-md p-4 bg-gray-50">
-                <h3 className="font-medium">Tarifs</h3>
-
-                {formData.role === "Confirmatrice" && (
-                  <div className="space-y-4">
-                    {formData.paymentMethod === "Confirmation uniquement" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmationOnly">Tarif par confirmation (DA)</Label>
-                        <Input
-                          id="confirmationOnly"
-                          type="number"
-                          step="10"
-                          min="0"
-                          value={formData.paymentRate.confirmationOnly || ""}
-                          onChange={(e) => handlePaymentRateChange("confirmationOnly", Number(e.target.value))}
-                          placeholder="Ex: 50"
-                        />
-                      </div>
-                    )}
-
-                    {formData.paymentMethod === "Par commande" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="perConfirmation">Tarif par commande (DA)</Label>
-                        <Input
-                          id="perConfirmation"
-                          type="number"
-                          step="10"
-                          min="0"
-                          value={formData.paymentRate.perConfirmation || ""}
-                          onChange={(e) => handlePaymentRateChange("perConfirmation", Number(e.target.value))}
-                          placeholder="Ex: 100"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {formData.role === "Préparateur" && (
-                  <div className="space-y-4">
-                    {formData.paymentMethod === "Par article" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="perArticle">Tarif par article (DA)</Label>
-                        <Input
-                          id="perArticle"
-                          type="number"
-                          step="10"
-                          min="0"
-                          value={formData.paymentRate.perArticle || ""}
-                          onChange={(e) => handlePaymentRateChange("perArticle", Number(e.target.value))}
-                          placeholder="Ex: 30"
-                        />
-                      </div>
-                    )}
-
-                    {formData.paymentMethod === "Par commande" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="perConfirmation">Tarif par commande préparée (DA)</Label>
-                        <Input
-                          id="perConfirmation"
-                          type="number"
-                          step="10"
-                          min="0"
-                          value={formData.paymentRate.perConfirmation || ""}
-                          onChange={(e) => handlePaymentRateChange("perConfirmation", Number(e.target.value))}
-                          placeholder="Ex: 100"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {formData.role === "Livreur" && (
-                  <div className="space-y-4 grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="perDelivery">Tarif par livraison (DA)</Label>
-                      <Input
-                        id="perDelivery"
-                        type="number"
-                        step="10"
-                        min="0"
-                        value={formData.paymentRate.perDelivery || ""}
-                        onChange={(e) => handlePaymentRateChange("perDelivery", Number(e.target.value))}
-                        placeholder="Ex: 200"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="perReturn">Tarif par retour (DA)</Label>
-                      <Input
-                        id="perReturn"
-                        type="number"
-                        step="10"
-                        min="0"
-                        value={formData.paymentRate.perReturn || ""}
-                        onChange={(e) => handlePaymentRateChange("perReturn", Number(e.target.value))}
-                        placeholder="Ex: 50"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {formData.role === "Dispatcher" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="perDispatch">Tarif par dispatch (DA)</Label>
-                    <Input
-                      id="perDispatch"
-                      type="number"
-                      step="10"
-                      min="0"
-                      value={formData.paymentRate.perDispatch || ""}
-                      onChange={(e) => handlePaymentRateChange("perDispatch", Number(e.target.value))}
-                      placeholder="Ex: 50"
-                    />
-                  </div>
-                )}
-
-                {(formData.paymentMethod === "Tarif fixe" || formData.paymentMethod === "Tarif horaire") && (
-                  <div className="space-y-4 grid grid-cols-2 gap-4">
-                    {formData.paymentMethod === "Tarif fixe" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="fixedRate">Salaire fixe (DA)</Label>
-                        <Input
-                          id="fixedRate"
-                          type="number"
-                          step="1000"
-                          min="0"
-                          value={formData.paymentRate.fixedRate || ""}
-                          onChange={(e) => handlePaymentRateChange("fixedRate", Number(e.target.value))}
-                          placeholder="Ex: 40000"
-                        />
-                      </div>
-                    )}
-
-                    {formData.paymentMethod === "Tarif horaire" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="hourlyRate">Taux horaire (DA)</Label>
-                        <Input
-                          id="hourlyRate"
-                          type="number"
-                          step="10"
-                          min="0"
-                          value={formData.paymentRate.hourlyRate || ""}
-                          onChange={(e) => handlePaymentRateChange("hourlyRate", Number(e.target.value))}
-                          placeholder="Ex: 350"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Add this after the existing payment rate fields in the payment tab */}
-              <div className="space-y-4 border rounded-md p-4 bg-gray-50 mt-4">
-                <h3 className="font-medium">Commission</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="commissionType">Type de commission</Label>
-                    <Select
-                      value={formData.paymentRate.commission?.type || "fixed"}
-                      onValueChange={(value) => {
-                        handlePaymentRateChange("commission", {
-                          type: value,
-                          value: formData.paymentRate.commission?.value || 0,
-                        })
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fixed">Montant fixe</SelectItem>
-                        <SelectItem value="percentage">Pourcentage</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="commissionValue">
-                      {formData.paymentRate.commission?.type === "percentage" ? "Pourcentage (%)" : "Montant (DA)"}
-                    </Label>
-                    <Input
-                      id="commissionValue"
-                      type="number"
-                      step={formData.paymentRate.commission?.type === "percentage" ? "0.1" : "10"}
-                      min="0"
-                      max={formData.paymentRate.commission?.type === "percentage" ? "100" : undefined}
-                      value={formData.paymentRate.commission?.value || ""}
-                      onChange={(e) => {
-                        handlePaymentRateChange("commission", {
-                          type: formData.paymentRate.commission?.type || "fixed",
-                          value: Number(e.target.value),
-                        })
-                      }}
-                      placeholder={formData.paymentRate.commission?.type === "percentage" ? "Ex: 5" : "Ex: 500"}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2 pt-2">
-                <Switch
-                  id="performanceBonus"
-                  checked={formData.paymentRate.performanceBonus !== undefined}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      handlePaymentRateChange("performanceBonus", 0)
-                    } else {
-                      const updatedPaymentRate = { ...formData.paymentRate }
-                      delete updatedPaymentRate.performanceBonus
-                      setFormData((prev) => ({
-                        ...prev,
-                        paymentRate: updatedPaymentRate,
-                      }))
-                    }
-                  }}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="general">Informations générales</TabsTrigger>
+                <TabsTrigger value="payment">Paiement & Commission</TabsTrigger>
+              </TabsList>
+              <TabsContent value="general" className="space-y-4 pt-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom complet</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nom du travailleur" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <Label htmlFor="performanceBonus">Activer les bonus de performance</Label>
-              </div>
-            </TabsContent>
-          </Tabs>
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+213 XX XX XX XX" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rôle</FormLabel>
+                      <FormControl>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" role="combobox" className="w-full justify-between">
+                              {field.value
+                                ? roles.find((role) => role.value === field.value)?.label
+                                : "Sélectionner un rôle"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Rechercher un rôle..." />
+                              <CommandList>
+                                <CommandEmpty>Aucun rôle trouvé.</CommandEmpty>
+                                <CommandGroup>
+                                  {roles.map((role) => (
+                                    <CommandItem
+                                      key={role.value}
+                                      value={role.value}
+                                      onSelect={() => {
+                                        form.setValue("role", role.value as WorkerRole)
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === role.value ? "opacity-100" : "opacity-0",
+                                        )}
+                                      />
+                                      {role.label}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="joinDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date d'embauche</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP", { locale: fr })
+                              ) : (
+                                <span>Sélectionner une date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date > new Date()}
+                            initialFocus
+                            locale={fr}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Statut actif</FormLabel>
+                        <FormDescription>
+                          Indiquez si ce travailleur est actuellement actif dans l'entreprise.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Notes supplémentaires sur ce travailleur..."
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              <TabsContent value="payment" className="space-y-4 pt-4">
+                <div className="space-y-4">
+                  <div className="rounded-lg border p-4">
+                    <h3 className="font-medium mb-2">Structure de paiement</h3>
+                    <FormField
+                      control={form.control}
+                      name="paymentType"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Type de paiement</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-1"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="fixed" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Montant fixe par commande</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="percentage" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Pourcentage du montant</FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="paymentAmount"
+                      render={({ field }) => (
+                        <FormItem className="mt-4">
+                          <FormLabel>
+                            {form.watch("paymentType") === "fixed" ? "Montant (DA)" : "Pourcentage (%)"}
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-              Annuler
-            </Button>
-            <Button type="submit">{worker ? "Mettre à jour" : "Ajouter le travailleur"}</Button>
-          </DialogFooter>
-        </form>
+                  <FormField
+                    control={form.control}
+                    name="hasCommission"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Commission</FormLabel>
+                          <FormDescription>Activer la commission pour ce travailleur</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {showCommissionFields && (
+                    <div className="rounded-lg border p-4 space-y-4">
+                      <h3 className="font-medium mb-2">Structure de commission</h3>
+                      <FormField
+                        control={form.control}
+                        name="commissionType"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel>Type de commission</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex flex-col space-y-1"
+                              >
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="fixed" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">Montant fixe</FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="percentage" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">Pourcentage</FormLabel>
+                                </FormItem>
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="commissionAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              {form.watch("commissionType") === "fixed" ? "Montant (DA)" : "Pourcentage (%)"}
+                            </FormLabel>
+                            <FormControl>
+                              <Input type="number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="hasThreshold"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Seuil de commission</FormLabel>
+                              <FormDescription>
+                                Définir un seuil à atteindre avant d'appliquer la commission
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      {showThresholdFields && (
+                        <>
+                          <FormField
+                            control={form.control}
+                            name="thresholdValue"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Valeur du seuil</FormLabel>
+                                <FormControl>
+                                  <Input type="number" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="thresholdType"
+                            render={({ field }) => (
+                              <FormItem className="space-y-3">
+                                <FormLabel>Type de seuil</FormLabel>
+                                <FormControl>
+                                  <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex flex-col space-y-1"
+                                  >
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="orders" />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">Nombre de commandes</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem value="amount" />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">Montant total (DA)</FormLabel>
+                                    </FormItem>
+                                  </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+            <DialogFooter>
+              <Button type="submit">{workerId ? "Mettre à jour" : "Ajouter"}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

@@ -31,9 +31,11 @@ import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
 import { DateRangePicker } from "@/components/date-range-picker"
 import { Badge } from "@/components/ui/badge"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card"
+import { generateParcelLabel } from "@/app/commandes/confirmes/print"
 
 export function ConfirmesTable() {
-  const { getOrdersByStatus, updateMultipleOrdersStatus, updateOrder, loading } = useShop()
+  const { getOrdersByStatus, updateMultipleOrdersStatus, updateOrder, loading,orders } = useShop()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
@@ -73,34 +75,34 @@ export function ConfirmesTable() {
   })
 
   // Obtenir les commandes confirmées - mémorisé pour éviter des appels inutiles
-  const allOrders = useMemo(() => getOrdersByStatus("Confirmés"), [getOrdersByStatus])
+  const allOrders = useMemo(() => getOrdersByStatus("Confirmé"), [getOrdersByStatus])
 
   // Filtrer pour n'avoir que les commandes confirmées
-  const orders = useMemo(() => {
-    return allOrders.filter((order) => order.confirmationStatus === "Confirmé")
-  }, [allOrders])
-
+  const ordersConfirme = useMemo(() => {
+    return orders.filter((order) => order.status === "Confirmé")
+  }, [orders])
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
-  const wilayas = useMemo(() => Array.from(new Set(orders.map((order) => order.wilaya))), [orders])
-  const communes = useMemo(() => Array.from(new Set(orders.map((order) => order.commune))), [orders])
-  const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
-  const deliveryTypes = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryType))), [orders])
-  const sources = useMemo(() => Array.from(new Set(orders.map((order) => order.source))), [orders])
-  const confirmatrices = useMemo(() => Array.from(new Set(orders.map((order) => order.confirmatrice))), [orders])
+  const wilayas = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.wilaya))), [ordersConfirme])
+  const communes = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.commune))), [ordersConfirme])
+  const deliveryCompanies = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.deliveryCompany))), [ordersConfirme])
+  const deliveryTypes = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.deliveryType))), [ordersConfirme])
+  const sources = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.source))), [ordersConfirme])
+  const confirmatrices = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.confirmatrice))), [ordersConfirme])
 
   // Extraire tous les articles uniques de toutes les commandes
   const articles = useMemo(() => {
-    const allArticles = new Set<string>()
+    const allArticles = new Set<string>();
     orders.forEach((order) => {
-      const orderArticles = order.articles.split(", ")
-      orderArticles.forEach((article) => allArticles.add(article))
-    })
+      order.articles.forEach((article: { product_name: string }) => {
+        allArticles.add(article.product_name);
+      });
+    });
     return Array.from(allArticles)
-  }, [orders])
+  }, [ordersConfirme])
 
   // Filtrer les commandes en fonction des critères - mémorisé pour éviter des recalculs
   const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
+    return ordersConfirme.filter((order) => {
       const matchesSearch =
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,7 +146,7 @@ export function ConfirmesTable() {
       )
     })
   }, [
-    orders,
+    ordersConfirme,
     searchTerm,
     wilayaFilter,
     communeFilter,
@@ -178,7 +180,7 @@ export function ConfirmesTable() {
   }, [])
 
   // Déplacer les commandes sélectionnées vers "En préparation" - mémorisé
-  const moveToPreparation = useCallback(() => {
+  const moveToPreparation = useCallback(async () => {
     if (selectedRows.length === 0) {
       toast({
         title: "Aucune commande sélectionnée",
@@ -189,6 +191,9 @@ export function ConfirmesTable() {
     }
 
     updateMultipleOrdersStatus(selectedRows, "En préparation")
+    for (const order of ordersConfirme) {
+      await generateParcelLabel(order);
+    }
     toast({
       title: "Commandes déplacées",
       description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation".`,
@@ -298,7 +303,23 @@ export function ConfirmesTable() {
     setArticleFilter("all")
     setDateRange(undefined)
   }, [])
+  const moveBack = useCallback(() => {
+    if (selectedRows.length === 0) {
+      toast({
+        title: "Aucune commande sélectionnée",
+        description: "Veuillez sélectionner au moins une commande à déplacer.",
+        variant: "destructive",
+      })
+      return
+    }
 
+    updateMultipleOrdersStatus(selectedRows, "en-attente")
+    toast({
+      title: "Commandes déplacées",
+      description: `${selectedRows.length} commande(s) déplacée(s) vers "Confirmés".`,
+    })
+    setSelectedRows([])
+  }, [selectedRows, updateMultipleOrdersStatus])
   if (loading) {
     return (
       <div className="space-y-4">
@@ -325,46 +346,8 @@ export function ConfirmesTable() {
     <div className="space-y-4">
       <Toaster />
 
-      {/* Modals */}
-      <OrderEditModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} order={editingOrder} />
-      <OrderEditModal open={isNewOrderModalOpen} onOpenChange={setIsNewOrderModalOpen} isNew={true} />
 
-      {/* Modal pour changer la confirmatrice */}
-      <Dialog open={isConfirmatriceModalOpen} onOpenChange={setIsConfirmatriceModalOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800">
-          <DialogHeader>
-            <DialogTitle>Changer la confirmatrice</DialogTitle>
-            <DialogDescription>
-              Sélectionnez une confirmatrice pour les {selectedRows.length} commande(s) sélectionnée(s).
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Select value={selectedConfirmatrice} onValueChange={setSelectedConfirmatrice}>
-              <SelectTrigger className="bg-slate-800/50 border-slate-700">
-                <SelectValue placeholder="Sélectionner une confirmatrice" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800">
-                {confirmatrices.map((confirmatrice) => (
-                  <SelectItem key={confirmatrice} value={confirmatrice}>
-                    {confirmatrice}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsConfirmatriceModalOpen(false)}>
-              Annuler
-            </Button>
-            <Button
-              onClick={changeConfirmatrice}
-              className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
-            >
-              Confirmer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Barre d'outils */}
       <div className="flex justify-end mb-4">
@@ -383,16 +366,26 @@ export function ConfirmesTable() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="default"
-            size="sm"
-            onClick={openNewOrderModal}
-            className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            <span>Nouvelle commande</span>
-          </Button>
 
+        <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={moveBack}
+                    disabled={selectedRows.length === 0}
+                    className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
+                  >
+                    <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+                    <span>En attente</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Déplacer les commandes sélectionnées vers "En attente"</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -413,25 +406,6 @@ export function ConfirmesTable() {
             </Tooltip>
           </TooltipProvider>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openConfirmatriceModal}
-                  disabled={selectedRows.length === 0}
-                  className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
-                >
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  <span>Changer confirmatrice</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Changer la confirmatrice des commandes sélectionnées</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -683,26 +657,30 @@ export function ConfirmesTable() {
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
-                      {visibleColumns.articles && <td className="p-3 text-slate-300">{order.articles}</td>}
-                      {visibleColumns.wilaya && <td className="p-3 text-slate-300">{order.wilaya}</td>}
-                      {visibleColumns.commune && <td className="p-3 text-slate-300">{order.commune}</td>}
-                      <td className="p-3 text-slate-300">
-                        <Badge className={getDeliveryTypeColor(order.deliveryType)} variant="outline">
-                          {order.deliveryType}
-                        </Badge>
-                      </td>
-                      {visibleColumns.deliveryCompany && (
-                        <td className="p-3 text-slate-300">{order.deliveryCompany}</td>
+                      {visibleColumns.articles && (
+  <td className="p-3 text-slate-300">
+    {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
+  </td>
+)}
+                      {visibleColumns.wilaya &&  <td className="p-3 text-slate-300">{order.wilaya}</td>}
+                      {visibleColumns.commune &&  <td className="p-3 text-slate-300">{order.commune}</td>}
+                      {visibleColumns.deliveryType &&  <td className="p-3 text-slate-300">{order.deliveryType}</td>}
+                      {visibleColumns.deliveryCompany &&  <td className="p-3 text-slate-300">{order.deliveryCompany}</td>}
+   {visibleColumns.deliveryCenter &&  <td className="p-3 text-slate-300">{order.deliveryCenter}</td>}
+                      {visibleColumns.status && <td className="p-3 text-slate-300">{order.confirmationStatus}</td>}
+                      {visibleColumns.pickupPoint && <td className="p-3 text-slate-300">{order.pickupPoint || "-"}</td>}
+                      {visibleColumns.deliveryPrice && <td className="p-3 text-slate-300">{order.deliveryPrice}</td>}
+                      {visibleColumns.address && (
+                        <td className="p-3 text-slate-300 max-w-[200px] truncate">{order.address}</td>
                       )}
-                      {visibleColumns.pickupPoint && <td className="p-3 text-slate-300">{order.pickupPoint}</td>}
-                      {visibleColumns.deliveryPrice && <td className="p-3 text-slate-300">{order.deliveryPrice} DA</td>}
-                      {visibleColumns.address && <td className="p-3 text-slate-300">{order.address}</td>}
-                      {visibleColumns.additionalInfo && <td className="p-3 text-slate-300">{order.additionalInfo}</td>}
+                      {visibleColumns.additionalInfo && (
+                        <td className="p-3 text-slate-300">{order.additionalInfo || "-"}</td>
+                      )}
                       {visibleColumns.confirmatrice && <td className="p-3 text-slate-300">{order.confirmatrice}</td>}
-                      {visibleColumns.totalPrice && <td className="p-3 text-slate-300">{order.totalPrice} DA</td>}
+                      {visibleColumns.totalPrice && <td className="p-3 text-slate-300">{order.totalPrice}</td>}
                       {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
                       <td className="p-3 text-right">
-                        <div className="flex justify-end gap-1">
+                      <div className="flex justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="icon"

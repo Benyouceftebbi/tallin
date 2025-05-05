@@ -25,6 +25,10 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { X, Plus, Trash2, AlertTriangle, Clock } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { getCommunesByWilayaName, normalizeString } from "@/app/commandes/en-attente/data/algeria-regions"
+import { getYalidinCentersForCommune } from "@/app/commandes/en-attente/data/yalidin-centers"
+import { isStopDeskAvailable } from "@/app/commandes/en-attente/data/shipping-availability"
+import { useAppContext } from "@/context/app-context"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -136,7 +140,7 @@ const pickupPoints = [
 ]
 
 // Liste des sources
-const sources = ["Facebook", "Instagram", "Site Web", "Téléphone", "Recommandation"]
+const sources = ["Manuelle","Boutique"]
 
 // Liste des confirmatrices
 const confirmatrices = ["Amina", "Fatima", "Leila", "Samira", "Yasmine", "Karima"]
@@ -149,39 +153,49 @@ type OrderEditModalProps = {
 }
 
 export function OrderEditModal({ open, onOpenChange, order, isNew = false }: OrderEditModalProps) {
-  const { updateOrder, addOrder, getOrdersByStatus, inventory, getInventoryItem, updateInventoryStock } = useShop()
+  const { updateOrder, addOrder, getOrdersByStatus, inventory, getInventoryItem, updateInventoryStock,  deliveryCompanies,} = useShop()
   const [formData, setFormData] = useState<Partial<Order>>({})
   const [selectedWilaya, setSelectedWilaya] = useState<string>("")
-  const [communes, setCommunes] = useState<string[]>([])
+  const [communes, setCommunes] = useState<any[]>([])
   const [selectedArticles, setSelectedArticles] = useState<Article[]>([])
   const [isExchange, setIsExchange] = useState(false)
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
   const [selectedPreviousOrder, setSelectedPreviousOrder] = useState<string>("")
-
+const {products}=useAppContext()
   // Initialiser le formulaire avec les données de la commande
   useEffect(() => {
     if (order) {
       setFormData(order)
       setSelectedWilaya(order.wilaya)
-      setCommunes(communesByWilaya[order.wilaya] || [])
+      setCommunes(getCommunesByWilayaName(order.wilaya) || [])
 
       // Convertir les articles de la commande en format structuré
-      const articleNames = order.articles.split(", ")
-      const structuredArticles: Article[] = articleNames.map((name, index) => ({
-        id: `article-${index}`,
-        name,
-        sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-        variants: [
-          {
-            id: `variant-${index}-0`,
-            size: "Unique",
-            color: "Noir",
-            quantity: 1,
-            price: Math.floor(500 + Math.random() * 1500),
-            stockStatus: "available",
-          },
-        ],
-      }))
+      const articleNames = order.articles
+      const structuredArticles: Article[] = Object.values(
+        articleNames.reduce<Record<string, Article>>((acc, item, index) => {
+          const articleId = String(item.product_id);
+          if (!acc[articleId]) {
+            acc[articleId] = {
+              id: `${articleId}`,
+              name: item.product_name,
+              sku: item.product_sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+              variants: [],
+            };
+          }
+      
+          acc[articleId].variants.push({
+            id: `variant-${item.variant_id}`,
+            size: item.variant_options.option1,
+            color: item.variant_options.option2,
+            quantity: item.quantity,
+            price: parseFloat(item.unit_price),
+            stockStatus: "available", // you can adjust logic for status if needed
+            ...item
+          });
+      
+          return acc;
+        }, {})
+      );
 
       setSelectedArticles(structuredArticles)
     } else {
@@ -213,11 +227,9 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   // Mettre à jour les communes lorsque la wilaya change
   useEffect(() => {
     if (selectedWilaya) {
-      setCommunes(communesByWilaya[selectedWilaya] || [])
-      // Réinitialiser la commune si elle n'existe pas dans la nouvelle liste
-      if (formData.commune && !communesByWilaya[selectedWilaya]?.includes(formData.commune)) {
-        setFormData((prev) => ({ ...prev, commune: "" }))
-      }
+      const communes=getCommunesByWilayaName(order.wilaya) 
+      setCommunes(communes|| [])
+
     } else {
       setCommunes([])
     }
@@ -290,7 +302,10 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
           return article
         }),
       )
-    } else {
+    }else if (field === "id"){
+      
+    }
+     else {
       // For other fields, just update normally
       setSelectedArticles(
         selectedArticles.map((article) => (article.id === articleId ? { ...article, [field]: value } : article)),
@@ -604,16 +619,16 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                       <div className="space-y-2">
                         <Label htmlFor={`article-name-${article.id}`}>Nom de l'article *</Label>
                         <Select
-                          value={article.name}
-                          onValueChange={(value) => updateArticle(article.id, "name", value)}
+                          value={article.id}
+                          onValueChange={(value) => updateArticle(article.id, "id", value)}
                         >
                           <SelectTrigger id={`article-name-${article.id}`} className="bg-slate-800/50 border-slate-700">
                             <SelectValue placeholder="Sélectionner un article" />
                           </SelectTrigger>
                           <SelectContent className="bg-slate-900 border-slate-800">
-                            {availableArticles.map((name) => (
-                              <SelectItem key={name} value={name}>
-                                {name}
+                            {products?.map((product) => (
+                              <SelectItem key={product.id} value={product.id}>
+                                {product.title}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -664,11 +679,14 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                                 <SelectValue placeholder="Taille" />
                               </SelectTrigger>
                               <SelectContent className="bg-slate-900 border-slate-800">
-                                {availableSizes.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
+                              {products
+  .find(product => product.id === article.id)
+  ?.options.find(opt => opt.name === "Pointure")
+  ?.values.map((size) => (
+    <SelectItem key={size} value={size}>
+      {size}
+    </SelectItem>
+))}
                               </SelectContent>
                             </Select>
                           </div>
@@ -688,11 +706,14 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                                 <SelectValue placeholder="Couleur" />
                               </SelectTrigger>
                               <SelectContent className="bg-slate-900 border-slate-800">
-                                {availableColors.map((color) => (
-                                  <SelectItem key={color} value={color}>
-                                    {color}
-                                  </SelectItem>
-                                ))}
+                              {products
+  .find(product => product.id === article.id)
+  ?.options.find(opt => opt.name === "Couleur")
+  ?.values.map((size) => (
+    <SelectItem key={size} value={size}>
+      {size}
+    </SelectItem>
+))}
                               </SelectContent>
                             </Select>
                           </div>
@@ -716,11 +737,18 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                           </div>
 
                           <div className="space-y-1">
-                            <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
-                              Stock disponible
-                            </Label>
-                            {renderStockStatus(variant)}
-                          </div>
+  <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
+    Stock disponible
+  </Label>
+  <p className="text-sm text-muted-foreground">
+    {
+      products
+        .find(product => product.id === article.id)
+        ?.variants.find(v => v.id === variant.id)
+        ?.inventory_quantity ?? 0
+    }
+  </p>
+</div>
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-price-${variant.id}`} className="text-xs">
@@ -795,11 +823,38 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                     <SelectValue placeholder="Sélectionner une commune" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                    {communes.map((commune) => (
-                      <SelectItem key={commune} value={commune}>
-                        {commune}
-                      </SelectItem>
-                    ))}
+                    {communes .map((commune) => ({
+          id: commune.id,
+          namefr: commune.commune_name_ascii,
+          namear: commune.commune_name,
+          normalizedName: normalizeString(commune.commune_name_ascii),
+        }))
+        .sort((a, b) => a.namefr.localeCompare(b.namefr))
+        .map((commune) => {
+          const isSelected =
+            normalizeString(commune.namefr) === normalizeString(order.commune)
+          const hasStopDesk = isStopDeskAvailable(commune.namefr)
+
+          return (
+            <SelectItem
+              key={commune.id}
+              value={commune.namefr}
+              className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
+            >
+              <div className="flex items-center justify-between w-full">
+                <span>
+                  {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
+                  {isSelected && " ✓"}
+                </span>
+                {!hasStopDesk && order.deliveryType === "stopdesk" && (
+                  <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
+          no stopdesk
+                  </span>
+                )}
+              </div>
+            </SelectItem>
+          )
+        })}
                   </SelectContent>
                 </Select>
               </div>
@@ -813,7 +868,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                     <SelectValue placeholder="Sélectionner un type" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                    {deliveryTypes.map((type) => (
+                    {["stopdesk","domicile"].map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -831,30 +886,34 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                     <SelectValue placeholder="Sélectionner une entreprise" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                    {deliveryCompanies.map((company) => (
-                      <SelectItem key={company} value={company}>
-                        {company}
-                      </SelectItem>
-                    ))}
+                  {[...deliveryCompanies,{companyId:"deliveryMen"}].map((center) => (
+                                <SelectItem key={center.companyId} value={center.companyId}>
+                                  {center.companyId || "Non défini"}
+                                </SelectItem>
+                              ))}
                   </SelectContent>
                 </Select>
               </div>
-              {formData.deliveryType === "Point de relais" && (
+              {formData.deliveryType === "stopdesk" && (
                 <div className="space-y-2">
-                  <Label htmlFor="pickupPoint">Point de relais *</Label>
+                  <Label htmlFor="deliveryCenter">Point de relais *</Label>
                   <Select
-                    value={formData.pickupPoint || ""}
-                    onValueChange={(value) => handleChange("pickupPoint", value)}
+                    value={formData.deliveryCenter || ""}
+                    onValueChange={(value) => handleChange("deliveryCenter", value)}
                   >
-                    <SelectTrigger id="pickupPoint" className="bg-slate-800/50 border-slate-700">
+                    <SelectTrigger id="deliveryCenter" className="bg-slate-800/50 border-slate-700">
                       <SelectValue placeholder="Sélectionner un point de relais" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800">
-                      {pickupPoints.map((point) => (
-                        <SelectItem key={point} value={point}>
-                          {point}
+                    { getYalidinCentersForCommune(order.commune) .sort((a, b) => a.name.localeCompare(b.name)).map((desk) => {
+                      // Use key for NOEST centers and center_id for Yalidin centers
+                      const centerId =desk.center_id
+                      return (
+                        <SelectItem key={centerId} value={centerId?.toString() || ""}>
+                          {desk.name}
                         </SelectItem>
-                      ))}
+                      )
+                    })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -921,24 +980,6 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                     {sources.map((source) => (
                       <SelectItem key={source} value={source}>
                         {source}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmatrice">Confirmatrice *</Label>
-                <Select
-                  value={formData.confirmatrice || ""}
-                  onValueChange={(value) => handleChange("confirmatrice", value)}
-                >
-                  <SelectTrigger id="confirmatrice" className="bg-slate-800/50 border-slate-700">
-                    <SelectValue placeholder="Sélectionner une confirmatrice" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800">
-                    {confirmatrices.map((confirmatrice) => (
-                      <SelectItem key={confirmatrice} value={confirmatrice}>
-                        {confirmatrice}
                       </SelectItem>
                     ))}
                   </SelectContent>

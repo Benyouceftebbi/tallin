@@ -44,7 +44,7 @@ export function Topbar() {
     {
       name: "En attente",
       path: "/commandes/en-attente",
-      count: statusCounts["En attente"] || 0,
+      count: statusCounts["en-attente"] || 0,
       icon: Clock,
       color: "text-amber-500",
       bgColor: "bg-amber-950/30",
@@ -54,7 +54,7 @@ export function Topbar() {
     {
       name: "Confirmés",
       path: "/commandes/confirmes",
-      count: statusCounts["Confirmés"],
+      count: statusCounts["Confirmé"]|| 0,
       icon: CheckCircle,
       color: "text-emerald-500",
       bgColor: "bg-emerald-950/30",
@@ -64,7 +64,7 @@ export function Topbar() {
     {
       name: "En préparation",
       path: "/commandes/en-preparation",
-      count: statusCounts["En préparation"],
+      count: statusCounts["En préparation"]|| 0,
       icon: Box,
       color: "text-blue-500",
       bgColor: "bg-blue-950/30",
@@ -74,7 +74,7 @@ export function Topbar() {
     {
       name: "Dispatcher",
       path: "/commandes/dispatcher",
-      count: statusCounts["Dispatcher"],
+      count: statusCounts["Dispatcher"]|| 0,
       icon: ClipboardCheck,
       color: "text-purple-500",
       bgColor: "bg-purple-950/30",
@@ -84,7 +84,7 @@ export function Topbar() {
     {
       name: "En livraison",
       path: "/commandes/en-livraison",
-      count: statusCounts["En livraison"],
+      count: statusCounts["En livraison"]|| 0,
       icon: Truck,
       color: "text-orange-500",
       bgColor: "bg-orange-950/30",
@@ -94,7 +94,7 @@ export function Topbar() {
     {
       name: "Livrés",
       path: "/commandes/livres",
-      count: statusCounts["Livrés"],
+      count: statusCounts["Livrés"]|| 0,
       icon: PackageCheck,
       color: "text-cyan-500",
       bgColor: "bg-cyan-950/30",
@@ -104,7 +104,7 @@ export function Topbar() {
     {
       name: "Retour",
       path: "/commandes/retour",
-      count: statusCounts["Retour"],
+      count: statusCounts["Retour"]|| 0,
       icon: PackageX,
       color: "text-rose-500",
       bgColor: "bg-rose-950/30",
