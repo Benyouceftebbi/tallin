@@ -679,7 +679,7 @@ const {products}=useAppContext()
                               <SelectContent className="bg-slate-900 border-slate-800">
                               {products
   .find(product => product.id === article.id)
-  ?.options.find(opt => opt.name === "Pointure")
+  ?.options.find(opt => opt.name === "Pointure" || opt.name ==="pointure" || opt.name ==="Taille")
   ?.values.map((size) => (
     <SelectItem key={size} value={size}>
       {size}
