@@ -302,8 +302,6 @@ const {products}=useAppContext()
           return article
         }),
       )
-    }else if (field === "id"){
-      
     }
      else {
       // For other fields, just update normally
