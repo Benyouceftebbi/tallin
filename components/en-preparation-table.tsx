@@ -340,8 +340,9 @@ export default function EnPreparationTable() {
   // Terminer la session de scan
   const finishScanSession = useCallback(() => {
     // Mettre à jour le statut des commandes scannées
+    const scannedOrderIds = scannedOrders.map((order) => order.id)
     if (scannedOrders.length > 0) {
-      const scannedOrderIds = scannedOrders.map((order) => order.id)
+     
 
       // Mettre à jour les commandes en fonction du mode de scan
       if (scanMode === "delivery_company") {
@@ -361,6 +362,7 @@ export default function EnPreparationTable() {
             trackingId: trackingId,
           })
         })
+        updateMultipleOrdersStatus(scannedOrderIds, "Dispatcher")
       } else if (scanMode === "dispatch_deliveryman") {
         // Dispatcher pour le livreur
         scannedOrders.forEach((order) => {
@@ -713,7 +715,7 @@ export default function EnPreparationTable() {
               <TabsList className="grid grid-cols-3 mb-4">
                 <TabsTrigger value="delivery_company">Société de livraison</TabsTrigger>
                 <TabsTrigger value="assign_deliveryman">Assigner livreur</TabsTrigger>
-                <TabsTrigger value="dispatch_deliveryman">Dispatcher livreur</TabsTrigger>
+              
               </TabsList>
 
               <TabsContent value="delivery_company" className="space-y-4">
@@ -768,31 +770,6 @@ export default function EnPreparationTable() {
                 </Button>
               </TabsContent>
 
-              <TabsContent value="dispatch_deliveryman" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="deliveryman">Livreur</Label>
-                  <Select value={selectedDeliveryman} onValueChange={setSelectedDeliveryman}>
-                    <SelectTrigger className="bg-slate-800/50 border-slate-700">
-                      <SelectValue placeholder="Sélectionner un livreur" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-800">
-                      {deliverymen.map((deliveryman) => (
-                        <SelectItem key={deliveryman} value={deliveryman}>
-                          {deliveryman}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  onClick={() => startScanWithMode("dispatch_deliveryman")}
-                  disabled={!selectedDeliveryman}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400"
-                >
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Commencer le scan
-                </Button>
-              </TabsContent>
             </Tabs>
           </div>
         </DialogContent>

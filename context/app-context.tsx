@@ -700,7 +700,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Push the combined product data and variants to the inventory
           generatedInventory.push(productWithVariants);
         }
-    console.log(generatedInventory);
+
     
         // Set the final generated inventory (all products with their variants)
         setProducts(generatedInventory); // Assuming you have a setProducts function

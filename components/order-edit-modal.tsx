@@ -430,15 +430,7 @@ const {products}=useAppContext()
       }
     })
 
-    // Convert the articles structured in format simple for the command
-    const articlesString = selectedArticles
-      .map((article) => {
-        const variantsText = article.variants
-          .map((v) => `${article.name} (${v.size || "Unique"}, ${v.color || "Standard"}, Qté: ${v.quantity})`)
-          .join(", ")
-        return variantsText
-      })
-      .join(", ")
+
 
     // Calculate the total price
     const totalPrice = calculateTotalPrice() + (formData.deliveryPrice || 0)
@@ -446,7 +438,6 @@ const {products}=useAppContext()
     // Update the articles and total price
     const updatedFormData = {
       ...formData,
-      articles: articlesString,
       wilaya: selectedWilaya,
       totalPrice: totalPrice,
     }
@@ -492,16 +483,167 @@ const {products}=useAppContext()
       )
     }
   }
+  function getVariantOptionValue({
+    product,
+    variant,
+    label,
+  }) {
+    const optionIndex = product?.options?.findIndex(opt =>
+      opt.name.toLowerCase() === label.toLowerCase() ||
+      (label === "Taille" && ["pointure", "taille"].includes(opt.name.toLowerCase()))
+    );
+  
+    if (optionIndex === 0) return variant?.option1;
+    if (optionIndex === 1) return variant?.option2;
+    return "";
+  }
 
+  
+const [isRestockMode, setIsRestockMode] = useState(false)
+const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
+  // Add a new article for exchange
+  const addExchangeArticle = () => {
+    const newArticle: Article = {
+      id: `exchange-article-${Date.now()}`,
+      name: "",
+      sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      variants: [
+        {
+          id: `variant-${Date.now()}-0`,
+          size: "Unique",
+          color: "Noir",
+          quantity: 1,
+          price: 0,
+          stockStatus: "available",
+        },
+      ],
+    }
+    setExchangeArticles([...exchangeArticles, newArticle])
+  }
+
+  // Remove an exchange article
+  const removeExchangeArticle = (articleId: string) => {
+    setExchangeArticles(exchangeArticles.filter((article) => article.id !== articleId))
+  }
+
+  // Update an exchange article
+  const updateExchangeArticle = (articleId: string, field: keyof Article, value: any) => {
+    if (field === "name") {
+      // When article name changes, fetch inventory data
+      const inventoryItem = getInventoryItem(value)
+
+      setExchangeArticles(
+        exchangeArticles.map((article) => {
+          if (article.id === articleId) {
+            // If inventory item exists, update variants with stock info
+            if (inventoryItem) {
+              const updatedVariants = inventoryItem.variants.map((invVariant) => ({
+                id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                size: invVariant.size || "Unique",
+                color: invVariant.color || "Noir",
+                quantity: invVariant.price,
+                price: invVariant.price,
+                inventoryVariantId: invVariant.id,
+                availableStock: invVariant.stock,
+                stockStatus: invVariant.stockStatus,
+                expectedDate: invVariant.expectedDate,
+              }))
+
+              return {
+                ...article,
+                [field]: value,
+                sku: inventoryItem.sku,
+                variants: updatedVariants.length > 0 ? updatedVariants : article.variants,
+              }
+            } else {
+              // If no inventory item, just update the name
+              return { ...article, [field]: value }
+            }
+          }
+          return article
+        }),
+      )
+    } else {
+      // For other fields, just update normally
+      setExchangeArticles(
+        exchangeArticles.map((article) => (article.id === articleId ? { ...article, [field]: value } : article)),
+      )
+    }
+  }
+
+  // Add a variant to an exchange article
+  const addExchangeVariant = (articleId: string) => {
+    setExchangeArticles(
+      exchangeArticles.map((article) => {
+        if (article.id === articleId) {
+          return {
+            ...article,
+            variants: [
+              ...article.variants,
+              {
+                id: `variant-${articleId}-${article.variants.length}`,
+                size: "Unique",
+                color: "Noir",
+                quantity: 1,
+                price: article.variants[0]?.price || 0,
+                stockStatus: "available",
+              },
+            ],
+          }
+        }
+        return article
+      }),
+    )
+  }
+
+  // Remove a variant from an exchange article
+  const removeExchangeVariant = (articleId: string, variantId: string) => {
+    setExchangeArticles(
+      exchangeArticles.map((article) => {
+        if (article.id === articleId) {
+          return {
+            ...article,
+            variants: article.variants.filter((variant) => variant.id !== variantId),
+          }
+        }
+        return article
+      }),
+    )
+  }
+
+  // Update a variant in an exchange article
+  const updateExchangeVariant = (articleId: string, variantId: string, field: keyof ArticleVariant, value: any) => {
+    setExchangeArticles(
+      exchangeArticles.map((article) => {
+        if (article.id === articleId) {
+          return {
+            ...article,
+            variants: article.variants.map((variant) =>
+              variant.id === variantId ? { ...variant, [field]: value } : variant,
+            ),
+          }
+        }
+        return article
+      }),
+    )
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isNew ? "Ajouter une commande" : `Modifier la commande ${order?.id}`}</DialogTitle>
+          <DialogTitle>
+            {isRestockMode
+              ? "Réapprovisionnement de stock"
+              : isNew
+                ? "Ajouter une commande"
+                : `Modifier la commande ${order?.id}`}
+          </DialogTitle>
           <DialogDescription>
-            {isNew
-              ? "Remplissez les informations pour ajouter une nouvelle commande."
-              : "Modifiez les informations de la commande."}
+            {isRestockMode
+              ? "Sélectionnez les articles et variantes à réapprovisionner."
+              : isNew
+                ? "Remplissez les informations pour ajouter une nouvelle commande."
+                : "Modifiez les informations de la commande."}
           </DialogDescription>
         </DialogHeader>
 
@@ -538,46 +680,17 @@ const {products}=useAppContext()
                 />
               </div>
               <div className="space-y-2 flex items-center">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 mr-4">
                   <Switch id="isExchange" checked={isExchange} onCheckedChange={setIsExchange} />
                   <Label htmlFor="isExchange">Commande d'échange</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch id="isRestockMode" checked={isRestockMode} onCheckedChange={setIsRestockMode} />
+                  <Label htmlFor="isRestockMode">Mode réapprovisionnement</Label>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Commande d'échange */}
-          {isExchange && (
-            <div className="space-y-4 md:col-span-2">
-              <h3 className="text-lg font-medium">Détails de l'échange</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="previousOrder">Commande précédente</Label>
-                  <Select value={selectedPreviousOrder} onValueChange={setSelectedPreviousOrder}>
-                    <SelectTrigger id="previousOrder" className="bg-slate-800/50 border-slate-700">
-                      <SelectValue placeholder="Sélectionner une commande" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-800">
-                      {previousOrders.map((prevOrder) => (
-                        <SelectItem key={prevOrder.id} value={prevOrder.id}>
-                          {prevOrder.id} - {prevOrder.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 flex items-end">
-                  <Button
-                    onClick={loadPreviousOrderArticles}
-                    disabled={!selectedPreviousOrder}
-                    className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
-                  >
-                    Charger les articles
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Articles */}
           <div className="space-y-4 md:col-span-2">
@@ -662,59 +775,72 @@ const {products}=useAppContext()
                           key={variant.id}
                           className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
                         >
-                          <div className="space-y-1">
-                            <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
-                              Taille
-                            </Label>
-                            <Select
-                              value={variant.size || "Unique"}
-                              onValueChange={(value) => updateVariant(article.id, variant.id, "size", value)}
-                            >
-                              <SelectTrigger
-                                id={`variant-size-${variant.id}`}
-                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
-                              >
-                                <SelectValue placeholder="Taille" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-slate-900 border-slate-800">
-                              {products
-  .find(product => product.id === article.id)
-  ?.options.find(opt => opt.name === "Pointure" || opt.name ==="pointure" || opt.name ==="Taille")
-  ?.values.map((size) => (
-    <SelectItem key={size} value={size}>
-      {size}
-    </SelectItem>
-))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-1">
-                            <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
-                              Couleur
-                            </Label>
-                            <Select
-                              value={variant.color || "Noir"}
-                              onValueChange={(value) => updateVariant(article.id, variant.id, "color", value)}
-                            >
-                              <SelectTrigger
-                                id={`variant-color-${variant.id}`}
-                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
-                              >
-                                <SelectValue placeholder="Couleur" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-slate-900 border-slate-800">
-                              {products
-  .find(product => product.id === article.id)
-  ?.options.find(opt => opt.name === "Couleur")
-  ?.values.map((size) => (
-    <SelectItem key={size} value={size}>
-      {size}
-    </SelectItem>
-))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+<div className="space-y-1">
+  <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
+    Taille
+  </Label>
+  <Select
+    value={getVariantOptionValue({
+      product: products?.find((p) => p.id === article.id),
+      variant: products?.find((p) => p.id === article.id)
+        ?.variants.find((v) => v.id === variant.variant_id),
+      label: "Taille",
+    })}
+    onValueChange={(value) =>
+      updateVariant(article.id, variant.id, "Taille", value)
+    }
+  >
+    <SelectTrigger
+      id={`variant-size-${variant.id}`}
+      className="h-8 text-xs bg-slate-800/50 border-slate-700"
+    >
+      <SelectValue placeholder="Taille" />
+    </SelectTrigger>
+    <SelectContent className="bg-slate-900 border-slate-800">
+      {products?.find((p) => p.id === article.id)
+        ?.options.find((opt) =>
+          ["Pointure", "pointure", "Taille"].includes(opt.name)
+        )
+        ?.values.map((size: string) => (
+          <SelectItem key={size} value={size}>
+            {size}
+          </SelectItem>
+        ))}
+    </SelectContent>
+  </Select>
+</div>
+<div className="space-y-1">
+  <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
+    Couleur
+  </Label>
+  <Select
+    value={getVariantOptionValue({
+      product: products?.find((p) => p.id === article.id),
+      variant: products?.find((p) => p.id === article.id)
+        ?.variants.find((v) => v.id === variant.variant_id),
+      label: "Couleur",
+    })}
+    onValueChange={(value) =>
+      updateVariant(article.id, variant.id, "Couleur", value)
+    }
+  >
+    <SelectTrigger
+      id={`variant-color-${variant.id}`}
+      className="h-8 text-xs bg-slate-800/50 border-slate-700"
+    >
+      <SelectValue placeholder="Couleur" />
+    </SelectTrigger>
+    <SelectContent className="bg-slate-900 border-slate-800">
+      {products?.find((p) => p.id === article.id)
+        ?.options.find((opt) => opt.name === "Couleur")
+        ?.values.map((color: string) => (
+          <SelectItem key={color} value={color}>
+            {color}
+          </SelectItem>
+        ))}
+    </SelectContent>
+  </Select>
+</div>
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-quantity-${variant.id}`} className="text-xs">
@@ -740,8 +866,7 @@ const {products}=useAppContext()
   </Label>
   <p className="text-sm text-muted-foreground">
     {
-      products
-        .find(product => product.id === article.id)
+      products?.find(product => product.id === article.id)
         ?.variants.find(v => v.id === variant.id)
         ?.inventory_quantity ?? 0
     }
@@ -756,7 +881,7 @@ const {products}=useAppContext()
                               id={`variant-price-${variant.id}`}
                               type="number"
                               min="0"
-                              value={variant.price}
+                              value={ variant.unit_price || variant.price}
                               onChange={(e) =>
                                 updateVariant(article.id, variant.id, "price", Number.parseInt(e.target.value) || 0)
                               }
@@ -784,7 +909,245 @@ const {products}=useAppContext()
               </div>
             )}
           </div>
+          {isExchange && (
+            <div className="md:col-span-2 py-2">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-slate-700"></span>
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-background px-4 text-sm text-slate-400">Échange d'articles</span>
+                </div>
+              </div>
+            </div>
+          )}
 
+          {/* Articles d'échange (nouveaux articles) */}
+          {isExchange && (
+            <div className="space-y-4 md:col-span-2">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Articles à envoyer (Échange)</h3>
+                <Button
+                  onClick={addExchangeArticle}
+                  size="sm"
+                  className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un article d'échange
+                </Button>
+              </div>
+
+              {exchangeArticles.length === 0 ? (
+                <div className="text-center py-8 border border-dashed border-slate-700 rounded-md">
+                  <p className="text-slate-400">
+                    Aucun article d'échange sélectionné. Ajoutez les articles que le client recevra en échange.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {exchangeArticles.map((article, index) => (
+                    <div key={article.id} className="p-4 border border-slate-700 rounded-md bg-slate-800/30">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-medium">Article d'échange {index + 1}</h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeExchangeArticle(article.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-slate-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="space-y-2">
+                          <Label htmlFor={`exchange-article-name-${article.id}`}>Nom de l'article *</Label>
+                          <Select
+                            value={article.id}
+                            onValueChange={(value) => updateExchangeArticle(article.id, "id", value)}
+                          >
+                            <SelectTrigger
+                              id={`exchange-article-name-${article.id}`}
+                              className="bg-slate-800/50 border-slate-700"
+                            >
+                              <SelectValue placeholder="Sélectionner un article" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {products?.map((product) => (
+                                <SelectItem key={product.id} value={product.id}>
+                                  {product.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`exchange-article-sku-${article.id}`}>SKU</Label>
+                          <Input
+                            id={`exchange-article-sku-${article.id}`}
+                            value={article.sku}
+                            onChange={(e) => updateExchangeArticle(article.id, "sku", e.target.value)}
+                            className="bg-slate-800/50 border-slate-700"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h5 className="text-sm font-medium">Variantes</h5>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addExchangeVariant(article.id)}
+                            className="text-xs border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Ajouter une variante
+                          </Button>
+                        </div>
+
+                        {article.variants.map((variant) => (
+                          <div
+                            key={variant.id}
+                            className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
+                          >
+                            <div className="space-y-1">
+                              <Label htmlFor={`exchange-variant-size-${variant.id}`} className="text-xs">
+                                Taille
+                              </Label>
+                              <Select
+                                value={variant.size || "Unique"}
+                                onValueChange={(value) => updateExchangeVariant(article.id, variant.id, "size", value)}
+                              >
+                                <SelectTrigger
+                                  id={`exchange-variant-size-${variant.id}`}
+                                  className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                                >
+                                  <SelectValue placeholder="Taille" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-900 border-slate-800">
+                                  {products
+                                    ?.find((product) => product.id === article.id)
+                                    ?.options.find(
+                                      (opt) =>
+                                        opt.name === "Pointure" || opt.name === "pointure" || opt.name === "Taille",
+                                    )
+                                    ?.values.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label htmlFor={`exchange-variant-color-${variant.id}`} className="text-xs">
+                                Couleur
+                              </Label>
+                              <Select
+                                value={variant.color || "Noir"}
+                                onValueChange={(value) => updateExchangeVariant(article.id, variant.id, "color", value)}
+                              >
+                                <SelectTrigger
+                                  id={`exchange-variant-color-${variant.id}`}
+                                  className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                                >
+                                  <SelectValue placeholder="Couleur" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-900 border-slate-800">
+                                  {products
+                                    ?.find((product) => product.id === article.id)
+                                    ?.options.find((opt) => opt.name === "Couleur")
+                                    ?.values.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label htmlFor={`exchange-variant-quantity-${variant.id}`} className="text-xs">
+                                Quantité
+                              </Label>
+                              <Input
+                                id={`exchange-variant-quantity-${variant.id}`}
+                                type="number"
+                                min="1"
+                                max={variant.stockStatus === "available" ? variant.availableStock : 0}
+                                value={variant.quantity}
+                                onChange={(e) =>
+                                  updateExchangeVariant(
+                                    article.id,
+                                    variant.id,
+                                    "quantity",
+                                    Number.parseInt(e.target.value) || 1,
+                                  )
+                                }
+                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                                disabled={variant.stockStatus !== "available"}
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label htmlFor={`exchange-variant-stock-${variant.id}`} className="text-xs">
+                                Stock actuel
+                              </Label>
+                              <p className="text-sm text-muted-foreground">
+                                {products
+                                  ?.find((product) => product.id === article.id)
+                                  ?.variants.find((v) => v.id === variant.id)?.inventory_quantity ?? 0}
+                              </p>
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label htmlFor={`exchange-variant-price-${variant.id}`} className="text-xs">
+                                Prix unitaire (DA)
+                              </Label>
+                              <Input
+                                id={`exchange-variant-price-${variant.id}`}
+                                type="number"
+                                min="0"
+                                value={
+                                  products
+                                    ?.find((product) => product.id === article.id)
+                                    ?.variants.find((v) =>[variant.size,variant.color]?.includes(v.option1)&& [variant.size,variant.color]?.includes(v.option2))?.price
+                                }
+                                onChange={(e) =>
+                                  updateExchangeVariant(
+                                    article.id,
+                                    variant.id,
+                                    "price",
+                                    Number.parseInt(e.target.value) || 0,
+                                  )
+                                }
+                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                              />
+                            </div>
+
+                            <div className="flex justify-end">
+                              {article.variants.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExchangeVariant(article.id, variant.id)}
+                                  className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-slate-700"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {/* Informations de livraison */}
           <div className="space-y-4 md:col-span-2">
             <h3 className="text-lg font-medium">Informations de livraison</h3>
@@ -821,7 +1184,7 @@ const {products}=useAppContext()
                     <SelectValue placeholder="Sélectionner une commune" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                    {communes .map((commune) => ({
+                    {getCommunesByWilayaName(selectedWilaya) .map((commune) => ({
           id: commune.id,
           namefr: commune.commune_name_ascii,
           namear: commune.commune_name,

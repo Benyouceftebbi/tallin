@@ -15476,7 +15476,7 @@ export function normalizeString(str: string): string {
    * @returns Array of unique wilayas with their codes and names
    */
   export function getAllWilayas(): { code: string; name_ascii: string; name: string }[] {
-    const wilayasMap = new Map<string, { code: string; name_ascii: string; name: string }>()
+    const wilayasMap = new Map<string, { code: string; name_ascii: string; name: string ;wilaya_code:string}>()
   
     algeriaRegions.forEach((region) => {
       if (!wilayasMap.has(region.wilaya_code)) {
@@ -15484,6 +15484,8 @@ export function normalizeString(str: string): string {
           code: region.wilaya_code,
           name_ascii: region.wilaya_name_ascii,
           name: region.wilaya_name,
+          "wilaya_code":region.wilaya_code
+   
         })
       }
     })
@@ -15513,8 +15515,7 @@ export function normalizeString(str: string): string {
     // First try exact match with normalization
     const exactMatches = algeriaRegions.filter(
       (region) =>
-        normalizeString(region.wilaya_name_ascii) === normalizedName ||
-        normalizeString(region.wilaya_name) === normalizedName,
+        normalizeString(region.wilaya_code) === normalizedName 
     )
   
     if (exactMatches.length > 0) {

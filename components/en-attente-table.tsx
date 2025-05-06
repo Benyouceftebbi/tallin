@@ -123,10 +123,14 @@ const ordersWait = useMemo(() => {
     [ordersWait],
   )
   const deliveryTypes = ["stopdesk","domicile"]
-  const confirmationStatuses = useMemo(
-    () => Array.from(new Set(ordersWait.map((order) => order.confirmationStatus || "Non défini"))),
-    [ordersWait],
-  )
+  const confirmationStatuses =[ "En attente",
+    "Confirmé",
+    "Annulé",
+    "Reporté",
+    "Double",
+    "Ne répond pas 1",
+    "Ne répond pas 2",
+    "Ne répond pas 3",]
   const sources = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.source))), [ordersWait])
   const confirmatrices = workers.filter(w=>w.role==='Confirmatrice').map(c=>c.name)
 
@@ -134,7 +138,7 @@ const ordersWait = useMemo(() => {
   const articles = useMemo(() => {
     const allArticles = new Set<string>();
     ordersWait.forEach((order) => {
-      order.articles.forEach((article: { product_name: string }) => {
+      order.articles?.forEach((article: { product_name: string }) => {
         allArticles.add(article.product_name);
       });
     });
@@ -304,7 +308,7 @@ const ordersWait = useMemo(() => {
     }
 
     selectedRows.forEach((id) => {
-      console.log("id");
+
       
       updateOrder(id, { confirmatrice: selectedConfirmatrice })
     })
@@ -806,19 +810,19 @@ const ordersWait = useMemo(() => {
           </SelectContent>
         </Select>
 
-        <Select value={deliveryCenterFilter} onValueChange={setDeliveryCenterFilter}>
+        {/*<Select value={deliveryCenterFilter || undefined} onValueChange={setDeliveryCenterFilter}>
           <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
             <SelectValue placeholder="Centre de livraison" />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Centre de livraison</SelectItem>
-            {deliveryCenterList.map((center) => (
+            {deliveryCenterList?.map((center) => (
               <SelectItem key={center} value={center}>
                 {center || "Non défini"}
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select>*/}
 
         <Select value={deliveryTypeFilter} onValueChange={setDeliveryTypeFilter}>
           <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700">
@@ -1062,11 +1066,14 @@ const ordersWait = useMemo(() => {
                             <SelectContent className="bg-slate-900 border-slate-800">
                               {wilayas.map((wilaya) =>  {
                   // Check if this wilaya matches the current value using normalized comparison
-                  const isSelected = normalizeString(wilaya.name_ascii) === normalizeString(order.wilaya)
+ 
+                  
+                  const isSelected = normalizeString(wilaya.wilaya_code) === normalizeString(order.wilaya)
+                  
                   return (
                     <SelectItem
                       key={wilaya.code}
-                      value={wilaya.name_ascii}
+                      value={wilaya.wilaya_code}
                       className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
                     >
                       {wilaya.name_ascii} ({wilaya.name}){isSelected && " ✓"}

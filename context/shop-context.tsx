@@ -9,6 +9,7 @@ import {
   doc,
   onSnapshot,
   getFirestore,
+  getDocs,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
 import { db } from "@/lib/firebase"
@@ -175,83 +176,9 @@ export const AVAILABLE_COMPANIES: AvailableCompany[] = [
 ]
 
 export function ShopProvider({ children }: { children: ReactNode }) {
-  const [orders, setOrders] = useState<Order[]>([{
-    id: "CMD-2023-05042",
-    date: "2023-05-04",
-    name: "Ahmed Benali",
-    phone: "0551234567",
-    articles: [
-      {
-        "product_id": 9746516214038,
-        "product_name": "Demi Boot en simili cuir 3870",
-        "variant_id": 49317858902294,
-        "variant_title": "36 / Noir",
-        "variant_options": {
-          "option1": "36",
-          "option2": "Noir"
-        },
-        "quantity": 3,
-        "unit_price": "2900.00",
-        "product_sku": "",
-        "variant_sku": ""
-      },
-      {
-        "product_id": 9746516214038,
-        "product_name": "Demi Boot en simili cuir 3870",
-        "variant_id": 49317859000598,
-        "variant_title": "37 / Noir",
-        "variant_options": {
-          "option1": "37",
-          "option2": "Noir"
-        },
-        "quantity": 22,
-        "unit_price": "2900.00",
-        "product_sku": "",
-        "variant_sku": ""
-      },
-      {
-        "product_id": 9746516214038,
-        "product_name": "Demi Boot en simili cuir 3870",
-        "variant_id": 49317859098902,
-        "variant_title": "38 / Noir",
-        "variant_options": {
-          "option1": "38",
-          "option2": "Noir"
-        },
-        "quantity": 16,
-        "unit_price": "2900.00",
-        "product_sku": "",
-        "variant_sku": ""
-      }
+  const [orders, setOrders] = useState<Order[]>([])
 
-    ],
-    wilaya: "Alger",
-    commune: "Bab Ezzouar",
-    deliveryType: "stopdesk",
-    deliveryCompany: "Yalidine",
-    deliveryCenter: "Alger Centre",
-    confirmationStatus: "En attente",
-    pickupPoint: "",
-    status:"en-attente",
-    deliveryPrice: "800 DA",
-    address: "Cité 5 Juillet, Bâtiment 12, Appartement 5, Bab Ezzouar, Alger",
-    additionalInfo: "Appeler avant la livraison",
-    confirmatrice: "Amina",
-    totalPrice: "75800 DA",
-    source: "Site web",
-    statusHistory: [
-      {
-        status: "Créée",
-        timestamp: "2023-05-04 09:15:22",
-        changedBy: "Système"
-      },
-      {
-        status: "En attente",
-        timestamp: "2023-05-04 09:20:45",
-        changedBy: "Amina"
-      }
-    ]
-  }])
+
   const [inventory, setInventory] = useState<InventoryItem[]>([])
   const [workers, setWorkers] = useState<Worker[]>([])
   const [loading, setLoading] = useState(false)
@@ -318,9 +245,26 @@ console.log(counts);
     }, 1000)
   }
 
-  const updateConfirmationStatus = (id: string, newStatus: ConfirmationStatus) => {
-    setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, confirmationStatus: newStatus } : order)))
-  }
+  const updateConfirmationStatus = (id: string, newStatus: ConfirmationStatus, changedBy ) => {
+    setOrders((prev) =>
+      prev.map((order) => {
+        if (order.id !== id) return order;
+  
+        const newHistoryEntry = {
+          status: newStatus,
+          timestamp: new Date().toISOString(),
+          changedBy:changedBy?changedBy:"System",
+        };
+  
+        return {
+          ...order,
+          confirmationStatus: newStatus,
+          status:"Confirmé",
+          statusHistory: [...(order.statusHistory || []), newHistoryEntry],
+        };
+      })
+    );
+  };
 
   const getInventoryItem = (name: string) => {
     return inventory.find((item) => item.name === name)
@@ -473,6 +417,19 @@ useEffect(()=>{
     unsubscribeDeliveryMen()
   }
 },[])
+useEffect(() => {
+  const fetchOrders = async () => {
+    try {
+      const ordersCollection = await getDocs(collection(db,'orders')) ;
+      const ordersData = ordersCollection.docs.map(doc => doc.data() as Order);
+      setOrders(ordersData);
+    } catch (error) {
+      console.error("Error fetching orders: ", error);
+    }
+  };
+
+  fetchOrders();
+}, []); // Empty dependency array ensures this effect runs only once on mount
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>
 }
 
@@ -483,3 +440,4 @@ export function useShop() {
   }
   return context
 }
+
