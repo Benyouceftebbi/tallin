@@ -292,67 +292,69 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
 
   // Mettre à jour une variante
   const updateVariant = (variantId: string, field: string, value: string | number | boolean) => {
-    setCurrentVariants(
-      currentVariants?.map((variant) => {
-        let updatedPrice='0'
-        if (variant.id === variantId) {
-          const selectedOptions = selectedProduct?.options.map(opt => opt.name) || [];
-
-          const matchingVariant = selectedProduct?.variants.find(v => {
-            return selectedOptions.every((name, index) => {
-              const selectedValue = variant.attributes[name]; // e.g., "38" for "Taille"
-              const variantOption = v[`option${index + 1}`]; // option1, option2, etc.
-              return selectedValue === variantOption;
-            });
-          });
-          
-          if (matchingVariant ) {
-            console.log("Matched variant has same unit price",matchingVariant.price);
-            updatedPrice=matchingVariant.price
+    setCurrentVariants((prevVariants) => {
+      if (!prevVariants) return []
+  
+      const isFirstVariant = prevVariants[0]?.id === variantId
+      const isGlobalUpdate = isFirstVariant && typeof value === "string" && value.length > 3
+  
+      return prevVariants.map((variant) => {
+        const shouldUpdate = isGlobalUpdate || variant.id === variantId
+        if (!shouldUpdate) return variant
+  
+        let updatedPrice = variant.unitPrice
+  
+        const selectedOptions = selectedProduct?.options.map(opt => opt.name) || []
+        const matchingVariant = selectedProduct?.variants.find(v => {
+          return selectedOptions.every((name, index) => {
+            const selectedValue = variant.attributes[name]
+            const variantOption = v[`option${index + 1}`]
+            return selectedValue === variantOption
+          })
+        })
+  
+        if (matchingVariant) {
+          updatedPrice = matchingVariant.price
+        }
+  
+        if (field === "quantity") {
+          const newQuantity = Number(value)
+          const newPackQuantity = Math.ceil(newQuantity / variant.packSize)
+          return {
+            ...variant,
+            quantity: newQuantity,
+            packQuantity: newPackQuantity,
           }
-          if (field === "quantity" || field === "packQuantity" || field === "unitPrice" || field === "packSize") {
-            // Si on met à jour la quantité en unités, mettre à jour la quantité en packs
-            if (field === "quantity") {
-              const newQuantity = Number(value)
-              const newPackQuantity = Math.ceil(newQuantity / variant.packSize)
-              return {
-                ...variant,
-                [field]: newQuantity,
-                packQuantity: newPackQuantity,
-              }
-            }
-            // Si on met à jour la quantité en packs, mettre à jour la quantité en unités
-            else if (field === "packQuantity") {
-              const newPackQuantity = Number(value)
-              const newQuantity = newPackQuantity * variant.packSize
-              return {
-                ...variant,
-                [field]: newPackQuantity,
-                quantity: newQuantity,
-              }
-            }
-            // Pour les autres champs numériques
-            else {
-              return { ...variant, [field]: Number(value) }
-            }
-          } else if (field === "byPack") {
-            return { ...variant, [field]: value as boolean }
-          } else {
-            // C'est un attribut
-            return {
-              ...variant,
-              attributes: {
-                ...variant.attributes,
-                [field]: value as string,
-                
-              },
-              unitPrice:Number(updatedPrice)
-            }
+        } else if (field === "packQuantity") {
+          const newPackQuantity = Number(value)
+          const newQuantity = newPackQuantity * variant.packSize
+          return {
+            ...variant,
+            packQuantity: newPackQuantity,
+            quantity: newQuantity,
+          }
+        } else if (field === "unitPrice" || field === "packSize") {
+          return {
+            ...variant,
+            [field]: Number(value),
+          }
+        } else if (field === "byPack") {
+          return {
+            ...variant,
+            byPack: value as boolean,
+          }
+        } else {
+          return {
+            ...variant,
+            attributes: {
+              ...variant.attributes,
+              [field]: value as string,
+            },
+            unitPrice: Number(updatedPrice),
           }
         }
-        return variant
-      }),
-    )
+      })
+    })
   }
 
   // Supprimer une variante
