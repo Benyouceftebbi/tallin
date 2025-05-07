@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -96,8 +96,9 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
 
   // État pour les articles de la facture
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([])
+console.log(invoiceItems);
 
-  // État pour le produit sélectionné
+  //l État pour le produit sélectionné
   const [selectedProductId, setSelectedProductId] = useState("")
 
   // État pour les variantes en cours d'ajout
@@ -146,7 +147,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
       quantity: 1,
       packQuantity: 1,
       packSize: defaultPackSize,
-      unitPrice: 0,
+      unitPrice:Number(selectedProduct.variants[0]?.price),
       byPack: false,
       isPackSelection: false,
     }
@@ -184,7 +185,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
           quantity: Number(variant.unity || 1),
           packQuantity: Math.ceil(Number(variant.unity || 1) / pack.variants.length),
           packSize:pack.variants.length,
-          unitPrice:0,
+          unitPrice:Number(selectedProduct.variants[0]?.price),
           byPack: false,
           isPackSelection: false
         });
@@ -303,6 +304,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
         if (!shouldUpdate) return variant
   
         let updatedPrice = variant.unitPrice
+       
   
         const selectedOptions = selectedProduct?.options.map(opt => opt.name) || []
         const matchingVariant = selectedProduct?.variants.find(v => {
@@ -797,7 +799,7 @@ await addInvoice({
                                     </div>
 
                                     <div className="space-y-2">
-                                      <Label htmlFor={`${variant.id}-price`}>Prix unitaire (€)</Label>
+                                      <Label htmlFor={`${variant.id}-price`}>Prix unitaire (DZD)</Label>
                                       <Input
                                         id={`${variant.id}-price`}
                                         type="number"
@@ -940,49 +942,64 @@ await addInvoice({
               <h3 className="text-lg font-medium">Articles de la facture</h3>
               {invoiceItems.length > 0 ? (
                 <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Produit</TableHead>
-                        <TableHead>Variante</TableHead>
-                        <TableHead>Quantité</TableHead>
-                        <TableHead>Prix unitaire</TableHead>
-                        <TableHead>Total</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invoiceItems?.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{item.productName}</TableCell>
-                          <TableCell>{item.attributes}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <span>{item.quantity} unités</span>
-                              <span className="text-xs text-muted-foreground">
-                                {item.packQuantity} packs de {item.packSize}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{item.unitPrice.toFixed(2)} €</TableCell>
-                          <TableCell>{(item.quantity * item.unitPrice).toFixed(2)} €</TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="sm" onClick={() => removeInvoiceItem(item.id)}>
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-right font-medium">
-                          Total
-                        </TableCell>
-                        <TableCell className="font-bold">{calculateTotal().toFixed(2)} €</TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead>Produit</TableHead>
+        <TableHead>Variantes</TableHead>
+        <TableHead>nombre de variant</TableHead>
+        <TableHead>Prix unitaire</TableHead>
+        <TableHead>Prix total</TableHead>
+        <TableHead></TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {Object.entries(
+        invoiceItems.reduce((acc, item) => {
+          if (!acc[item.productName]) acc[item.productName] = []
+          acc[item.productName].push(item)
+          return acc
+        }, {} as Record<string, typeof invoiceItems>)
+      ).map(([productName, items]) => {
+        const { variantsText, totalQuantity } = items.reduce(
+          (acc, item) => {
+            acc.variantsText += `${item.attributes} / ${item.quantity}\n`;
+            acc.totalQuantity += item.quantity;
+            return acc;
+          },
+          { variantsText: '', totalQuantity: 0 }
+        );
+        const unitPrice = items[0]?.unitPrice || 0
+        const totalPrice = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+
+        return (
+          <TableRow key={productName}>
+            <TableCell>{productName}</TableCell>
+            <TableCell className="whitespace-pre-line w-[150px]">
+  {variantsText}
+</TableCell>
+<TableCell>{totalQuantity}</TableCell>
+            <TableCell>{unitPrice.toFixed(2)} DZD</TableCell>
+            <TableCell>{totalPrice.toFixed(2)} DZD</TableCell>
+            <TableCell>
+              {items.map(item => (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeInvoiceItem(item.id)}
+                  className="mr-1"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              ))}
+            </TableCell>
+          </TableRow>
+        )
+      })}
+    </TableBody>
+  </Table>
+</div>
               ) : (
                 <div className="text-center p-4 border rounded-md bg-muted/50">
                   <p>Aucun article ajouté à la facture</p>
