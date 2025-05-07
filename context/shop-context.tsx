@@ -10,6 +10,7 @@ import {
   onSnapshot,
   getFirestore,
   getDocs,
+  Timestamp,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
 import { db } from "@/lib/firebase"
@@ -346,37 +347,7 @@ console.log(counts);
     const ref = doc(db, 'deliveryMen', id)
     await deleteDoc(ref)
   }
-  const value = {
-    orders,
-    inventory,
-    workers,
-    addOrder,
-    updateOrder,
-    updateOrderStatus,
-    updateMultipleOrdersStatus,
-    updateRetourStatus,
-    getOrdersByStatus,
-    getOrderById,
-    getStatusCounts,
-    sendSmsReminder,
-    loading,
-    updateConfirmationStatus,
-    getInventoryItem,
-    updateInventoryStock,
-    addWorker,
-    updateWorker,
-    deleteWorker,
-    getWorkerById,
-    deliveryCompanies,
-    deliveryMen,
-    availableCompanies: AVAILABLE_COMPANIES,
-    addDeliveryCompany,
-    updateDeliveryCompany,
-    deleteDeliveryCompany,
-    addDeliveryMan,
-    updateDeliveryMan,
-    deleteDeliveryMan,
-  }
+
 useEffect(()=>{
   const unsubscribeWorkers = onSnapshot(collection(db, 'Workers'), (snapshot) => {
     snapshot.docChanges().forEach((change) => {
@@ -430,6 +401,177 @@ useEffect(() => {
 
   fetchOrders();
 }, []); // Empty dependency array ensures this effect runs only once on mount
+const [suppliers, setSuppliers] = useState<Supplier[]>([])
+const [error, setError] = useState<string | null>(null)
+const [isOffline, setIsOffline] = useState<boolean>(false)
+
+// Fonction pour récupérer les fournisseurs depuis Firebase
+const fetchSuppliers = async () => {
+  try {
+    setLoading(true)
+    setError(null)
+
+    const suppliersCollection = collection(db, "Suppliers")
+    const suppliersSnapshot = await getDocs(suppliersCollection)
+
+    if (suppliersSnapshot.empty) {
+      console.log("No suppliers found in Firestore, using initial data")
+    } else {
+      const suppliersList = suppliersSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Supplier[]
+      setSuppliers(suppliersList)
+    }
+
+  } catch (err) {
+    console.error("Error fetching suppliers:", err)
+    setError("Impossible de charger les fournisseurs. Utilisation des données locales.")
+  } finally {
+    setLoading(false)
+  }
+}
+  // Charger les fournisseurs lorsque le composant est ouvert
+  useEffect(() => {
+
+      fetchSuppliers()
+    
+  }, [])
+// Fonction pour ajouter un fournisseur
+const addSupplier = async (supplierData: Omit<Supplier, "id">): Promise<Supplier> => {
+  try {
+    setLoading(true)
+    setError(null)
+
+
+
+    const docRef = await addDoc(collection(db, "Suppliers"), supplierData)
+    const newSupplier = { id: docRef.id, ...supplierData } 
+
+    setSuppliers((prev) => [...prev, newSupplier])
+    return newSupplier
+  } catch (err) {
+    console.error("Error adding supplier:", err)
+    setError("Impossible d'ajouter le fournisseur. Mode hors ligne activé.")
+  } finally {
+    setLoading(false)
+  }
+}
+
+// Fonction pour mettre à jour un fournisseur
+const updateSupplier = async (supplier: Supplier): Promise<void> => {
+  try {
+    setLoading(true)
+    setError(null)
+
+
+
+    const { id, ...supplierData } = supplier
+    const supplierRef = doc(db, "Suppliers", id)
+    await updateDoc(supplierRef, supplierData)
+
+    setSuppliers((prev) => prev.map((s) => (s.id === id ? supplier : s)))
+  } catch (err) {
+    console.error("Error updating supplier:", err)
+    setError("Impossible de mettre à jour le fournisseur. Mode hors ligne activé.")
+  } finally {
+    setLoading(false)
+  }
+}
+
+// Fonction pour supprimer un fournisseur
+const deleteSupplier = async (id: string): Promise<void> => {
+  try {
+    setLoading(true)
+    setError(null)
+
+
+
+    await deleteDoc(doc(db, "Suppliers", id))
+    setSuppliers((prev) => prev.filter((s) => s.id !== id))
+  } catch (err) {
+    console.error("Error deleting supplier:", err)
+    setError("Impossible de supprimer le fournisseur. Mode hors ligne activé.")
+
+  } finally {
+    setLoading(false)
+  }
+}
+
+const [invoices, setInvoices] = useState<Invoice[]>([]);
+useEffect(() => {
+  const invoicesRef = collection(db, "invoices");
+
+  // Realtime listener
+  const unsubscribe = onSnapshot(invoicesRef, (snapshot) => {
+    const invoicesData = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Invoice[];
+
+    setInvoices(invoicesData);
+  });
+
+  return () => unsubscribe(); // Cleanup on unmount
+}, []);
+const addInvoice = async (invoice: NewInvoice) => {
+  try {
+    const invoicesRef = collection(db, "invoices");
+
+    const newInvoice = {
+      ...invoice,
+      createdAt: invoice.createdAt || Timestamp.now(),
+
+    };
+
+    const docRef = await addDoc(invoicesRef, newInvoice);
+    
+    console.log("Invoice added with ID:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding invoice:", error);
+    throw error;
+  }
+};
+const value = {
+  orders,
+  inventory,
+  workers,
+  addOrder,
+  updateOrder,
+  updateOrderStatus,
+  updateMultipleOrdersStatus,
+  updateRetourStatus,
+  getOrdersByStatus,
+  getOrderById,
+  getStatusCounts,
+  sendSmsReminder,
+  loading,
+  updateConfirmationStatus,
+  getInventoryItem,
+  updateInventoryStock,
+  addWorker,
+  updateWorker,
+  deleteWorker,
+  getWorkerById,
+  deliveryCompanies,
+  deliveryMen,
+  availableCompanies: AVAILABLE_COMPANIES,
+  addDeliveryCompany,
+  updateDeliveryCompany,
+  deleteDeliveryCompany,
+  addDeliveryMan,
+  updateDeliveryMan,
+  deleteDeliveryMan,
+  suppliers,
+  fetchSuppliers,
+  addSupplier,
+  updateSupplier,
+  deleteSupplier,
+  addInvoice,
+  invoices
+}
+
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>
 }
 

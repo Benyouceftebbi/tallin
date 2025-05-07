@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import type { Pack } from "@/components/invoices/packs-management"
 import { db } from "@/lib/firebase"
-import { collection, getDocs } from "firebase/firestore"
+import { collection, collectionGroup, getDocs, onSnapshot } from "firebase/firestore"
 
 // Types for Shopify-like product structure
 export type ProductOption = {
@@ -658,7 +658,7 @@ const initialPacks: Pack[] = [
 
 // Fournisseur du contexte
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>()
+  const [products, setProducts] = useState<Product[]>([])
   const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>(initialInventoryMovements)
   const [cashTransactions, setCashTransactions] = useState<CashTransaction[]>(initialCashTransactions)
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
@@ -710,6 +710,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     loadData();
+  }, []);
+  
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collectionGroup(db, "variants"), (snapshot) => {
+      setProducts((prevProducts) => {
+        let updatedProducts = [...prevProducts] || [];
+
+
+        snapshot.docChanges().forEach((change) => {
+          const variantData = change.doc.data();
+          const variantId = change.doc.id;
+          const productId = change.doc.ref.parent.parent?.id;
+          console.log("hi mama2");
+          console.log("hi mama2",change.type);
+          console.log("hi mama2",variantId);
+          if (!productId) return;
+
+          // Find the product in the array
+          const productIndex = updatedProducts.findIndex(p => p.id === productId);
+          if (productIndex === -1) return;
+
+          const product = updatedProducts[productIndex];
+
+          const variant = { id: variantId, ...variantData };
+          const existingVariantIndex = product.variants.findIndex(v => String(v.id) === variantId);
+
+          switch (change.type) {
+            case "added":
+              if (existingVariantIndex === -1) {
+                product.variants.push(variant);
+              }
+              break;
+
+            case "modified":
+              if (existingVariantIndex !== -1) {
+                console.log("hi mama ");
+                
+                product.variants[existingVariantIndex] = variant;
+              }
+              break;
+
+            case "removed":
+              if (existingVariantIndex !== -1) {
+                product.variants.splice(existingVariantIndex, 1);
+              }
+              break;
+          }
+
+          // Replace the updated product in the array
+          updatedProducts[productIndex] = { ...product };
+        });
+
+        return updatedProducts;
+      });
+    });
+
+    return () => unsubscribe();
   }, []);
   return (
     <AppContext.Provider

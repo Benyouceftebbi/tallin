@@ -18,6 +18,7 @@ import { SuppliersManagement, type Supplier } from "./suppliers-management"
 import { PacksManagement, type Pack } from "./packs-management"
 import { useAppContext } from "@/context/app-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useShop } from "@/context/shop-context"
 
 // Types pour les produits et leurs variantes
 type VariantAttribute = {
@@ -42,183 +43,6 @@ type Product = {
   variants: ProductVariant[]
 }
 
-// Données d'exemple pour les produits avec différents types de variantes
-const products: Product[] = [
-  {
-    id: "prod-1",
-    name: "T-shirt Premium",
-    sku: "TS-001",
-    category: "Vêtements",
-    variantTypes: ["size", "color"],
-    variants: [
-      {
-        id: "var-1",
-        attributes: [
-          { type: "size", value: "S" },
-          { type: "color", value: "Blanc" },
-        ],
-        price: 15.99,
-        stock: 25,
-        packSize: 10,
-      },
-      {
-        id: "var-2",
-        attributes: [
-          { type: "size", value: "M" },
-          { type: "color", value: "Blanc" },
-        ],
-        price: 15.99,
-        stock: 30,
-        packSize: 10,
-      },
-      {
-        id: "var-3",
-        attributes: [
-          { type: "size", value: "L" },
-          { type: "color", value: "Blanc" },
-        ],
-        price: 15.99,
-        stock: 20,
-        packSize: 10,
-      },
-      {
-        id: "var-4",
-        attributes: [
-          { type: "size", value: "S" },
-          { type: "color", value: "Noir" },
-        ],
-        price: 15.99,
-        stock: 15,
-        packSize: 10,
-      },
-      {
-        id: "var-5",
-        attributes: [
-          { type: "size", value: "M" },
-          { type: "color", value: "Noir" },
-        ],
-        price: 15.99,
-        stock: 25,
-        packSize: 10,
-      },
-      {
-        id: "var-6",
-        attributes: [
-          { type: "size", value: "L" },
-          { type: "color", value: "Noir" },
-        ],
-        price: 15.99,
-        stock: 10,
-        packSize: 10,
-      },
-    ],
-  },
-  {
-    id: "prod-2",
-    name: "Écouteurs Sans Fil",
-    sku: "ESF-002",
-    category: "Électronique",
-    variantTypes: ["color"],
-    variants: [
-      {
-        id: "var-7",
-        attributes: [{ type: "color", value: "Blanc" }],
-        price: 89.99,
-        stock: 30,
-        packSize: 5,
-      },
-      {
-        id: "var-8",
-        attributes: [{ type: "color", value: "Noir" }],
-        price: 89.99,
-        stock: 25,
-        packSize: 5,
-      },
-      {
-        id: "var-9",
-        attributes: [{ type: "color", value: "Bleu" }],
-        price: 94.99,
-        stock: 15,
-        packSize: 5,
-      },
-    ],
-  },
-  {
-    id: "prod-3",
-    name: "Chaussures de Sport",
-    sku: "CS-003",
-    category: "Chaussures",
-    variantTypes: ["size", "color", "material"],
-    variants: [
-      {
-        id: "var-10",
-        attributes: [
-          { type: "size", value: "39" },
-          { type: "color", value: "Blanc" },
-          { type: "material", value: "Cuir" },
-        ],
-        price: 79.99,
-        stock: 12,
-        packSize: 3,
-      },
-      {
-        id: "var-11",
-        attributes: [
-          { type: "size", value: "40" },
-          { type: "color", value: "Blanc" },
-          { type: "material", value: "Cuir" },
-        ],
-        price: 79.99,
-        stock: 15,
-        packSize: 3,
-      },
-      {
-        id: "var-12",
-        attributes: [
-          { type: "size", value: "41" },
-          { type: "color", value: "Blanc" },
-          { type: "material", value: "Cuir" },
-        ],
-        price: 79.99,
-        stock: 10,
-        packSize: 3,
-      },
-      {
-        id: "var-13",
-        attributes: [
-          { type: "size", value: "39" },
-          { type: "color", value: "Noir" },
-          { type: "material", value: "Synthétique" },
-        ],
-        price: 69.99,
-        stock: 8,
-        packSize: 3,
-      },
-      {
-        id: "var-14",
-        attributes: [
-          { type: "size", value: "40" },
-          { type: "color", value: "Noir" },
-          { type: "material", value: "Synthétique" },
-        ],
-        price: 69.99,
-        stock: 12,
-        packSize: 3,
-      },
-      {
-        id: "var-15",
-        attributes: [
-          { type: "size", value: "41" },
-          { type: "color", value: "Noir" },
-          { type: "material", value: "Synthétique" },
-        ],
-        price: 69.99,
-        stock: 9,
-        packSize: 3,
-      },
-    ],
-  },
-]
 
 // Type pour les éléments de la facture
 type InvoiceItem = {
@@ -252,6 +76,8 @@ interface PurchaseInvoiceFormProps {
 }
 
 export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormProps) {
+  const {products}=useAppContext()
+  const {addInvoice}=useShop()
   // État pour les informations de la facture
   const [invoiceData, setInvoiceData] = useState({
     invoiceNumber: "",
@@ -277,6 +103,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
   // État pour les variantes en cours d'ajout
   const [currentVariants, setCurrentVariants] = useState<CurrentVariant[]>([])
 
+
   // État pour l'onglet actif
   const [activeTab, setActiveTab] = useState<"product" | "pack">("product")
 
@@ -288,27 +115,11 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
 
   // Obtenir le produit sélectionné
   const selectedProduct = useMemo(() => {
-    return products.find((p) => p.id === selectedProductId)
+    return products?.find((p) => p.id === selectedProductId)
   }, [selectedProductId])
 
   // Filtrer les packs qui correspondent au produit sélectionné
-  const filteredPacks = useMemo(() => {
-    if (!selectedProduct) return []
-    if (!packs || packs.length === 0) return []
-
-    // Un pack correspond si au moins une de ses variantes a des attributs
-    // qui correspondent aux types de variantes du produit sélectionné
-    return packs.filter((pack) => {
-      if (!pack.variants || pack.variants.length === 0) return false
-
-      // Vérifier si les types d'attributs du pack correspondent aux types de variantes du produit
-      const packAttributeTypes = Array.from(
-        new Set(pack.variants.flatMap((v) => Object.keys(v).filter((k) => k !== "id" && k !== "unity"))),
-      )
-
-      return packAttributeTypes.some((type) => selectedProduct.variantTypes.includes(type))
-    })
-  }, [packs, selectedProduct])
+  const filteredPacks =[]
 
   // Ajouter une nouvelle variante vide quand un produit est sélectionné
   useEffect(() => {
@@ -490,7 +301,22 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
   const updateVariant = (variantId: string, field: string, value: string | number | boolean) => {
     setCurrentVariants(
       currentVariants?.map((variant) => {
+        let updatedPrice='0'
         if (variant.id === variantId) {
+          const selectedOptions = selectedProduct?.options.map(opt => opt.name) || [];
+
+          const matchingVariant = selectedProduct?.variants.find(v => {
+            return selectedOptions.every((name, index) => {
+              const selectedValue = variant.attributes[name]; // e.g., "38" for "Taille"
+              const variantOption = v[`option${index + 1}`]; // option1, option2, etc.
+              return selectedValue === variantOption;
+            });
+          });
+          
+          if (matchingVariant ) {
+            console.log("Matched variant has same unit price",matchingVariant.price);
+            updatedPrice=matchingVariant.price
+          }
           if (field === "quantity" || field === "packQuantity" || field === "unitPrice" || field === "packSize") {
             // Si on met à jour la quantité en unités, mettre à jour la quantité en packs
             if (field === "quantity") {
@@ -525,7 +351,9 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
               attributes: {
                 ...variant.attributes,
                 [field]: value as string,
+                
               },
+              unitPrice:Number(updatedPrice)
             }
           }
         }
@@ -566,40 +394,29 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
     return Array.from(values)
   }
 
-  // Trouver la variante correspondante dans le produit
   const findMatchingVariant = (variantId: string) => {
     if (!selectedProduct) return null
-
+  
     const currentVariant = currentVariants.find((v) => v.id === variantId)
     if (!currentVariant) return null
-
+  
     // Vérifier si tous les attributs sont sélectionnés
-    const allAttributesSelected = selectedProduct.variantTypes.every((type) => currentVariant.attributes[type])
-
+    const allAttributesSelected = selectedProduct.options.every((type) => currentVariant.attributes[type.name])
+  
     if (!allAttributesSelected) return null
-
+  
     // Trouver la variante correspondante
     return selectedProduct.variants.find((variant) => {
-      return (
-        variant.attributes.every((attr) => {
-          return currentVariant.attributes[attr.type] === attr.value
-        }) && selectedProduct.variantTypes.length === variant.attributes.length
-      )
+      return selectedProduct.options.every((option, index) => {
+        const selectedValue = currentVariant.attributes[option.name]
+        const variantOption = variant[`option${index + 1}`] // "option1", "option2", ...
+        return selectedValue === variantOption
+      })
     })
   }
+  
 
-  // Mettre à jour le prix unitaire et la taille du pack lorsqu'une variante est sélectionnée
-  useEffect(() => {
-    currentVariants.forEach((currentVariant) => {
-      const matchingVariant = findMatchingVariant(currentVariant.id)
-      if (matchingVariant) {
-        if (currentVariant.unitPrice === 0) {
-          updateVariant(currentVariant.id, "unitPrice", matchingVariant.price)
-        }
-        updateVariant(currentVariant.id, "packSize", matchingVariant.packSize)
-      }
-    })
-  }, [currentVariants, selectedProduct])
+
 
   // Mettre à jour les informations de la facture
   const handleInvoiceDataChange = (field: string, value: string) => {
@@ -706,6 +523,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
       // Handle manual entry (existing code)
       else {
         const matchingVariant = findMatchingVariant(currentVariant.id)
+console.log(matchingVariant);
 
         if (!matchingVariant) {
           toast({
@@ -728,9 +546,9 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
         newItems.push({
           id: `item-${Date.now()}-${newItems.length}`,
           productId: selectedProduct.id,
-          productName: selectedProduct.name,
+          productName: selectedProduct.title,
           variantId: matchingVariant.id,
-          attributes: matchingVariant.attributes,
+          attributes: matchingVariant.title,
           quantity: currentVariant.quantity,
           packQuantity: currentVariant.packQuantity,
           packSize: currentVariant.packSize,
@@ -770,7 +588,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
   }
 
   // Soumettre la facture
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (invoiceItems.length === 0) {
@@ -788,8 +606,15 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
       supplier: selectedSupplier,
       items: invoiceItems,
       total: calculateTotal(),
+      type:"achat"
     })
-
+await addInvoice({
+  ...invoiceData,
+  supplier: selectedSupplier,
+  items: invoiceItems,
+  total: calculateTotal(),
+  type:"achat"
+})
     toast({
       title: "Facture créée",
       description: `La facture ${invoiceData.invoiceNumber} a été créée avec succès.`,
@@ -873,16 +698,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dueDate">Date d'échéance</Label>
-                  <Input
-                    id="dueDate"
-                    type="date"
-                    value={invoiceData.dueDate}
-                    onChange={(e) => handleInvoiceDataChange("dueDate", e.target.value)}
-                    required
-                  />
-                </div>
+
               </div>
             </div>
 
@@ -892,32 +708,9 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Ajouter des articles</h3>
-                <Button type="button" variant="outline" onClick={() => setIsPacksManagementOpen(true)}>
-                  <Package className="h-4 w-4 mr-2" />
-                  Sélectionner un pack
-                </Button>
               </div>
 
-              <div className="flex space-x-2 mb-4">
-                <Button
-                  type="button"
-                  variant={activeTab === "product" ? "default" : "outline"}
-                  onClick={() => setActiveTab("product")}
-                  className="flex-1"
-                >
-                  Produit individuel
-                </Button>
-                <Button
-                  type="button"
-                  variant={activeTab === "pack" ? "default" : "outline"}
-                  onClick={() => setActiveTab("pack")}
-                  className="flex-1"
-                >
-                  Pack prédéfini
-                </Button>
-              </div>
 
-              {activeTab === "product" ? (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="product">Produit</Label>
@@ -928,7 +721,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                       <SelectContent>
                         {products?.map((product) => (
                           <SelectItem key={product.id} value={product.id}>
-                            {product.name} ({product.sku})
+                            {product.title}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -965,36 +758,22 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                                 </CardHeader>
                                 <CardContent>
                                   <div className="grid grid-cols-2 gap-4">
-                                    {selectedProduct.variantTypes?.map((attrType) => (
-                                      <div key={attrType} className="space-y-2">
-                                        <Label htmlFor={`${variant.id}-${attrType}`}>
-                                          {attrType === "size"
-                                            ? "Taille"
-                                            : attrType === "color"
-                                              ? "Couleur"
-                                              : attrType === "material"
-                                                ? "Matériau"
-                                                : attrType}
+                                    {selectedProduct.options?.map((attrType) => (
+                                      <div key={attrType.id} className="space-y-2">
+                                        <Label htmlFor={`${variant.id}-${attrType.id}`}>
+                                          {attrType.name}
                                         </Label>
                                         <Select
-                                          value={variant.attributes[attrType] || ""}
-                                          onValueChange={(value) => updateVariant(variant.id, attrType, value)}
+                                          value={variant.attributes[attrType.name] || ""}
+                                          onValueChange={(value) => updateVariant(variant.id, attrType.name, value)}
                                         >
-                                          <SelectTrigger id={`${variant.id}-${attrType}`}>
+                                          <SelectTrigger id={`${variant.id}-${attrType.id}`}>
                                             <SelectValue
-                                              placeholder={`Sélectionner ${
-                                                attrType === "size"
-                                                  ? "une taille"
-                                                  : attrType === "color"
-                                                    ? "une couleur"
-                                                    : attrType === "material"
-                                                      ? "un matériau"
-                                                      : attrType
-                                              }`}
+                                              placeholder={`Sélectionner une${attrType.name}`}
                                             />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            {getAttributeValues(attrType, variant.id)?.map((value) => (
+                                            {attrType.values?.map((value) => (
                                               <SelectItem key={value} value={value}>
                                                 {value}
                                               </SelectItem>
@@ -1004,34 +783,20 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                                       </div>
                                     ))}
 
-                                    <div className="space-y-2">
-                                      <Label htmlFor={`${variant.id}-quantity-type`}>Type de quantité</Label>
-                                      <Select
-                                        value={variant.byPack ? "pack" : "unit"}
-                                        onValueChange={(value) => updateVariant(variant.id, "byPack", value === "pack")}
-                                      >
-                                        <SelectTrigger id={`${variant.id}-quantity-type`}>
-                                          <SelectValue placeholder="Sélectionner le type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="unit">Unités</SelectItem>
-                                          <SelectItem value="pack">Packs</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
+
 
                                     <div className="space-y-2">
                                       <Label htmlFor={`${variant.id}-quantity`}>
-                                        {variant.byPack ? "Quantité (packs)" : "Quantité (unités)"}
+                                        {"Quantité (unités)"}
                                       </Label>
                                       <Input
                                         id={`${variant.id}-quantity`}
                                         type="number"
                                         min="1"
-                                        value={variant.byPack ? variant.packQuantity : variant.quantity}
+                                        value={variant.quantity}
                                         onChange={(e) => {
                                           const value = Number.parseInt(e.target.value) || 1
-                                          updateVariant(variant.id, variant.byPack ? "packQuantity" : "quantity", value)
+                                          updateVariant(variant.id,"quantity", value)
                                         }}
                                       />
                                     </div>
@@ -1053,21 +818,11 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
 
                                   {matchingVariant && (
                                     <div className="mt-4 flex flex-wrap gap-2">
-                                      <Badge variant="outline" className="bg-green-50 text-green-700">
-                                        Stock: {matchingVariant.stock} unités
-                                      </Badge>
-                                      <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                                        Taille de pack: {matchingVariant.packSize} unités
-                                      </Badge>
-                                      {variant.byPack ? (
+                                     
                                         <Badge variant="outline" className="bg-purple-50 text-purple-700">
-                                          Total: {variant.quantity} unités ({variant.packQuantity} packs)
+                                          Total: {variant.quantity*variant.unitPrice}DZD
                                         </Badge>
-                                      ) : (
-                                        <Badge variant="outline" className="bg-purple-50 text-purple-700">
-                                          Total: {variant.quantity} unités ({variant.packQuantity} packs)
-                                        </Badge>
-                                      )}
+                                      
                                     </div>
                                   )}
 
@@ -1180,19 +935,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                     </div>
                   )}
                 </div>
-              ) : (
-                <div className="text-center p-8 border rounded-md bg-muted/50">
-                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h4 className="text-lg font-medium mb-2">Utiliser un pack prédéfini</h4>
-                  <p className="text-muted-foreground mb-4">
-                    Sélectionnez un pack prédéfini pour ajouter rapidement plusieurs articles à votre facture.
-                  </p>
-                  <Button type="button" onClick={() => setIsPacksManagementOpen(true)}>
-                    <Package className="h-4 w-4 mr-2" />
-                    Sélectionner un pack
-                  </Button>
-                </div>
-              )}
+            
             </div>
 
             <Separator />
@@ -1217,15 +960,7 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
                       {invoiceItems?.map((item) => (
                         <TableRow key={item.id}>
                           <TableCell>{item.productName}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1">
-                              {item.attributes?.map((attr, i) => (
-                                <span key={i} className="text-sm">
-                                  {formatAttributeDisplay(attr)}
-                                </span>
-                              ))}
-                            </div>
-                          </TableCell>
+                          <TableCell>{item.attributes}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
                               <span>{item.quantity} unités</span>

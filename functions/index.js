@@ -7,8 +7,11 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 const { onRequest } = require("firebase-functions/v2/https");
+const { onDocumentCreated }=require("firebase-functions/v2/firestore") ;
+
 const logger = require("firebase-functions/logger");
-const { getFirestore } = require("firebase-admin/firestore");
+const { getFirestore }= require("firebase-admin/firestore");
+
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -134,4 +137,38 @@ exports.shopifyOrderCreated = onRequest( async (req, res) => {
     logger.error("Error storing order", error);
     res.status(500).send("Internal Server Error");
   }
+});
+exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (event) => {
+  const snapshot = event.data;
+  if (!snapshot) return;
+
+  const invoice = snapshot.data();
+  if (!invoice || invoice.type !== "achat") return;
+
+  const items = invoice.items || [];
+
+  const batch = db.batch();
+
+  for (const item of items) {
+    const { productId, variantId, quantity } = item;
+
+    if (!productId || !variantId || !quantity) continue;
+
+    const variantRef = db
+      .collection("Products")
+      .doc(productId)
+      .collection("variants")
+      .doc(String(variantId));
+
+    const variantSnap = await variantRef.get();
+    if (!variantSnap.exists) continue;
+
+    const currentQty = variantSnap.get("inventory_quantity") || 0;
+
+    batch.update(variantRef, {
+      inventory_quantity: currentQty + quantity,
+    });
+  }
+
+  await batch.commit();
 });

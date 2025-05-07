@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Pencil, Plus, Save, Trash } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
+import { useShop } from "@/context/shop-context"
 
 // Type pour les fournisseurs
 export type Supplier = {
@@ -24,30 +25,6 @@ export type Supplier = {
 
 // Données d'exemple pour les fournisseurs
 export const initialSuppliers: Supplier[] = [
-  {
-    id: "sup-1",
-    name: "Fournisseur Électronique",
-    contact: "Jean Dupont",
-    email: "contact@fournisseur-electronique.com",
-    phone: "01 23 45 67 89",
-    address: "123 Rue de l'Innovation, 75001 Paris",
-  },
-  {
-    id: "sup-2",
-    name: "Textile Premium",
-    contact: "Marie Martin",
-    email: "info@textile-premium.com",
-    phone: "01 98 76 54 32",
-    address: "45 Avenue de la Mode, 69002 Lyon",
-  },
-  {
-    id: "sup-3",
-    name: "Accessoires Luxe",
-    contact: "Pierre Durand",
-    email: "contact@accessoires-luxe.com",
-    phone: "03 45 67 89 10",
-    address: "78 Boulevard Haussmann, 75008 Paris",
-  },
 ]
 
 interface SupplierFormProps {
@@ -198,23 +175,22 @@ export function SuppliersManagement({
   onSelectSupplier,
   selectable = false,
 }: SuppliersManagementProps) {
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
+  const { suppliers,  addSupplier, updateSupplier, deleteSupplier } =
+    useShop()
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [isAddingSupplier, setIsAddingSupplier] = useState(false)
   const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(null)
 
-  const handleSaveSupplier = (supplier: Supplier) => {
+  const handleSaveSupplier = async (supplier: Supplier) => {
     if (editingSupplier) {
-      // Mise à jour d'un fournisseur existant
-      setSuppliers(suppliers?.map((s) => (s.id === supplier.id ? supplier : s)))
+await updateSupplier(supplier)
       setEditingSupplier(null)
       toast({
         title: "Fournisseur mis à jour",
         description: `Le fournisseur ${supplier.name} a été mis à jour avec succès.`,
       })
     } else {
-      // Ajout d'un nouveau fournisseur
-      setSuppliers([...suppliers, supplier])
+      await addSupplier(supplier)
       setIsAddingSupplier(false)
       toast({
         title: "Fournisseur ajouté",
@@ -223,9 +199,9 @@ export function SuppliersManagement({
     }
   }
 
-  const handleDeleteSupplier = () => {
+  const handleDeleteSupplier = async () => {
     if (deletingSupplier) {
-      setSuppliers(suppliers.filter((s) => s.id !== deletingSupplier.id))
+     await deleteSupplier(deletingSupplier.id)
       setDeletingSupplier(null)
       toast({
         title: "Fournisseur supprimé",
