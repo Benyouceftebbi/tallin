@@ -119,7 +119,8 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
   }, [selectedProductId])
 
   // Filtrer les packs qui correspondent au produit sélectionné
-  const filteredPacks =[]
+  const filteredPacks =packs
+
 
   // Ajouter une nouvelle variante vide quand un produit est sélectionné
   useEffect(() => {
@@ -164,39 +165,31 @@ export function PurchaseInvoiceForm({ open, onOpenChange }: PurchaseInvoiceFormP
       })
       return
     }
-
+    console.log("hi");
     // Créer des variantes à partir des variantes du pack
     const newVariants: CurrentVariant[] = []
-
-    // Pour chaque variante du produit, vérifier si elle correspond aux attributs du pack
-    selectedProduct.variants.forEach((productVariant) => {
-      // Vérifier si cette variante correspond aux attributs du pack
-      const matchingPackVariant = pack.variants.find((packVar) => {
-        return productVariant.attributes.some((attr) => {
-          const attrType = attr.type
-          return packVar[attrType] !== undefined && packVar[attrType] === attr.value
-        })
-      })
-
-      if (matchingPackVariant) {
-        // Créer un objet d'attributs pour la variante
-        const attributes: Record<string, string> = {}
-        productVariant.attributes.forEach((attr) => {
-          attributes[attr.type] = attr.value
-        })
-
+    pack.variants.forEach((variant, index) => {
+      const matchingOption = selectedProduct.options.find((option) =>
+        option.values.includes(variant.size)
+      );
+  
+      if (matchingOption) {
+        const attributes: Record<string, string> = {
+          [matchingOption.name]: variant.size
+        };
+  
         newVariants.push({
-          id: `temp-${Date.now()}-${newVariants.length}`,
+          id: `temp-${Date.now()}-${index}`,
           attributes,
-          quantity: Number(matchingPackVariant.unity || 1),
-          packQuantity: Math.ceil(Number(matchingPackVariant.unity || 1) / productVariant.packSize),
-          packSize: productVariant.packSize,
-          unitPrice: productVariant.price,
+          quantity: Number(variant.unity || 1),
+          packQuantity: Math.ceil(Number(variant.unity || 1) / pack.variants.length),
+          packSize:pack.variants.length,
+          unitPrice:0,
           byPack: false,
-          isPackSelection: false,
-        })
+          isPackSelection: false
+        });
       }
-    })
+    });
 
     if (newVariants.length === 0) {
       toast({

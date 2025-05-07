@@ -12,6 +12,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { Trash2, Plus, Edit, Package } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { deleteDoc, doc, setDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 // Type pour les variantes génériques dans un pack
 export type PackVariant = {
@@ -241,56 +243,10 @@ export function PackManagementSheet({ open, onOpenChange }: PackManagementSheetP
     setCombinations(updatedCombinations)
   }
 
-  // Sauvegarder le pack
-  const savePack = () => {
-    if (!packName) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez donner un nom au pack",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (combinations.length === 0) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez générer au moins une combinaison de variantes",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const packToSave: Pack = {
-      id: editMode && currentPack ? currentPack.id : `pack-${Date.now()}`,
-      name: packName,
-      description: packDescription,
-      variants: combinations,
-    }
-
-    if (editMode && currentPack) {
-      // Mettre à jour un pack existant
-      setPacks(packs.map((p) => (p.id === currentPack.id ? packToSave : p)))
-      toast({
-        title: "Succès",
-        description: "Pack mis à jour avec succès",
-      })
-    } else {
-      // Créer un nouveau pack
-      setPacks([...packs, packToSave])
-      toast({
-        title: "Succès",
-        description: "Nouveau pack créé avec succès",
-      })
-    }
-
-    // Réinitialiser le formulaire et fermer la side sheet
-    resetForm()
-    onOpenChange(false)
-  }
 
   // Supprimer un pack
-  const deletePack = (packId: string) => {
+  const deletePack = async (packId: string) => {
+    await deleteDoc(doc(db, "packs", packId))
     setPacks(packs.filter((p) => p.id !== packId))
     toast({
       title: "Succès",
@@ -309,10 +265,7 @@ export function PackManagementSheet({ open, onOpenChange }: PackManagementSheetP
     return translations[type] || type
   }
 
-  // Formater l'affichage d'une combinaison
-  const formatCombination = (combination: PackVariant[]): string => {
-    return combination.map((variant) => `${variant.attribute}: ${variant.value} (${variant.quantity})`).join(", ")
-  }
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -539,7 +492,7 @@ export function PackManagementSheet({ open, onOpenChange }: PackManagementSheetP
 
         <SheetFooter>
           {editMode || !packs.length ? (
-            <Button onClick={savePack}>{editMode ? "Mettre à jour" : "Créer le pack"}</Button>
+            <Button onClick={()=>savePack()}>{editMode ? "Mettre à jour" : "Créer le pack"}</Button>
           ) : (
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Fermer

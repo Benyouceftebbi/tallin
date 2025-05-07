@@ -634,27 +634,6 @@ const initialSalesInvoices: SalesInvoice[] = [
   },
 ]
 
-// Données initiales pour les packs
-const initialPacks: Pack[] = [
-  {
-    id: "1",
-    name: "Pack Basique",
-    description: "Pack standard avec tailles moyennes et couleurs basiques",
-    variants: [
-      { id: "1", unity: 3, size: "M", color: "Noir" },
-      { id: "2", unity: 2, size: "L", color: "Blanc" },
-    ],
-  },
-  {
-    id: "2",
-    name: "Pack Premium",
-    description: "Pack haut de gamme avec grandes tailles et couleurs exclusives",
-    variants: [
-      { id: "1", unity: 2, size: "L", color: "Noir" },
-      { id: "2", unity: 3, size: "M", color: "Blanc" },
-    ],
-  },
-]
 
 // Fournisseur du contexte
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -665,7 +644,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>(initialPurchaseInvoices)
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers)
   const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(initialSalesInvoices)
-  const [packs, setPacks] = useState<Pack[]>(initialPacks)
+  const [packs, setPacks] = useState<Pack[]>([])
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -722,9 +701,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const variantData = change.doc.data();
           const variantId = change.doc.id;
           const productId = change.doc.ref.parent.parent?.id;
-          console.log("hi mama2");
-          console.log("hi mama2",change.type);
-          console.log("hi mama2",variantId);
+
           if (!productId) return;
 
           // Find the product in the array
@@ -745,7 +722,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
             case "modified":
               if (existingVariantIndex !== -1) {
-                console.log("hi mama ");
+ 
                 
                 product.variants[existingVariantIndex] = variant;
               }
@@ -768,6 +745,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return () => unsubscribe();
   }, []);
+  useEffect(() => {
+    const fetchPacks = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "packs"))
+        const fetchedPacks: Pack[] = []
+        querySnapshot.forEach((doc) => {
+          fetchedPacks.push(doc.data() as Pack)
+        })
+        setPacks(fetchedPacks)
+      } catch (error) {
+        console.error("Erreur lors du chargement des packs:", error)
+       
+      }
+    }
+  
+    fetchPacks()
+  }, [])
   return (
     <AppContext.Provider
       value={{
