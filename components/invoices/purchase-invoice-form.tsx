@@ -291,60 +291,65 @@ console.log(invoiceItems);
     })
   }
 
-  // Mettre à jour une variante
-  const updateVariant = (variantId: string, field: string, value: string | number | boolean) => {
+  const updateVariant = (
+    variantId: string,
+    field: string,
+    value: string | number | boolean
+  ) => {
     setCurrentVariants((prevVariants) => {
-      if (!prevVariants) return []
+      if (!prevVariants) return [];
   
-      const isFirstVariant = prevVariants[0]?.id === variantId
-      const isGlobalUpdate = isFirstVariant && typeof value === "string" && value.length > 3
+      const isFirstVariant = prevVariants[0]?.id === variantId;
+      const isGlobalUpdate =
+        isFirstVariant && typeof value === "string" && value.length > 3;
   
       return prevVariants.map((variant) => {
-        const shouldUpdate = isGlobalUpdate || variant.id === variantId
-        if (!shouldUpdate) return variant
+        const shouldUpdate =
+          field === "unitPrice" || isGlobalUpdate || variant.id === variantId;
   
-        let updatedPrice = variant.unitPrice
-       
+        if (!shouldUpdate) return variant;
   
-        const selectedOptions = selectedProduct?.options.map(opt => opt.name) || []
-        const matchingVariant = selectedProduct?.variants.find(v => {
+        let updatedPrice = variant.unitPrice;
+  
+        const selectedOptions = selectedProduct?.options.map((opt) => opt.name) || [];
+        const matchingVariant = selectedProduct?.variants.find((v) => {
           return selectedOptions.every((name, index) => {
-            const selectedValue = variant.attributes[name]
-            const variantOption = v[`option${index + 1}`]
-            return selectedValue === variantOption
-          })
-        })
+            const selectedValue = variant.attributes[name];
+            const variantOption = v[`option${index + 1}`];
+            return selectedValue === variantOption;
+          });
+        });
   
         if (matchingVariant) {
-          updatedPrice = matchingVariant.price
+          updatedPrice = matchingVariant.price;
         }
   
         if (field === "quantity") {
-          const newQuantity = Number(value)
-          const newPackQuantity = Math.ceil(newQuantity / variant.packSize)
+          const newQuantity = Number(value);
+          const newPackQuantity = Math.ceil(newQuantity / variant.packSize);
           return {
             ...variant,
             quantity: newQuantity,
             packQuantity: newPackQuantity,
-          }
+          };
         } else if (field === "packQuantity") {
-          const newPackQuantity = Number(value)
-          const newQuantity = newPackQuantity * variant.packSize
+          const newPackQuantity = Number(value);
+          const newQuantity = newPackQuantity * variant.packSize;
           return {
             ...variant,
             packQuantity: newPackQuantity,
             quantity: newQuantity,
-          }
+          };
         } else if (field === "unitPrice" || field === "packSize") {
           return {
             ...variant,
             [field]: Number(value),
-          }
+          };
         } else if (field === "byPack") {
           return {
             ...variant,
             byPack: value as boolean,
-          }
+          };
         } else {
           return {
             ...variant,
@@ -353,11 +358,11 @@ console.log(invoiceItems);
               [field]: value as string,
             },
             unitPrice: Number(updatedPrice),
-          }
+          };
         }
-      })
-    })
-  }
+      });
+    });
+  };
 
   // Supprimer une variante
   const removeVariant = (variantId: string) => {
