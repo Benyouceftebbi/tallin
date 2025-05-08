@@ -1000,9 +1000,9 @@ const ordersWait = useMemo(() => {
                       {visibleColumns.name && (
                         <td className="p-3 text-slate-300">
                           <HoverCard>
-                            <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors">
-                              {order.name}
-                            </HoverCardTrigger>
+                          <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors block truncate">
+  {order.name}
+</HoverCardTrigger>
                             <HoverCardContent className="w-80 bg-slate-900 border-slate-800 p-0">
                               <div className="p-3 border-b border-slate-800">
                                 <h4 className="text-sm font-medium text-slate-200">Historique des statuts</h4>

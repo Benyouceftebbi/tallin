@@ -25,7 +25,7 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { X, Plus, Trash2, AlertTriangle, Clock } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-import { getCommunesByWilayaName, normalizeString } from "@/app/commandes/en-attente/data/algeria-regions"
+import { getAllWilayas, getCommunesByWilayaName, normalizeString } from "@/app/commandes/en-attente/data/algeria-regions"
 import { getYalidinCentersForCommune } from "@/app/commandes/en-attente/data/yalidin-centers"
 import { isStopDeskAvailable } from "@/app/commandes/en-attente/data/shipping-availability"
 import { useAppContext } from "@/context/app-context"
@@ -165,7 +165,13 @@ const {products}=useAppContext()
   // Initialiser le formulaire avec les données de la commande
   useEffect(() => {
     if (order) {
-      setFormData(order)
+      const cleanedDeliveryPrice = order.deliveryPrice?.replace(/\s?DZD$/, '') || '0';
+
+      setFormData({
+        ...order,
+        deliveryPrice: cleanedDeliveryPrice,
+      });
+      //setFormData(order)
       setSelectedWilaya(order.wilaya)
       setCommunes(getCommunesByWilayaName(order.wilaya) || [])
 
@@ -233,7 +239,7 @@ const {products}=useAppContext()
     } else {
       setCommunes([])
     }
-  }, [selectedWilaya])
+  } , [selectedWilaya])
 
   // Gérer les changements dans le formulaire
   const handleChange = (field: keyof Order, value: any) => {
@@ -1165,9 +1171,9 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                     <SelectValue placeholder="Sélectionner une wilaya" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                    {wilayas.map((wilaya) => (
-                      <SelectItem key={wilaya} value={wilaya}>
-                        {wilaya}
+                    {getAllWilayas().map((wilaya) => (
+                      <SelectItem key={wilaya.code} value={wilaya.code}>
+                        {wilaya.name_ascii}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1319,7 +1325,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                 <Input
                   id="calculatedTotalPrice"
                   type="number"
-                  value={calculateTotalPrice() + (formData.deliveryPrice || 0)}
+                  value={calculateTotalPrice() + (Number(formData.deliveryPrice) || 0)}
                   disabled
                   className="bg-slate-800/50 border-slate-700 opacity-70"
                 />
@@ -1333,7 +1339,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="source">Source *</Label>
-                <Select value={formData.source || ""} onValueChange={(value) => handleChange("source", value)}>
+                <Select disabled={!isNew} value={formData.source || ""} onValueChange={(value) => handleChange("source", value)}>
                   <SelectTrigger id="source" className="bg-slate-800/50 border-slate-700">
                     <SelectValue placeholder="Sélectionner une source" />
                   </SelectTrigger>
