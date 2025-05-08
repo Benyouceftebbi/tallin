@@ -147,14 +147,14 @@ const ordersWait = useMemo(() => {
 
   // Filtrer les commandes en fonction des critères - mémorisé pour éviter des recalculs
   const filteredOrders = useMemo(() => {
-    return ordersWait.filter((order) => {
+    const filtered = ordersWait.filter((order) => {
       const matchesSearch =
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.wilaya.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.commune.toLowerCase().includes(searchTerm.toLowerCase())
-
+  
       const matchesWilaya = wilayaFilter === "all" || order.wilaya === wilayaFilter
       const matchesCommune = communeFilter === "all" || order.commune === communeFilter
       const matchesDeliveryCompany = deliveryCompanyFilter === "all" || order.deliveryCompany === deliveryCompanyFilter
@@ -164,8 +164,7 @@ const ordersWait = useMemo(() => {
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
       const matchesConfirmatrice = confirmatriceFilter === "all" || order.confirmatrice === confirmatriceFilter
       const matchesArticle = articleFilter === "all" || order.articles.includes(articleFilter)
-
-      // Date range filter
+  
       let matchesDateRange = true
       if (dateRange) {
         try {
@@ -175,11 +174,10 @@ const ordersWait = useMemo(() => {
             end: dateRange.to,
           })
         } catch (error) {
-          // If date parsing fails, we'll still include the order
           console.error("Error parsing date:", error)
         }
       }
-
+  
       return (
         matchesSearch &&
         matchesWilaya &&
@@ -193,6 +191,12 @@ const ordersWait = useMemo(() => {
         matchesArticle &&
         matchesDateRange
       )
+    })
+  
+    // Sort by numeric value of ID in descending order
+    return filtered.sort((a, b) => {
+      const getIdNumber = (id: string) => parseInt(id.replace(/\D/g, ""), 10)
+      return getIdNumber(b.id) - getIdNumber(a.id)
     })
   }, [
     ordersWait,
@@ -905,7 +909,7 @@ const ordersWait = useMemo(() => {
       </div>
 
       <div className="rounded-md border border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-        <div className="overflow-x-auto">
+        <div className="">
           <div className="max-h-[70vh] overflow-y-auto">
             <table className="w-full border-collapse">
               <thead className="sticky top-0 z-20">
