@@ -11,6 +11,8 @@ import {
   getFirestore,
   getDocs,
   Timestamp,
+  query,
+  limit,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
 import { db } from "@/lib/firebase"
@@ -58,6 +60,7 @@ export type DeliveryCompany = {
 export type StockStatus = "available" | "out_of_stock" | "coming_soon"
 
 export type Order = {
+  docId?: string
   id: string
   trackingId: string
   name: string
@@ -351,7 +354,7 @@ console.log(counts);
         timestamp: new Date().toISOString(),
         changedBy: changedBy ? changedBy : "System",
       }
-
+if(newStatus=== "Confirmé") {
       // Get the current order to access its statusHistory
       const currentOrder = orders.find((order) => order.id === id)
       const updatedStatusHistory = [...(currentOrder?.statusHistory || []), newHistoryEntry]
@@ -378,6 +381,36 @@ console.log(counts);
           }
         }),
       )
+}
+else{
+      // Get the current order to access its statusHistory
+      const currentOrder = orders.find((order) => order.id === id)
+      const updatedStatusHistory = [...(currentOrder?.statusHistory || []), newHistoryEntry]
+
+      // Update in Firestore
+      const orderRef = doc(db, "orders", id)
+      await updateDoc(orderRef, {
+        confirmationStatus: newStatus,
+        status: "en-attente",
+        statusHistory: updatedStatusHistory,
+        updatedAt: new Date(),
+      })
+
+      // Update local state
+      setOrders((prev) =>
+        prev.map((order) => {
+          if (order.id !== id) return order
+
+          return {
+            ...order,
+            confirmationStatus: newStatus,
+            status: "en-attente",
+            statusHistory: updatedStatusHistory,
+          }
+        }),
+      )
+}
+
 
       console.log(`Order ${id} confirmation status updated to ${newStatus}`)
     } catch (error) {
@@ -510,8 +543,10 @@ useEffect(()=>{
 useEffect(() => {
   const fetchOrders = async () => {
     try {
-      const ordersCollection = await getDocs(collection(db,'orders')) ;
-      const ordersData = ordersCollection.docs.map(doc => doc.data() as Order);
+
+const ordersQuery = query(collection(db, 'orders'));
+const ordersCollection= await getDocs(ordersQuery);
+      const ordersData = ordersCollection.docs.map(doc =>( {...doc.data(),id:doc.id,docId:doc.data().id}) as Order);
       setOrders(ordersData);
     } catch (error) {
       console.error("Error fetching orders: ", error);

@@ -243,7 +243,11 @@ const {products}=useAppContext()
 
   // Gérer les changements dans le formulaire
   const handleChange = (field: keyof Order, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    if(value === "Confirmé") {
+    setFormData((prev) => ({ ...prev, [field]: value ,status: "Confirmé" }))
+    }else{
+          setFormData((prev) => ({ ...prev, [field]: value }))
+    }
   }
 
   // Ajouter un nouvel article

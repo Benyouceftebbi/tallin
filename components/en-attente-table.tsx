@@ -107,7 +107,7 @@ export function EnAttenteTable() {
   // Filtrer pour n'avoir que les commandes en attente
 const ordersWait = useMemo(() => {
     return orders.filter(
-      (order) => order.confirmationStatus ==="En attente" || order.status==="en-attente",
+      (order) =>  order.status==="en-attente",
     )
   }, [orders])
 
@@ -999,7 +999,7 @@ const ordersWait = useMemo(() => {
                           className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                         />
                       </td>
-                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.id}</td>}
+                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.docId}</td>}
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && (
                         <td className="p-3 text-slate-300">
