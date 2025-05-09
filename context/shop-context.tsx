@@ -221,6 +221,8 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const updateOrder = async (id: string, updatedOrder: Partial<Order>) => {
     try {
       // Update in Firestore
+      console.log(updatedOrder);
+      
       const orderRef = doc(db, "orders", id)
       await updateDoc(orderRef, {
         ...updatedOrder,
@@ -544,7 +546,7 @@ useEffect(() => {
   const fetchOrders = async () => {
     try {
 
-const ordersQuery = query(collection(db, 'orders'));
+const ordersQuery = query(collection(db, 'orders'), limit(2));
 const ordersCollection= await getDocs(ordersQuery);
       const ordersData = ordersCollection.docs.map(doc =>( {...doc.data(),id:doc.id,docId:doc.data().id}) as Order);
       setOrders(ordersData);

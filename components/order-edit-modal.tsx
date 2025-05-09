@@ -29,6 +29,7 @@ import { getAllWilayas, getCommunesByWilayaName, normalizeString } from "@/app/c
 import { getYalidinCentersForCommune } from "@/app/commandes/en-attente/data/yalidin-centers"
 import { isStopDeskAvailable } from "@/app/commandes/en-attente/data/shipping-availability"
 import { useAppContext } from "@/context/app-context"
+import { ar } from "date-fns/locale"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -157,10 +158,12 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   const [formData, setFormData] = useState<Partial<Order>>({})
   const [selectedWilaya, setSelectedWilaya] = useState<string>("")
   const [communes, setCommunes] = useState<any[]>([])
-  const [selectedArticles, setSelectedArticles] = useState<Article[]>([])
+  const [selectedArticles, setSelectedArticles] = useState<any[]>([])
   const [isExchange, setIsExchange] = useState(false)
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
   const [selectedPreviousOrder, setSelectedPreviousOrder] = useState<string>("")
+  console.log(selectedArticles);
+  
 const {products}=useAppContext()
   // Initialiser le formulaire avec les données de la commande
   useEffect(() => {
@@ -257,14 +260,7 @@ const {products}=useAppContext()
       name: "",
       sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       variants: [
-        {
-          id: `variant-${Date.now()}-0`,
-          size: "Unique",
-          color: "Noir",
-          quantity: 1,
-          price: 0,
-          stockStatus: "available",
-        },
+       
       ],
     }
     setSelectedArticles([...selectedArticles, newArticle])
@@ -279,30 +275,32 @@ const {products}=useAppContext()
   const updateArticle = (articleId: string, field: keyof Article, value: any) => {
     if (field === "name") {
       // When article name changes, fetch inventory data
-      const inventoryItem = getInventoryItem(value)
+      const inventoryItem = products?.find((product) => product.id === articleId)
 
       setSelectedArticles(
         selectedArticles.map((article) => {
           if (article.id === articleId) {
             // If inventory item exists, update variants with stock info
             if (inventoryItem) {
-              const updatedVariants = inventoryItem.variants.map((invVariant) => ({
+            const updatedVariants = inventoryItem.variants.map((invVariant) => ({
                 id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 size: invVariant.size || "Unique",
                 color: invVariant.color || "Noir",
                 quantity: 1,
                 price: invVariant.price,
+                  unit_price: invVariant.unit_price,
                 inventoryVariantId: invVariant.id,
-                availableStock: invVariant.stock,
-                stockStatus: invVariant.stockStatus,
-                expectedDate: invVariant.expectedDate,
+                availableStock: "0",
+                stockStatus: "available",
+                expectedDate: "",
               }))
 
               return {
                 ...article,
+                ...inventoryItem,
                 [field]: value,
                 sku: inventoryItem.sku,
-                variants: updatedVariants.length > 0 ? updatedVariants : article.variants,
+                variants: [updatedVariants[0]], // Keep only the first variant for now
               }
             } else {
               // If no inventory item, just update the name
@@ -335,7 +333,7 @@ const {products}=useAppContext()
                 size: "Unique",
                 color: "Noir",
                 quantity: 1,
-                price: article.variants[0]?.price || 0,
+                price: products.find(product=>product.id)?.variants[0].price || 0,
                 stockStatus: "available",
               },
             ],
@@ -366,6 +364,8 @@ const {products}=useAppContext()
     setSelectedArticles(
       selectedArticles.map((article) => {
         if (article.id === articleId) {
+        console.log("hi",field);
+        
           return {
             ...article,
             variants: article.variants.map((variant) =>
@@ -443,14 +443,30 @@ const {products}=useAppContext()
 
 
     // Calculate the total price
-    const totalPrice = calculateTotalPrice() + (formData.deliveryPrice || 0)
+    const totalPrice = calculateTotalPrice() + (Number(formData.deliveryPrice) || 0)
 
     // Update the articles and total price
-    const updatedFormData = {
-      ...formData,
-      wilaya: selectedWilaya,
-      totalPrice: totalPrice,
-    }
+const updatedFormData = {
+  ...formData,
+  wilaya: selectedWilaya,
+  totalPrice: totalPrice,
+  articles: selectedArticles.flatMap((article) =>
+    article.variants.map((variant) => ({
+      product_id: article.id,
+      product_name: article.name,
+      product_sku: article.sku || "",
+      quantity: variant.quantity,
+      unit_price: variant.unit_price || variant.price,
+      variant_id: variant.variant_id || variant.id,
+      variant_sku: variant.variant_sku || "",
+      variant_title: variant.variant_title  || "",
+      variant_options: {
+        option1: variant.size,
+        option2: variant.color,
+      },
+    }))
+  ),
+};
 
     if (isNew) {
       addOrder(updatedFormData as Order)
@@ -518,14 +534,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
       name: "",
       sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       variants: [
-        {
-          id: `variant-${Date.now()}-0`,
-          size: "Unique",
-          color: "Noir",
-          quantity: 1,
-          price: 0,
-          stockStatus: "available",
-        },
+
       ],
     }
     setExchangeArticles([...exchangeArticles, newArticle])
@@ -590,14 +599,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
             ...article,
             variants: [
               ...article.variants,
-              {
-                id: `variant-${articleId}-${article.variants.length}`,
-                size: "Unique",
-                color: "Noir",
-                quantity: 1,
-                price: article.variants[0]?.price || 0,
-                stockStatus: "available",
-              },
+             
             ],
           }
         }
@@ -790,14 +792,9 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
     Taille
   </Label>
   <Select
-    value={getVariantOptionValue({
-      product: products?.find((p) => p.id === article.id),
-      variant: products?.find((p) => p.id === article.id)
-        ?.variants.find((v) => v.id === variant.variant_id),
-      label: "Taille",
-    })}
+    value={variant.size}
     onValueChange={(value) =>
-      updateVariant(article.id, variant.id, "Taille", value)
+      updateVariant(article.id, variant.id, "size", value)
     }
   >
     <SelectTrigger
@@ -824,14 +821,9 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
     Couleur
   </Label>
   <Select
-    value={getVariantOptionValue({
-      product: products?.find((p) => p.id === article.id),
-      variant: products?.find((p) => p.id === article.id)
-        ?.variants.find((v) => v.id === variant.variant_id),
-      label: "Couleur",
-    })}
+    value={variant.color}
     onValueChange={(value) =>
-      updateVariant(article.id, variant.id, "Couleur", value)
+      updateVariant(article.id, variant.id, "color", value)
     }
   >
     <SelectTrigger
@@ -893,7 +885,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                               min="0"
                               value={ variant.unit_price || variant.price}
                               onChange={(e) =>
-                                updateVariant(article.id, variant.id, "price", Number.parseInt(e.target.value) || 0)
+                                updateVariant(article.id, variant.id, "unit_price", Number.parseInt(e.target.value) || 0)
                               }
                               className="h-8 text-xs bg-slate-800/50 border-slate-700"
                             />

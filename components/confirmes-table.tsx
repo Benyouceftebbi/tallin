@@ -35,7 +35,15 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-h
 import { generateParcelLabel } from "@/app/commandes/confirmes/print"
 
 export function ConfirmesTable() {
-  const { getOrdersByStatus, updateMultipleOrdersStatus, updateOrder, loading,orders } = useShop()
+  const {
+    getOrdersByStatus,
+    updateMultipleOrdersStatus,
+    updateOrder,
+    loading,
+    updateConfirmationStatus,
+    deliveryCompanies, // Assuming this comes from the shop context
+    deliveryCenters,workers,orders // Assuming this comes from the shop context
+  } = useShop()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
@@ -84,17 +92,17 @@ export function ConfirmesTable() {
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const wilayas = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.wilaya))), [ordersConfirme])
   const communes = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.commune))), [ordersConfirme])
-  const deliveryCompanies = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.deliveryCompany))), [ordersConfirme])
+ 
   const deliveryTypes = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.deliveryType))), [ordersConfirme])
   const sources = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.source))), [ordersConfirme])
-  const confirmatrices = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.confirmatrice))), [ordersConfirme])
+    const confirmatrices = workers.filter(w=>w.role==='Confirmatrice').map(c=>c.name)
 
   // Extraire tous les articles uniques de toutes les commandes
   const articles = useMemo(() => {
     const allArticles = new Set<string>();
     orders.forEach((order) => {
       order.articles.forEach((article: { product_name: string }) => {
-        allArticles.add(article.product_name);
+        allArticles.add(article.name);
       });
     });
     return Array.from(allArticles)
@@ -492,9 +500,9 @@ export function ConfirmesTable() {
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Entreprise</SelectItem>
-            {deliveryCompanies.map((company) => (
-              <SelectItem key={company} value={company}>
-                {company}
+            {[...deliveryCompanies,{companyId:"deliveryMen"}].map((company) => (
+              <SelectItem key={company.companyId} value={company.companyId}>
+                {company.companyId}
               </SelectItem>
             ))}
           </SelectContent>
@@ -653,7 +661,7 @@ export function ConfirmesTable() {
                           className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                         />
                       </td>
-                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.id}</td>}
+                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.docId}</td>}
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}

@@ -139,7 +139,7 @@ const ordersWait = useMemo(() => {
     const allArticles = new Set<string>();
     ordersWait.forEach((order) => {
       order.articles?.forEach((article: { product_name: string }) => {
-        allArticles.add(article.product_name);
+        allArticles.add(article.name);
       });
     });
     return Array.from(allArticles);
