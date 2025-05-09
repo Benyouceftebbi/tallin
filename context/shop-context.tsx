@@ -652,6 +652,30 @@ const addInvoice = async (invoice: NewInvoice) => {
     throw error;
   }
 };
+const updateInvoice = async (updatedInvoice: any) => {
+  try {
+    // Update Firestore
+    const invoiceRef = doc(db, "invoices", updatedInvoice.id);
+    await updateDoc(invoiceRef, {
+      ...updatedInvoice,
+      updatedAt: Timestamp.now(),
+    });
+
+    // Optionally update local state
+    setInvoices((prev) =>
+      (prev || []).map((invoice) =>
+        invoice.id === updatedInvoice.id
+          ? { ...updatedInvoice, updatedAt: new Date().toISOString() }
+          : invoice
+      )
+    );
+
+    return Promise.resolve();
+  } catch (error) {
+    console.error("Error updating invoice:", error);
+    return Promise.reject(error);
+  }
+};
 const value = {
   orders,
   inventory,
@@ -688,7 +712,8 @@ const value = {
   updateSupplier,
   deleteSupplier,
   addInvoice,
-  invoices
+  invoices,
+  updateInvoice
 }
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>
