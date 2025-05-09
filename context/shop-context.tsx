@@ -546,7 +546,7 @@ useEffect(() => {
   const fetchOrders = async () => {
     try {
 
-const ordersQuery = query(collection(db, 'orders'), limit(2));
+const ordersQuery = query(collection(db, 'orders'));
 const ordersCollection= await getDocs(ordersQuery);
       const ordersData = ordersCollection.docs.map(doc =>( {...doc.data(),id:doc.id,docId:doc.data().id}) as Order);
       setOrders(ordersData);
