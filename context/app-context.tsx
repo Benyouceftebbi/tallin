@@ -645,6 +645,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers)
   const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(initialSalesInvoices)
   const [packs, setPacks] = useState<Pack[]>([])
+  const addProduct = (product: Product) => {
+    setProducts((prev) => [...prev, product])
+  }
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -781,6 +784,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSalesInvoices,
         packs,
         setPacks,
+        addProduct
       }}
     >
       {children}

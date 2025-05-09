@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Plus, Search, TrendingUp, Package, DollarSign, BarChart3 } from "lucide-react"
 import { ProductsTable } from "@/components/products/products-table"
 import { ProductEditSheet } from "@/components/products/product-edit-sheet"
+import { ShopifyImportModal } from "../shopify-import-modal"
 
 export function ProductsPageClient() {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false)
@@ -25,6 +26,10 @@ export function ProductsPageClient() {
             <Plus className="mr-2 h-4 w-4" />
             Ajouter un produit
           </Button>
+          <div className="flex gap-2">
+          <ShopifyImportModal />
+          
+        </div>
         </div>
       </div>
 
