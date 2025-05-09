@@ -7,7 +7,7 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 const { onRequest } = require("firebase-functions/v2/https");
-const { onDocumentCreated }=require("firebase-functions/v2/firestore") ;
+const { onDocumentCreated,onDocumentUpdated}=require("firebase-functions/v2/firestore") ;
 
 const logger = require("firebase-functions/logger");
 const { getFirestore }= require("firebase-admin/firestore");
@@ -167,6 +167,66 @@ exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (e
 
     batch.update(variantRef, {
       inventory_quantity: currentQty + quantity,
+    });
+  }
+
+  await batch.commit();
+});
+
+exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", async (event) => {
+  const beforeSnap = event.data?.before;
+  const afterSnap = event.data?.after;
+
+  if (!beforeSnap || !afterSnap) return;
+
+  const before = beforeSnap.data();
+  const after = afterSnap.data();
+
+  if (!before || !after || after.type !== "achat") return;
+
+  const beforeItems = before.items || [];
+  const afterItems = after.items || [];
+
+  const batch = db.batch();
+
+  // Helper: Convert array to map for easier comparison
+  const mapByKey = (items) =>
+    items.reduce((acc, item) => {
+      if (item.productId && item.variantId) {
+        const key = `${item.productId}_${item.variantId}`;
+        acc[key] = item.quantity || 0;
+      }
+      return acc;
+    });
+
+  const beforeMap = mapByKey(beforeItems);
+  const afterMap = mapByKey(afterItems);
+
+  // Collect all unique keys
+  const keys = new Set([...Object.keys(beforeMap), ...Object.keys(afterMap)]);
+
+  for (const key of keys) {
+    const [productId, variantId] = key.split("_");
+    const beforeQty = beforeMap[key] || 0;
+    const afterQty = afterMap[key] || 0;
+
+    const diff = afterQty - beforeQty;
+
+    if (diff === 0) continue;
+
+    const variantRef = db
+      .collection("Products")
+      .doc(productId)
+      .collection("variants")
+      .doc(String(variantId));
+
+    const variantSnap = await variantRef.get();
+    if (!variantSnap.exists) continue;
+
+    const currentQty = variantSnap.get("inventory_quantity") || 0;
+
+    batch.update(variantRef, {
+      inventory_quantity: currentQty + diff,
     });
   }
 
