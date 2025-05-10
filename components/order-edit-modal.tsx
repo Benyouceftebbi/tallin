@@ -273,9 +273,10 @@ const {products}=useAppContext()
 
   // Mettre à jour un article
   const updateArticle = (articleId: string, field: keyof Article, value: any) => {
-    if (field === "name") {
+    if (field === "id") {
       // When article name changes, fetch inventory data
-      const inventoryItem = products?.find((product) => product.id === articleId)
+      const inventoryItem = products?.find((product) => product.id === value)
+console.log("dfdsfsdf",inventoryItem);
 
       setSelectedArticles(
         selectedArticles.map((article) => {
@@ -299,6 +300,7 @@ const {products}=useAppContext()
                 ...article,
                 ...inventoryItem,
                 [field]: value,
+                name:inventoryItem.title,
                 sku: inventoryItem.sku,
                 variants: [updatedVariants[0]], // Keep only the first variant for now
               }
@@ -318,6 +320,7 @@ const {products}=useAppContext()
       )
     }
   }
+console.log(selectedArticles);
 
   // Ajouter une variante à un article
   const addVariant = (articleId: string) => {
@@ -1157,10 +1160,14 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
               <div className="space-y-2">
                 <Label htmlFor="wilaya">Wilaya *</Label>
                 <Select
-                  value={selectedWilaya}
+                  value={formData.wilaya}
                   onValueChange={(value) => {
-                    setSelectedWilaya(value)
-                    handleChange("wilaya", value)
+                    const selectedWilaya = getAllWilayas().find((w) => w.code === value)
+                    setSelectedWilaya(selectedWilaya?.name_ascii);
+                    handleChange("wilaya", value);
+                    handleChange("wilayaName", selectedWilaya?.name_ascii);
+                            handleChange("wilayaCode", value);
+                    
                   }}
                 >
                   <SelectTrigger id="wilaya" className="bg-slate-800/50 border-slate-700">
@@ -1268,7 +1275,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                       <SelectValue placeholder="Sélectionner un point de relais" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800">
-                    { getYalidinCentersForCommune(order.commune) .sort((a, b) => a.name.localeCompare(b.name)).map((desk) => {
+                    { getYalidinCentersForCommune(formData.commune) .sort((a, b) => a.name.localeCompare(b.name)).map((desk) => {
                       // Use key for NOEST centers and center_id for Yalidin centers
                       const centerId =desk.center_id
                       return (

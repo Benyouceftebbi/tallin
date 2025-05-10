@@ -33,6 +33,10 @@ import { DateRangePicker } from "@/components/date-range-picker"
 import { Badge } from "@/components/ui/badge"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card"
 import { generateParcelLabel } from "@/app/commandes/confirmes/print"
+import { algeriaRegions } from "@/app/commandes/en-attente/data/algeria-regions"
+import { httpsCallable } from "firebase/functions"
+import { auth, functions } from "@/lib/firebase"
+import { signInWithEmailAndPassword } from "firebase/auth"
 
 export function ConfirmesTable() {
   const {
@@ -188,26 +192,67 @@ export function ConfirmesTable() {
   }, [])
 
   // Déplacer les commandes sélectionnées vers "En préparation" - mémorisé
-  const moveToPreparation = useCallback(async () => {
-    if (selectedRows.length === 0) {
-      toast({
-        title: "Aucune commande sélectionnée",
-        description: "Veuillez sélectionner au moins une commande à déplacer.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    updateMultipleOrdersStatus(selectedRows, "En préparation")
-    for (const order of ordersConfirme) {
-      await generateParcelLabel(order);
-    }
+const moveToPreparation = useCallback(async () => {
+  if (selectedRows.length === 0) {
     toast({
-      title: "Commandes déplacées",
-      description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation".`,
-    })
-    setSelectedRows([])
-  }, [selectedRows, updateMultipleOrdersStatus])
+      title: "Aucune commande sélectionnée",
+      description: "Veuillez sélectionner au moins une commande à déplacer.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+ 
+
+  // for (const order of ordersConfirme) {
+  //   await generateParcelLabel(order);
+  // }
+
+  // Step 1: Construct rawOrders
+  const rawOrders = ordersConfirme.map((order) => {
+    const productTitles = order.articles.map((a) => a.name);
+
+    // Find wilaya name from article.wilaya (code)
+    const wilayaCode = order.wilaya;
+    const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
+    const wilayaName = region?.wilaya_name_ascii || "Unknown";
+
+    return {
+      ...order,
+      articlesNames: productTitles,
+      wilayaName: wilayaName,
+    };
+  });
+
+const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders")
+  // Step 2: Call Cloud Function
+  const res = await uploadYalidineOrders({
+    apiKey: "52528606089270324708",
+    apiToken: "YunCzjP8vgJxygpDBihLomWBGuAKHY6rUDRKIS0QsPS3wq9M5OLmGV5Oh2IrdZQa",
+    rawOrders,
+  });
+
+  const confirmedOrders = res.data.confirmedOrders; // returned from function
+
+  // Step 3: Open all labels in new tab for printing
+  const labelUrls = confirmedOrders.map(o => o.label); // assuming `label` is a URL
+  const labelWindow = window.open();
+  if (labelWindow) {
+    labelWindow.document.write("<html><body>");
+    labelUrls.forEach(url => {
+      labelWindow.document.write(`<iframe src="${url}" style="width:100%;height:1000px;"></iframe><hr/>`);
+    });
+    labelWindow.document.write("</body></html>");
+    labelWindow.document.close();
+  }
+
+  toast({
+    title: "Commandes déplacées",
+    description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation" et envoyée(s) à Yalidine.`,
+  });
+ updateMultipleOrdersStatus(selectedRows, "En préparation");
+  setSelectedRows([]);
+}, [selectedRows, updateMultipleOrdersStatus, ordersConfirme]);
 
   // Ouvrir la modal d'édition - mémorisé
   const openEditModal = useCallback((order: Order) => {

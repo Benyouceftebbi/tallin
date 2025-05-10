@@ -13,9 +13,11 @@ import {
   Timestamp,
   query,
   limit,
+  writeBatch,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
-import { db } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
+import { signInWithEmailAndPassword } from "firebase/auth"
 
 // Types
 export type OrderStatus =

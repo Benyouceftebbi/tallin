@@ -45,7 +45,11 @@ import {
 import { DateRangePicker, type DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import { getAllWilayas, getCommunesByWilayaName, normalizeString } from "@/app/commandes/en-attente/data/algeria-regions"
+import {
+  getAllWilayas,
+  getCommunesByWilayaName,
+  normalizeString,
+} from "@/app/commandes/en-attente/data/algeria-regions"
 import { isStopDeskAvailable } from "@/app/commandes/en-attente/data/shipping-availability"
 import { getYalidinCentersForCommune } from "@/app/commandes/en-attente/data/yalidin-centers"
 
@@ -57,7 +61,9 @@ export function EnAttenteTable() {
     loading,
     updateConfirmationStatus,
     deliveryCompanies, // Assuming this comes from the shop context
-    deliveryCenters,workers,orders // Assuming this comes from the shop context
+    deliveryCenters,
+    workers,
+    orders, // Assuming this comes from the shop context
   } = useShop()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
@@ -101,49 +107,46 @@ export function EnAttenteTable() {
     source: true,
   })
 
-
-
-
   // Filtrer pour n'avoir que les commandes en attente
-const ordersWait = useMemo(() => {
-    return orders.filter(
-      (order) =>  order.status==="en-attente",
-    )
+  const ordersWait = useMemo(() => {
+    return orders.filter((order) => order.status === "en-attente")
   }, [orders])
 
-
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
-  const wilayas =getAllWilayas()
-    .sort((a, b) => a.name_ascii.localeCompare(b.name_ascii)) 
+  const wilayas = getAllWilayas().sort((a, b) => a.name_ascii.localeCompare(b.name_ascii))
 
-
-  const deliveryCompanyList = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.deliveryCompany))), [ordersWait])
+  const deliveryCompanyList = useMemo(
+    () => Array.from(new Set(ordersWait.map((order) => order.deliveryCompany))),
+    [ordersWait],
+  )
   const deliveryCenterList = useMemo(
     () => Array.from(new Set(ordersWait.map((order) => order.deliveryCenter || ""))),
     [ordersWait],
   )
-  const deliveryTypes = ["stopdesk","domicile"]
-  const confirmationStatuses =[ "En attente",
+  const deliveryTypes = ["stopdesk", "domicile"]
+  const confirmationStatuses = [
+    "En attente",
     "Confirmé",
     "Annulé",
     "Reporté",
     "Double",
     "Ne répond pas 1",
     "Ne répond pas 2",
-    "Ne répond pas 3",]
+    "Ne répond pas 3",
+  ]
   const sources = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.source))), [ordersWait])
-  const confirmatrices = workers.filter(w=>w.role==='Confirmatrice').map(c=>c.name)
+  const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c) => c.name)
 
   // Extraire tous les articles uniques de toutes les commandes
   const articles = useMemo(() => {
-    const allArticles = new Set<string>();
+    const allArticles = new Set<string>()
     ordersWait.forEach((order) => {
       order.articles?.forEach((article: { product_name: string }) => {
-        allArticles.add(article.name);
-      });
-    });
-    return Array.from(allArticles);
-  }, [ordersWait]);
+        allArticles.add(article.name)
+      })
+    })
+    return Array.from(allArticles)
+  }, [ordersWait])
 
   // Filtrer les commandes en fonction des critères - mémorisé pour éviter des recalculs
   const filteredOrders = useMemo(() => {
@@ -154,7 +157,7 @@ const ordersWait = useMemo(() => {
         order.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.wilaya.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.commune.toLowerCase().includes(searchTerm.toLowerCase())
-  
+
       const matchesWilaya = wilayaFilter === "all" || order.wilaya === wilayaFilter
       const matchesCommune = communeFilter === "all" || order.commune === communeFilter
       const matchesDeliveryCompany = deliveryCompanyFilter === "all" || order.deliveryCompany === deliveryCompanyFilter
@@ -164,7 +167,7 @@ const ordersWait = useMemo(() => {
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
       const matchesConfirmatrice = confirmatriceFilter === "all" || order.confirmatrice === confirmatriceFilter
       const matchesArticle = articleFilter === "all" || order.articles.includes(articleFilter)
-  
+
       let matchesDateRange = true
       if (dateRange) {
         try {
@@ -177,7 +180,7 @@ const ordersWait = useMemo(() => {
           console.error("Error parsing date:", error)
         }
       }
-  
+
       return (
         matchesSearch &&
         matchesWilaya &&
@@ -192,10 +195,10 @@ const ordersWait = useMemo(() => {
         matchesDateRange
       )
     })
-  
+
     // Sort by numeric value of ID in descending order
     return filtered.sort((a, b) => {
-      const getIdNumber = (id: string) => parseInt(id.replace(/\D/g, ""), 10)
+      const getIdNumber = (id: string) => Number.parseInt(id.replace(/\D/g, ""), 10)
       return getIdNumber(b.id) - getIdNumber(a.id)
     })
   }, [
@@ -246,7 +249,7 @@ const ordersWait = useMemo(() => {
     }
 
     selectedRows.forEach((id) => {
-      updateOrder(id, { confirmationStatus: "Confirmé",    status: "Confirmé", })
+      updateOrder(id, { confirmationStatus: "Confirmé", status: "Confirmé" })
     })
 
     toast({
@@ -312,8 +315,6 @@ const ordersWait = useMemo(() => {
     }
 
     selectedRows.forEach((id) => {
-
-      
       updateOrder(id, { confirmatrice: selectedConfirmatrice })
     })
 
@@ -409,7 +410,7 @@ const ordersWait = useMemo(() => {
   // Gérer le déplacement d'une commande individuelle - mémorisé
   const handleConfirmOrder = useCallback(
     (orderId: string) => {
-      updateOrder(orderId, { confirmationStatus: "Confirmé" ,status: "Confirmé"})
+      updateOrder(orderId, { confirmationStatus: "Confirmé", status: "Confirmé" })
       toast({
         title: "Commande confirmée",
         description: `La commande a été confirmée.`,
@@ -477,11 +478,7 @@ const ordersWait = useMemo(() => {
     },
     [updateOrder],
   )
-  const changeConfirmatrices = (e) => {
- 
-  
-
-  }
+  const changeConfirmatrices = (e) => {}
   if (loading) {
     return (
       <div className="space-y-4">
@@ -522,7 +519,13 @@ const ordersWait = useMemo(() => {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Select value={selectedConfirmatrice} onValueChange={(e)=>{setSelectedConfirmatrice(e);changeConfirmatrices(e)}}>
+            <Select
+              value={selectedConfirmatrice}
+              onValueChange={(e) => {
+                setSelectedConfirmatrice(e)
+                changeConfirmatrices(e)
+              }}
+            >
               <SelectTrigger className="bg-slate-800/50 border-slate-700">
                 <SelectValue placeholder="Sélectionner une confirmatrice" />
               </SelectTrigger>
@@ -787,18 +790,12 @@ const ordersWait = useMemo(() => {
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Wilaya</SelectItem>
             {wilayas.map((wilaya) => (
-  <SelectItem
-  key={wilaya.code}
-  value={wilaya.name_ascii}
-
->
-  {wilaya.name_ascii} ({wilaya.name})
-</SelectItem>
+              <SelectItem key={wilaya.code} value={wilaya.name_ascii}>
+                {wilaya.name_ascii} ({wilaya.name})
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-
-
 
         <Select value={deliveryCompanyFilter} onValueChange={setDeliveryCompanyFilter}>
           <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
@@ -806,7 +803,7 @@ const ordersWait = useMemo(() => {
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Société de livraison</SelectItem>
-            {[...deliveryCompanies,{companyId:"deliveryMen"}].map((company) => (
+            {[...deliveryCompanies, { companyId: "deliveryMen" }].map((company) => (
               <SelectItem key={company.companyId} value={company.companyId}>
                 {company.companyId}
               </SelectItem>
@@ -908,10 +905,10 @@ const ordersWait = useMemo(() => {
         </Button>
       </div>
 
-      <div className="rounded-md border border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-        <div className="">
-          <div className="max-h-[70vh] overflow-y-auto">
-            <table className="w-full border-collapse">
+      <div className="rounded-md border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden">
+        <div>
+          <div className="max-h-[70vh] overflow-y-auto overflow-x-auto">
+            <table className="w-full min-w-max border-collapse">
               <thead className="sticky top-0 z-20">
                 <tr className="border-b border-slate-800">
                   <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400 w-[40px]">
@@ -990,6 +987,12 @@ const ordersWait = useMemo(() => {
                       className={cn(
                         "border-b border-slate-800 hover:bg-slate-800/50",
                         selectedRows.includes(order.id) && "bg-slate-800/30",
+                        order.confirmationStatus === "Ne répond pas 1" && "bg-orange-900/20",
+                        order.confirmationStatus === "Ne répond pas 2" && "bg-orange-900/20",
+                        order.confirmationStatus === "Ne répond pas 3" && "bg-orange-900/20",
+                        order.confirmationStatus === "Double" && "bg-gray-800/50",
+                        order.confirmationStatus === "Annulé" && "bg-red-900/20",
+                        order.confirmationStatus === "Reporté" && "bg-violet-900/20",
                       )}
                     >
                       <td className="p-3">
@@ -1004,9 +1007,9 @@ const ordersWait = useMemo(() => {
                       {visibleColumns.name && (
                         <td className="p-3 text-slate-300">
                           <HoverCard>
-                          <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors block truncate">
-  {order.name}
-</HoverCardTrigger>
+                            <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors block truncate">
+                              {order.name}
+                            </HoverCardTrigger>
                             <HoverCardContent className="w-80 bg-slate-900 border-slate-800 p-0">
                               <div className="p-3 border-b border-slate-800">
                                 <h4 className="text-sm font-medium text-slate-200">Historique des statuts</h4>
@@ -1054,10 +1057,10 @@ const ordersWait = useMemo(() => {
                       )}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
                       {visibleColumns.articles && (
-  <td className="p-3 text-slate-300">
-    {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
-  </td>
-)}
+                        <td className="p-3 text-slate-300">
+                          {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
+                        </td>
+                      )}
                       {visibleColumns.wilaya && (
                         <td className="p-3 text-slate-300">
                           <Select
@@ -1068,72 +1071,70 @@ const ordersWait = useMemo(() => {
                               <SelectValue placeholder="Wilaya" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800">
-                              {wilayas.map((wilaya) =>  {
-                  // Check if this wilaya matches the current value using normalized comparison
- 
-                  
-                  const isSelected = normalizeString(wilaya.wilaya_code) === normalizeString(order.wilaya)
-                  
-                  return (
-                    <SelectItem
-                      key={wilaya.code}
-                      value={wilaya.wilaya_code}
-                      className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
-                    >
-                      {wilaya.name_ascii} ({wilaya.name}){isSelected && " ✓"}
-                    </SelectItem>
-                  )
-                })}
+                              {wilayas.map((wilaya) => {
+                                // Check if this wilaya matches the current value using normalized comparison
+
+                                const isSelected = normalizeString(wilaya.wilaya_code) === normalizeString(order.wilaya)
+
+                                return (
+                                  <SelectItem
+                                    key={wilaya.code}
+                                    value={wilaya.wilaya_code}
+                                    className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
+                                  >
+                                    {wilaya.name_ascii} ({wilaya.name}){isSelected && " ✓"}
+                                  </SelectItem>
+                                )
+                              })}
                             </SelectContent>
                           </Select>
                         </td>
                       )}
                       {visibleColumns.commune && (
                         <td className="p-3 text-slate-300">
-  <Select
-    defaultValue={order.commune}
-    onValueChange={(value) => handleUpdateCommune(order.id, value)}
-  >
-    <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
-      <SelectValue placeholder="Commune" />
-    </SelectTrigger>
-    <SelectContent className="bg-slate-900 border-slate-800">
-      {getCommunesByWilayaName(order.wilaya)
-        .map((commune) => ({
-          id: commune.id,
-          namefr: commune.commune_name_ascii,
-          namear: commune.commune_name,
-          normalizedName: normalizeString(commune.commune_name_ascii),
-        }))
-        .sort((a, b) => a.namefr.localeCompare(b.namefr))
-        .map((commune) => {
-          const isSelected =
-            normalizeString(commune.namefr) === normalizeString(order.commune)
-          const hasStopDesk = isStopDeskAvailable(commune.namefr)
+                          <Select
+                            defaultValue={order.commune}
+                            onValueChange={(value) => handleUpdateCommune(order.id, value)}
+                          >
+                            <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
+                              <SelectValue placeholder="Commune" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {getCommunesByWilayaName(order.wilaya)
+                                .map((commune) => ({
+                                  id: commune.id,
+                                  namefr: commune.commune_name_ascii,
+                                  namear: commune.commune_name,
+                                  normalizedName: normalizeString(commune.commune_name_ascii),
+                                }))
+                                .sort((a, b) => a.namefr.localeCompare(b.namefr))
+                                .map((commune) => {
+                                  const isSelected = normalizeString(commune.namefr) === normalizeString(order.commune)
+                                  const hasStopDesk = isStopDeskAvailable(commune.namefr)
 
-          return (
-            <SelectItem
-              key={commune.id}
-              value={commune.namefr}
-              className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
-            >
-              <div className="flex items-center justify-between w-full">
-                <span>
-                  {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
-                  {isSelected && " ✓"}
-                </span>
-                {!hasStopDesk && order.deliveryType === "stopdesk" && (
-                  <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
-          no stopdesk
-                  </span>
-                )}
-              </div>
-            </SelectItem>
-          )
-        })}
-    </SelectContent>
-  </Select>
-</td>
+                                  return (
+                                    <SelectItem
+                                      key={commune.id}
+                                      value={commune.namefr}
+                                      className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
+                                    >
+                                      <div className="flex items-center justify-between w-full">
+                                        <span>
+                                          {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
+                                          {isSelected && " ✓"}
+                                        </span>
+                                        {!hasStopDesk && order.deliveryType === "stopdesk" && (
+                                          <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
+                                            no stopdesk
+                                          </span>
+                                        )}
+                                      </div>
+                                    </SelectItem>
+                                  )
+                                })}
+                            </SelectContent>
+                          </Select>
+                        </td>
                       )}
                       {visibleColumns.deliveryType && (
                         <td className="p-3 text-slate-300">
@@ -1166,7 +1167,7 @@ const ordersWait = useMemo(() => {
                               <SelectValue placeholder="Société de livraison" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800">
-                              {[...deliveryCompanies,{companyId:"deliveryMen"}].map((center) => (
+                              {[...deliveryCompanies, { companyId: "deliveryMen" }].map((center) => (
                                 <SelectItem key={center.companyId} value={center.companyId}>
                                   {center.companyId || "Non défini"}
                                 </SelectItem>
@@ -1175,7 +1176,7 @@ const ordersWait = useMemo(() => {
                           </Select>
                         </td>
                       )}
-   {visibleColumns.deliveryCenter && (
+                      {visibleColumns.deliveryCenter && (
                         <td className="p-3 text-slate-300">
                           <Select
                             defaultValue={order.deliveryCenter || ""}
@@ -1185,15 +1186,17 @@ const ordersWait = useMemo(() => {
                               <SelectValue placeholder="Centre de livraison" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800">
-                              { getYalidinCentersForCommune(order.commune) .sort((a, b) => a.name.localeCompare(b.name)).map((desk) => {
-                      // Use key for NOEST centers and center_id for Yalidin centers
-                      const centerId =desk.center_id
-                      return (
-                        <SelectItem key={centerId} value={centerId?.toString() || ""}>
-                          {desk.name}
-                        </SelectItem>
-                      )
-                    })}
+                              {getYalidinCentersForCommune(order.commune)
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map((desk) => {
+                                  // Use key for NOEST centers and center_id for Yalidin centers
+                                  const centerId = desk.center_id
+                                  return (
+                                    <SelectItem key={centerId} value={centerId?.toString() || ""}>
+                                      {desk.name}
+                                    </SelectItem>
+                                  )
+                                })}
                             </SelectContent>
                           </Select>
                         </td>
@@ -1238,6 +1241,7 @@ const ordersWait = useMemo(() => {
                         <td className="p-3 text-slate-300">{order.additionalInfo || "-"}</td>
                       )}
                       {visibleColumns.confirmatrice && <td className="p-3 text-slate-300">{order.confirmatrice}</td>}
+
                       {visibleColumns.totalPrice && <td className="p-3 text-slate-300">{order.totalPrice}</td>}
                       {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
                       <td className="p-3 text-right">
