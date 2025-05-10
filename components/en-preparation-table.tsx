@@ -279,7 +279,7 @@ export default function EnPreparationTable() {
       return
     }
 
-    updateMultipleOrdersStatus(selectedRows, "Confirmés")
+    updateMultipleOrdersStatus(selectedRows, "Confirmé")
     toast({
       title: "Commandes déplacées",
       description: `${selectedRows.length} commande(s) déplacée(s) vers "Confirmés".`,
