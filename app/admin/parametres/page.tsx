@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { collection, doc, setDoc, getDocs, query } from "firebase/firestore"
 import { Save, Plus, Trash2, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useShop } from "@/context/shop-context"
+import { db } from "@/lib/firebase"
 
 export default function ParametresPage() {
   const {
@@ -71,6 +73,139 @@ export default function ParametresPage() {
     webhookName: "",
     companies: [] as string[],
   })
+
+  // State for delivery pricing
+  const [deliveryPrices, setDeliveryPrices] = useState<{
+    [wilaya: string]: { stopdesk: number; domicile: number }
+  }>({})
+  const [isLoadingPrices, setIsLoadingPrices] = useState(true)
+  const [savingPrices, setSavingPrices] = useState(false)
+
+  // List of Algerian wilayas
+  const algerianWilayas = [
+    { code: "01", name: "Adrar" },
+    { code: "02", name: "Chlef" },
+    { code: "03", name: "Laghouat" },
+    { code: "04", name: "Oum El Bouaghi" },
+    { code: "05", name: "Batna" },
+    { code: "06", name: "Béjaïa" },
+    { code: "07", name: "Biskra" },
+    { code: "08", name: "Béchar" },
+    { code: "09", name: "Blida" },
+    { code: "10", name: "Bouira" },
+    { code: "11", name: "Tamanrasset" },
+    { code: "12", name: "Tébessa" },
+    { code: "13", name: "Tlemcen" },
+    { code: "14", name: "Tiaret" },
+    { code: "15", name: "Tizi Ouzou" },
+    { code: "16", name: "Alger" },
+    { code: "17", name: "Djelfa" },
+    { code: "18", name: "Jijel" },
+    { code: "19", name: "Sétif" },
+    { code: "20", name: "Saïda" },
+    { code: "21", name: "Skikda" },
+    { code: "22", name: "Sidi Bel Abbès" },
+    { code: "23", name: "Annaba" },
+    { code: "24", name: "Guelma" },
+    { code: "25", name: "Constantine" },
+    { code: "26", name: "Médéa" },
+    { code: "27", name: "Mostaganem" },
+    { code: "28", name: "M'Sila" },
+    { code: "29", name: "Mascara" },
+    { code: "30", name: "Ouargla" },
+    { code: "31", name: "Oran" },
+    { code: "32", name: "El Bayadh" },
+    { code: "33", name: "Illizi" },
+    { code: "34", name: "Bordj Bou Arréridj" },
+    { code: "35", name: "Boumerdès" },
+    { code: "36", name: "El Tarf" },
+    { code: "37", name: "Tindouf" },
+    { code: "38", name: "Tissemsilt" },
+    { code: "39", name: "El Oued" },
+    { code: "40", name: "Khenchela" },
+    { code: "41", name: "Souk Ahras" },
+    { code: "42", name: "Tipaza" },
+    { code: "43", name: "Mila" },
+    { code: "44", name: "Aïn Defla" },
+    { code: "45", name: "Naâma" },
+    { code: "46", name: "Aïn Témouchent" },
+    { code: "47", name: "Ghardaïa" },
+    { code: "48", name: "Relizane" },
+    { code: "49", name: "El M'Ghair" },
+    { code: "50", name: "El Meniaa" },
+    { code: "51", name: "Ouled Djellal" },
+    { code: "52", name: "Bordj Badji Mokhtar" },
+    { code: "53", name: "Béni Abbès" },
+    { code: "54", name: "Timimoun" },
+    { code: "55", name: "Touggourt" },
+    { code: "56", name: "Djanet" },
+    { code: "57", name: "In Salah" },
+    { code: "58", name: "In Guezzam" },
+  ]
+
+  // Load delivery prices from Firebase
+  useEffect(() => {
+    const loadDeliveryPrices = async () => {
+      try {
+        setIsLoadingPrices(true)
+        const pricesQuery = query(collection(db, "deliveryPrices"))
+        const snapshot = await getDocs(pricesQuery)
+
+        const prices: { [wilaya: string]: { stopdesk: number; domicile: number } } = {}
+        snapshot.forEach((doc) => {
+          prices[doc.id] = doc.data() as { stopdesk: number; domicile: number }
+        })
+
+        // If no prices exist yet, initialize with default values for all wilayas
+        if (snapshot.empty) {
+          const defaultPrices: { [wilaya: string]: { stopdesk: number; domicile: number } } = {}
+          algerianWilayas.forEach((wilaya) => {
+            defaultPrices[wilaya.code] = { stopdesk: 400, domicile: 600 }
+          })
+          setDeliveryPrices(defaultPrices)
+        } else {
+          setDeliveryPrices(prices)
+        }
+      } catch (error) {
+        console.error("Error loading delivery prices:", error)
+      } finally {
+        setIsLoadingPrices(false)
+      }
+    }
+
+    loadDeliveryPrices()
+  }, [])
+
+  // Save delivery prices to Firebase
+  const saveDeliveryPrices = async () => {
+    try {
+      setSavingPrices(true)
+
+      // Save each wilaya's prices as a separate document
+      for (const [wilayaCode, prices] of Object.entries(deliveryPrices)) {
+        await setDoc(doc(db, "deliveryPrices", wilayaCode), prices)
+      }
+
+      alert("Les tarifs de livraison ont été enregistrés avec succès.")
+    } catch (error) {
+      console.error("Error saving delivery prices:", error)
+      alert("Une erreur s'est produite lors de l'enregistrement des tarifs.")
+    } finally {
+      setSavingPrices(false)
+    }
+  }
+
+  // Handle price change for a specific wilaya
+  const handlePriceChange = (wilayaCode: string, type: "stopdesk" | "domicile", value: string) => {
+    const numValue = Number.parseInt(value) || 0
+    setDeliveryPrices((prev) => ({
+      ...prev,
+      [wilayaCode]: {
+        ...prev[wilayaCode],
+        [type]: numValue,
+      },
+    }))
+  }
 
   const handleAddEntity = () => {
     if (newEntityType === "company") {
@@ -222,11 +357,12 @@ export default function ParametresPage() {
       </div>
 
       <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto">
           <TabsTrigger value="general">Général</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Apparence</TabsTrigger>
           <TabsTrigger value="delivery">Sociétés de livraison</TabsTrigger>
+          <TabsTrigger value="pricing">Tarifs de livraison</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-4 mt-4">
@@ -759,6 +895,148 @@ export default function ParametresPage() {
               <Button>
                 <Save className="mr-2 h-4 w-4" />
                 Enregistrer les modifications
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        <TabsContent value="pricing" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tarifs de livraison par wilaya</CardTitle>
+              <CardDescription>
+                Définissez les tarifs de livraison pour chaque wilaya en Algérie, pour les modes "Stop Desk" et "À
+                Domicile".
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingPrices ? (
+                <div className="flex justify-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex space-x-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          // Set all stopdesk prices to the same value
+                          const value = prompt("Entrez le prix Stop Desk pour toutes les wilayas:")
+                          if (value !== null) {
+                            const numValue = Number.parseInt(value) || 0
+                            const updatedPrices = { ...deliveryPrices }
+                            algerianWilayas.forEach((wilaya) => {
+                              updatedPrices[wilaya.code] = {
+                                ...updatedPrices[wilaya.code],
+                                stopdesk: numValue,
+                              }
+                            })
+                            setDeliveryPrices(updatedPrices)
+                          }
+                        }}
+                      >
+                        Définir tous les prix Stop Desk
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          // Set all domicile prices to the same value
+                          const value = prompt("Entrez le prix À Domicile pour toutes les wilayas:")
+                          if (value !== null) {
+                            const numValue = Number.parseInt(value) || 0
+                            const updatedPrices = { ...deliveryPrices }
+                            algerianWilayas.forEach((wilaya) => {
+                              updatedPrices[wilaya.code] = {
+                                ...updatedPrices[wilaya.code],
+                                domicile: numValue,
+                              }
+                            })
+                            setDeliveryPrices(updatedPrices)
+                          }
+                        }}
+                      >
+                        Définir tous les prix À Domicile
+                      </Button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="search-wilaya">Rechercher:</Label>
+                      <Input
+                        id="search-wilaya"
+                        placeholder="Nom de wilaya..."
+                        className="w-[200px]"
+                        onChange={(e) => {
+                          const searchElement = document.getElementById("search-wilaya") as HTMLInputElement
+                          const searchTerm = e.target.value.toLowerCase()
+
+                          document.querySelectorAll("[data-wilaya-row]").forEach((row) => {
+                            const wilayaName = row.getAttribute("data-wilaya-name")?.toLowerCase() || ""
+                            const wilayaCode = row.getAttribute("data-wilaya-code")?.toLowerCase() || ""
+
+                            if (wilayaName.includes(searchTerm) || wilayaCode.includes(searchTerm)) {
+                              ;(row as HTMLElement).style.display = ""
+                            } else {
+                              ;(row as HTMLElement).style.display = "none"
+                            }
+                          })
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border rounded-md">
+                    <div className="grid grid-cols-4 gap-4 p-4 font-medium bg-muted">
+                      <div>Code</div>
+                      <div>Wilaya</div>
+                      <div>Prix Stop Desk (DA)</div>
+                      <div>Prix À Domicile (DA)</div>
+                    </div>
+                    <div className="divide-y">
+                      {algerianWilayas.map((wilaya) => (
+                        <div
+                          key={wilaya.code}
+                          className="grid grid-cols-4 gap-4 p-4 items-center"
+                          data-wilaya-row
+                          data-wilaya-name={wilaya.name}
+                          data-wilaya-code={wilaya.code}
+                        >
+                          <div className="font-medium">{wilaya.code}</div>
+                          <div>{wilaya.name}</div>
+                          <div>
+                            <Input
+                              type="number"
+                              min="0"
+                              value={deliveryPrices[wilaya.code]?.stopdesk || 0}
+                              onChange={(e) => handlePriceChange(wilaya.code, "stopdesk", e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <Input
+                              type="number"
+                              min="0"
+                              value={deliveryPrices[wilaya.code]?.domicile || 0}
+                              onChange={(e) => handlePriceChange(wilaya.code, "domicile", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button onClick={saveDeliveryPrices} disabled={savingPrices}>
+                {savingPrices ? (
+                  <>
+                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    Enregistrement...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Enregistrer les tarifs
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>

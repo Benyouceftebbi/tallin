@@ -52,6 +52,7 @@ import {
 } from "@/app/admin/commandes/en-attente/data/algeria-regions"
 import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipping-availability"
 import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
+import { useAuth } from "@/context/auth-context"
 
 export function EnAttenteTable() {
   const {
@@ -65,6 +66,7 @@ export function EnAttenteTable() {
     workers,
     orders, // Assuming this comes from the shop context
   } = useShop()
+  const {userRole}=useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
@@ -609,7 +611,7 @@ console.log("wait",ordersWait);
                   variant="outline"
                   size="sm"
                   onClick={openConfirmatriceModal}
-                  disabled={selectedRows.length === 0}
+                  disabled={selectedRows.length === 0 || userRole!=="worker"}
                   className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
                 >
                   <UserCheck className="h-4 w-4 mr-2" />
