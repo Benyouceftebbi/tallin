@@ -15,10 +15,12 @@ import {
   limit,
   writeBatch,
   where,
+  setDoc,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
-import { auth, db } from "@/lib/firebase"
+import { auth, db, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
+import { httpsCallable } from "firebase/functions"
 
 // Types
 export type OrderStatus =
@@ -452,9 +454,13 @@ else{
   }
 
   const addWorker = async (worker: Omit<Worker, "id" | "createdAt" | "updatedAt">) => {
+const createWorkerUser = httpsCallable(functions, "createWorkerUser");
 
-    await addDoc(collection(db, 'Workers'), {
+const result = await createWorkerUser({ email: worker.email, password:worker.password });
+
+    await setDoc(doc(db, 'Workers', result.data.uid), {
       ...worker,
+      id: result.data.uid,
       createdAt: new Date(),
       updatedAt: new Date(),
     })

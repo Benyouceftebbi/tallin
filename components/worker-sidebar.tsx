@@ -38,111 +38,66 @@ const sidebarLinks = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
-    href: "/admin",
+    href: "/worker",
   },
   {
     title: "Commandes",
     icon: Box,
-    href: "/admin/commandes",
+    href: "/worker/commandes",
     submenu: [
       {
         title: "En attente",
         icon: Clock,
-        href: "/admin/commandes/en-attente",
+        href: "/worker/commandes/en-attente",
         color: "text-amber-700",
       },
       {
         title: "Confirmés",
         icon: CheckCircle,
-        href: "/admin/commandes/confirmes",
+        href: "/worker/commandes/confirmes",
         color: "text-emerald-700",
       },
       {
         title: "En préparation",
         icon: Box,
-        href: "/admin/commandes/en-preparation",
+        href: "/worker/commandes/en-preparation",
         color: "text-blue-700",
       },
       {
         title: "Dispatcher",
         icon: ClipboardCheck,
-        href: "/admin/commandes/dispatcher",
+        href: "/worker/commandes/dispatcher",
         color: "text-purple-700",
       },
       {
         title: "En livraison",
         icon: Truck,
-        href: "/admin/commandes/en-livraison",
+        href: "/worker/commandes/en-livraison",
         color: "text-orange-700",
       },
       {
         title: "Livrés",
         icon: PackageCheck,
-        href: "/admin/commandes/livres",
+        href: "/worker/commandes/livres",
         color: "text-cyan-700",
       },
       {
         title: "Retour",
         icon: PackageX,
-        href: "/admin/commandes/retour",
+        href: "/worker/commandes/retour",
         color: "text-rose-700",
       },
     ],
   },
 
-  {
-    title: "Stock",
-    icon: ShoppingCart,
-    href: "/stock",
-    submenu: [
-      {
-        title: "Produits",
-        icon: Package,
-        href: "/admin/stock/products",
-        color: "text-violet-500",
-      },
-      {
-        title: "Mouvement",
-        icon: Box,
-        href: "/admin/stock/movement",
-        color: "text-pink-700",
-      },
-      {
-        title: "Factures",
-        icon: FileText,
-        href: "/admin/stock/invoices",
-        color: "text-emerald-500",
-      },
-      {
-        title: "Statistiques",
-        icon: BarChart2,
-        href: "/admin/stock/statistics",
-        color: "text-amber-500",
-      },
-    ],
-  }, 
-  {
-    title: "Travailleurs",
-    icon: Users,
-    href: "/admin/travailleurs",
-  },
-  {
-    title: "Facturation",
-    icon: CreditCard,
-    href: "/admin/facturation",
-  },
-  {
-    title: "Paramètres",
-    icon: Settings,
-    href: "/admin/parametres",
-  },
+
 ]
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function WorkerSidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const [openSubmenu, setOpenSubmenu] = useState("Commandes")
   const { isOpen } = useSidebar()

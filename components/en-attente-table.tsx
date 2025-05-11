@@ -49,9 +49,9 @@ import {
   getAllWilayas,
   getCommunesByWilayaName,
   normalizeString,
-} from "@/app/commandes/en-attente/data/algeria-regions"
-import { isStopDeskAvailable } from "@/app/commandes/en-attente/data/shipping-availability"
-import { getYalidinCentersForCommune } from "@/app/commandes/en-attente/data/yalidin-centers"
+} from "@/app/admin/commandes/en-attente/data/algeria-regions"
+import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipping-availability"
+import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
 
 export function EnAttenteTable() {
   const {

@@ -798,3 +798,22 @@ exports.statusUpdate  = onRequest(async (req, res) => {
       };
     }
   });
+  exports.createWorkerUser =onCall(async ({data, auth}) => {
+  const { email, password } = data;
+
+  if (!email || !password) {
+    throw new HttpsError("invalid-argument", "Email and password are required.");
+  }
+
+  try {
+    // 1. Create Firebase Auth user
+    const userRecord = await admin.auth().createUser({ email, password });
+
+    // 2. Assign custom claim (role)
+    await admin.auth().setCustomUserClaims(userRecord.uid, { role: "worker" });
+    return { uid: userRecord.uid, message: "Worker user created successfully" };
+  } catch (error) {
+    console.error("Error creating user:", error);
+    throw new HttpsError("internal", error.message);
+  }
+});

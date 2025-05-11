@@ -3,9 +3,9 @@
  * for different communes and delivery methods
  */
 
- import { normalizeString } from "./algeria-regions"
+ import { normalizeString } from "../data/algeria-regions"
  import { getYalidinCentersForCommune } from "./yalidin-centers"
- import { findCommuneByNameAcrossWilayas } from "./algeria-regions"
+ import { findCommuneByNameAcrossWilayas } from "../data/algeria-regions"
 import { httpsCallable } from "firebase/functions"
 import { functions } from "@/lib/firebase"
  

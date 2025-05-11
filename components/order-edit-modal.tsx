@@ -25,9 +25,9 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { X, Plus, Trash2, AlertTriangle, Clock } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-import { getAllWilayas, getCommunesByWilayaName, normalizeString } from "@/app/commandes/en-attente/data/algeria-regions"
-import { getYalidinCentersForCommune } from "@/app/commandes/en-attente/data/yalidin-centers"
-import { isStopDeskAvailable } from "@/app/commandes/en-attente/data/shipping-availability"
+import { getAllWilayas, getCommunesByWilayaName, normalizeString } from "@/app/admin/commandes/en-attente/data/algeria-regions"
+import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
+import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipping-availability"
 import { useAppContext } from "@/context/app-context"
 import { ar } from "date-fns/locale"
 

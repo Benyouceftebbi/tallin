@@ -30,11 +30,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useShop, type Worker, type WorkerRole } from "@/context/shop-context"
 
 const roles = [
-  { label: "Livreur", value: "Livreur" },
+
   { label: "Confirmatrice", value: "Confirmatrice" },
   { label: "Préparateur", value: "Préparateur" },
   { label: "Dispatcher", value: "Dispatcher" },
-  { label: "Admin", value: "Admin" },
+
 ]
 
 const formSchema = z.object({
@@ -43,6 +43,12 @@ const formSchema = z.object({
   }),
   phone: z.string().min(10, {
     message: "Le numéro de téléphone doit contenir au moins 10 caractères.",
+  }),
+  email: z.string().email({
+    message: "Veuillez entrer une adresse email valide.",
+  }),
+  password: z.string().min(6, {
+    message: "Le mot de passe doit contenir au moins 6 caractères.",
   }),
   role: z.enum(["Livreur", "Confirmatrice", "Préparateur", "Dispatcher", "Admin"]),
   active: z.boolean().default(true),
@@ -77,6 +83,8 @@ export function WorkerFormModal({ open, onOpenChange, workerId }: WorkerFormModa
     defaultValues: {
       name: "",
       phone: "",
+      email: "",
+      password: "",
       role: "Livreur",
       active: true,
       joinDate: new Date(),
@@ -95,6 +103,8 @@ export function WorkerFormModal({ open, onOpenChange, workerId }: WorkerFormModa
         form.reset({
           name: worker.name,
           phone: worker.phone,
+          email: worker.email || "",
+          password: "", // Don't load existing password for security
           role: worker.role,
           active: worker.active,
           joinDate: new Date(worker.joinDate.split("/").reverse().join("-")),
@@ -113,6 +123,8 @@ export function WorkerFormModal({ open, onOpenChange, workerId }: WorkerFormModa
       form.reset({
         name: "",
         phone: "",
+        email: "",
+        password: "",
         role: "Livreur",
         active: true,
         joinDate: new Date(),
@@ -130,6 +142,8 @@ export function WorkerFormModal({ open, onOpenChange, workerId }: WorkerFormModa
     const workerData = {
       name: data.name,
       phone: data.phone,
+      email: data.email,
+      password: data.password, // Include password for new workers or updates
       role: data.role as WorkerRole,
       active: data.active,
       joinDate: format(data.joinDate, "dd/MM/yyyy", { locale: fr }),
@@ -211,6 +225,36 @@ export function WorkerFormModal({ open, onOpenChange, workerId }: WorkerFormModa
                         <Input placeholder="+213 XX XX XX XX" {...field} />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="travailleur@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                      <FormDescription>Cet email sera utilisé pour la connexion au système.</FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mot de passe</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                      <FormDescription>
+                        {workerId ? "Laissez vide pour conserver le mot de passe actuel." : "Minimum 6 caractères."}
+                      </FormDescription>
                     </FormItem>
                   )}
                 />
