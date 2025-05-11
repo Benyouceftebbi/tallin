@@ -109,6 +109,8 @@ export function EnAttenteTable() {
 
   // Filtrer pour n'avoir que les commandes en attente
   const ordersWait = useMemo(() => {
+    console.log("ghiihi");
+    
     return orders.filter((order) => order.status === "en-attente")
   }, [orders])
 
@@ -136,6 +138,7 @@ export function EnAttenteTable() {
   ]
   const sources = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.source))), [ordersWait])
   const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c) => c.name)
+console.log("wait",ordersWait);
 
   // Extraire tous les articles uniques de toutes les commandes
   const articles = useMemo(() => {
@@ -987,12 +990,11 @@ export function EnAttenteTable() {
                       className={cn(
                         "border-b border-slate-800 hover:bg-slate-800/50",
                         selectedRows.includes(order.id) && "bg-slate-800/30",
-                        order.confirmationStatus === "Ne répond pas 1" && "bg-orange-900/20",
-                        order.confirmationStatus === "Ne répond pas 2" && "bg-orange-900/20",
-                        order.confirmationStatus === "Ne répond pas 3" && "bg-orange-900/20",
-                        order.confirmationStatus === "Double" && "bg-gray-800/50",
-                        order.confirmationStatus === "Annulé" && "bg-red-900/20",
-                        order.confirmationStatus === "Reporté" && "bg-violet-900/20",
+                        order.confirmationStatus?.startsWith("Ne répond pas") && "bg-orange-900/40",
+  order.confirmationStatus === "Double" && "bg-gray-900/50",
+  order.confirmationStatus === "Annulé" && "bg-red-900/40",
+  order.confirmationStatus === "Reporté" && "bg-violet-900/40",
+  order.confirmationStatus === "Confirmé" && "bg-green-900/40",
                       )}
                     >
                       <td className="p-3">
@@ -1204,7 +1206,7 @@ export function EnAttenteTable() {
                       {visibleColumns.status && (
                         <td className="p-3 text-slate-300">
                           <Select
-                            defaultValue={order.confirmationStatus || "En attente"}
+                            value={order?.confirmationStatus}
                             onValueChange={(value) => {
                               updateConfirmationStatus(order.id, value as ConfirmationStatus)
                               // Show a toast to confirm the status change

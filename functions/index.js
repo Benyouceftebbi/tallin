@@ -661,7 +661,7 @@ exports.statusUpdate  = onRequest(async (req, res) => {
         to_commune_name: order.commune,
         code_wilaya: Number(order.wilayaCode || 0),
         from_wilaya_name:'Alger',
-        to_wilaya_name:order.wilaya,
+        to_wilaya_name:order.wilayaName,
         firstname: order.name,
         familyname: order.name,
         contact_phone:order.phone || 0,
@@ -760,5 +760,41 @@ exports.statusUpdate  = onRequest(async (req, res) => {
         "internal",
         error.response?.data?.message || "An error occurred while uploading orders."
       );
+    }
+  });
+  exports.deleteParcels = onCall(async ({ data, auth }) => {
+
+  
+    const { trackingIds, apiId, apiToken } = data;
+  
+    if (!apiId || !apiToken || !trackingIds) {
+      return { error: "Missing apiId, apiToken, or trackingIds." };
+    }
+  
+    const trackingParam = Array.isArray(trackingIds)
+      ? trackingIds.join(",")
+      : trackingIds;
+  
+    try {
+      const response = await axios.delete("https://api.yalidine.app/v1/parcels", {
+        params: {
+          tracking: trackingParam,
+        },
+        headers: {
+          'X-API-ID': apiId,
+          'X-API-TOKEN': apiToken,
+        },
+      });
+  
+      return {
+        message: "Parcels deleted successfully",
+        result: response.data,
+      };
+    } catch (error) {
+      console.error("Error deleting parcels:", error.response?.data || error.message);
+      return {
+        error: "Failed to delete parcels",
+        details: error.response?.data || error.message,
+      };
     }
   });

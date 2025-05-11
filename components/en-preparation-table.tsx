@@ -14,6 +14,7 @@ import {
   User,
   Columns,
   X,
+  Printer,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,6 +49,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
+import { httpsCallable } from "firebase/functions"
+import { functions } from "@/lib/firebase"
 
 // Liste des livreurs disponibles - définie en dehors du composant car elle ne change pas
 const deliverymen = [
@@ -269,7 +272,7 @@ export default function EnPreparationTable() {
   }, [selectedRows, updateMultipleOrdersStatus])
 
   // Déplacer les commandes sélectionnées vers "Confirmés" - mémorisé
-  const moveBack = useCallback(() => {
+  const moveBack = useCallback(async () => {
     if (selectedRows.length === 0) {
       toast({
         title: "Aucune commande sélectionnée",
@@ -278,7 +281,19 @@ export default function EnPreparationTable() {
       })
       return
     }
-
+    const deleteParcels = httpsCallable(functions, "deleteParcels");
+    const trackingIds = selectedRows.map((selectedId) => {
+      const order = orders.find(o => o.id === selectedId);
+      return order.id;
+    });
+    const response = await deleteParcels({
+          trackingIds:trackingIds,
+          apiId: "52528606089270324708",
+          apiToken: "YunCzjP8vgJxygpDBihLomWBGuAKHY6rUDRKIS0QsPS3wq9M5OLmGV5Oh2IrdZQa",
+        });
+    
+    console.log("Delete response:", response.data);
+      
     updateMultipleOrdersStatus(selectedRows, "Confirmé")
     toast({
       title: "Commandes déplacées",
@@ -599,6 +614,43 @@ export default function EnPreparationTable() {
     [processBarcode, isProcessingBarcode],
   )
 
+  // Print selected order labels
+  const printSelectedLabels = useCallback(async () => {
+    if (selectedRows.length === 0) {
+      toast({
+        title: "Aucune commande sélectionnée",
+        description: "Veuillez sélectionner au moins une commande pour imprimer les étiquettes.",
+        variant: "destructive",
+      })
+      return
+    }
+ 
+    // Get the selected orders
+    const ordersToPrint = filteredOrders.filter((order) => selectedRows.includes(order.id))
+
+
+  console.log("orders to ",ordersToPrint);
+
+
+  // Step 3: Open all labels in new tab for printing
+  const labelUrls = ordersToPrint.map(o => o.label); // assuming `label` is a URL
+  const labelWindow = window.open();
+  if (labelWindow) {
+    labelWindow.document.write("<html><body>");
+    labelUrls.forEach(url => {
+      labelWindow.document.write(`<iframe src="${url}" style="width:100%;height:1000px;"></iframe><hr/>`);
+    });
+    labelWindow.document.write("</body></html>");
+    labelWindow.document.close();
+  }
+  await Promise.all(
+    selectedRows.map(id => updateOrder(id, { isPrinted: true }))
+  );
+    toast({
+      title: "Impression en cours",
+      description: `Impression de ${selectedRows.length} étiquette(s) de commande.`,
+    })
+  }, [selectedRows, orders, toast])
   if (loading) {
     return (
       <div className="space-y-4">
@@ -880,7 +932,27 @@ export default function EnPreparationTable() {
           />
         </div>
         <div className="flex gap-2">
+        <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={printSelectedLabels}
+                  disabled={selectedRows.length === 0}
+                  className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  <span>Imprimer étiquettes</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Imprimer les étiquettes des commandes sélectionnées</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {!scanMode && (
+            
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1148,12 +1220,13 @@ export default function EnPreparationTable() {
                 ) : (
                   filteredOrders.map((order) => (
                     <tr
-                      key={order.id}
-                      className={cn(
-                        "border-b border-slate-800 hover:bg-slate-800/50",
-                        selectedRows.includes(order.id) && "bg-slate-800/30",
-                      )}
-                    >
+                    key={order.id}
+                    className={cn(
+                      "border-b border-slate-800 hover:bg-slate-800/50",
+                      selectedRows.includes(order.id) && "bg-slate-800/30",
+                      order.isPrinted && "bg-emerald-900/30" // add greenish background if printed
+                    )}
+                  >
                       <td className="p-3">
                         <Checkbox
                           checked={selectedRows.includes(order.id)}

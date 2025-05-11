@@ -14,6 +14,7 @@ import {
   query,
   limit,
   writeBatch,
+  where,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
 import { auth, db } from "@/lib/firebase"
@@ -548,9 +549,9 @@ useEffect(() => {
   const fetchOrders = async () => {
     try {
 
-const ordersQuery = query(collection(db, 'orders'));
+const ordersQuery = query(collection(db, 'orders'),limit(10));
 const ordersCollection= await getDocs(ordersQuery);
-      const ordersData = ordersCollection.docs.map(doc =>( {...doc.data(),id:doc.id,docId:doc.data().id}) as Order);
+      const ordersData = ordersCollection.docs.map(doc =>( {...doc.data(),id:doc.id}) as Order);
       setOrders(ordersData);
     } catch (error) {
       console.error("Error fetching orders: ", error);
@@ -752,7 +753,8 @@ const value = {
   deleteSupplier,
   addInvoice,
   invoices,
-  updateInvoice
+  updateInvoice,
+  setOrders
 }
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>

@@ -154,7 +154,7 @@ type OrderEditModalProps = {
 }
 
 export function OrderEditModal({ open, onOpenChange, order, isNew = false }: OrderEditModalProps) {
-  const { updateOrder, addOrder, getOrdersByStatus, inventory, getInventoryItem, updateInventoryStock,  deliveryCompanies,} = useShop()
+  const { updateOrder, addOrder, getOrdersByStatus, inventory, getInventoryItem,updateConfirmationStatus, updateInventoryStock,  deliveryCompanies,} = useShop()
   const [formData, setFormData] = useState<Partial<Order>>({})
   const [selectedWilaya, setSelectedWilaya] = useState<string>("")
   const [communes, setCommunes] = useState<any[]>([])
@@ -1359,7 +1359,9 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                 <Label htmlFor="confirmationStatus">Statut de confirmation *</Label>
                 <Select
                   value={formData.confirmationStatus || ""}
-                  onValueChange={(value) => handleChange("confirmationStatus", value)}
+                  onValueChange={(value) =>{ handleChange("confirmationStatus", value);
+                    
+                  }}
                 >
                   <SelectTrigger id="confirmationStatus" className="bg-slate-800/50 border-slate-700">
                     <SelectValue placeholder="Sélectionner un statut" />

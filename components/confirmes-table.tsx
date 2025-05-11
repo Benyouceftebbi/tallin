@@ -45,6 +45,7 @@ export function ConfirmesTable() {
     updateOrder,
     loading,
     updateConfirmationStatus,
+    setOrders,
     deliveryCompanies, // Assuming this comes from the shop context
     deliveryCenters,workers,orders // Assuming this comes from the shop context
   } = useShop()
@@ -190,7 +191,7 @@ export function ConfirmesTable() {
       setSelectedRows((prev) => prev.filter((rowId) => rowId !== id))
     }
   }, [])
-
+  const [isPrinting, setIsPrinting] = useState(false);
   // Déplacer les commandes sélectionnées vers "En préparation" - mémorisé
 const moveToPreparation = useCallback(async () => {
   if (selectedRows.length === 0) {
@@ -203,20 +204,21 @@ const moveToPreparation = useCallback(async () => {
   }
 
  
-
+  setIsPrinting(true); // Start loading
   // for (const order of ordersConfirme) {
   //   await generateParcelLabel(order);
   // }
 
   // Step 1: Construct rawOrders
-  const rawOrders = ordersConfirme.map((order) => {
-    const productTitles = order.articles.map((a) => a.name);
+  const rawOrders = selectedRows.map((selectedId) => {
+    const order = ordersConfirme.find(o => o.id === selectedId);
+    const productTitles = order.articles.map((a) => `${a.product_name} ${a.variant_options?.option1} ${a.variant_options?.option1}`);
 
     // Find wilaya name from article.wilaya (code)
     const wilayaCode = order.wilaya;
     const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
     const wilayaName = region?.wilaya_name_ascii || "Unknown";
-
+    console.log("")
     return {
       ...order,
       articlesNames: productTitles,
@@ -224,33 +226,32 @@ const moveToPreparation = useCallback(async () => {
     };
   });
 
-const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders")
-  // Step 2: Call Cloud Function
-  const res = await uploadYalidineOrders({
-    apiKey: "52528606089270324708",
-    apiToken: "YunCzjP8vgJxygpDBihLomWBGuAKHY6rUDRKIS0QsPS3wq9M5OLmGV5Oh2IrdZQa",
-    rawOrders,
-  });
+  console.log(selectedRows);
+  
+  console.log(rawOrders);
 
-  const confirmedOrders = res.data.confirmedOrders; // returned from function
-
-  // Step 3: Open all labels in new tab for printing
-  const labelUrls = confirmedOrders.map(o => o.label); // assuming `label` is a URL
-  const labelWindow = window.open();
-  if (labelWindow) {
-    labelWindow.document.write("<html><body>");
-    labelUrls.forEach(url => {
-      labelWindow.document.write(`<iframe src="${url}" style="width:100%;height:1000px;"></iframe><hr/>`);
+  const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders")
+    // Step 2: Call Cloud Function
+    const res = await uploadYalidineOrders({
+      apiKey: "52528606089270324708",
+      apiToken: "YunCzjP8vgJxygpDBihLomWBGuAKHY6rUDRKIS0QsPS3wq9M5OLmGV5Oh2IrdZQa",
+      rawOrders,
     });
-    labelWindow.document.write("</body></html>");
-    labelWindow.document.close();
-  }
-
+  
+    const confirmedOrders = res.data.confirmedOrders; // returned from function
+    confirmedOrders.forEach(confirmedOrder => {
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === confirmedOrder.id ? { ...order, ...confirmedOrder } : order
+        )
+      );
+    });
   toast({
     title: "Commandes déplacées",
     description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation" et envoyée(s) à Yalidine.`,
   });
  updateMultipleOrdersStatus(selectedRows, "En préparation");
+ setIsPrinting(false); // Stop loading
   setSelectedRows([]);
 }, [selectedRows, updateMultipleOrdersStatus, ordersConfirme]);
 
@@ -446,7 +447,7 @@ const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders")
                   variant="default"
                   size="sm"
                   onClick={moveToPreparation}
-                  disabled={selectedRows.length === 0}
+                  disabled={selectedRows.length === 0 || isPrinting}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500"
                 >
                   <ArrowRight className="h-4 w-4 mr-2" />
@@ -754,15 +755,7 @@ const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders")
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">Modifier</span>
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleMoveOrder(order.id)}
-                            className="text-cyan-400 hover:text-cyan-300 hover:bg-slate-800"
-                          >
-                            <ArrowRight className="h-4 w-4" />
-                            <span className="sr-only">Déplacer</span>
-                          </Button>
+                        
                         </div>
                       </td>
                     </tr>
