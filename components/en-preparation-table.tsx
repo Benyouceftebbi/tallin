@@ -188,10 +188,7 @@ export default function EnPreparationTable() {
   const orders = useMemo(() => getOrdersByStatus("En préparation"), [getOrdersByStatus])
   const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
-  const uniqueDeliveryCompanies = useMemo(
-    () => Array.from(new Set(orders.map((order) => order.deliveryCompany))),
-    [orders],
-  )
+  const uniqueDeliveryCompanies = deliveryCompanies
 
   // Filtrer les commandes en fonction du terme de recherche et des filtres - mémorisé
   const filteredOrders = useMemo(() => {
@@ -1131,9 +1128,9 @@ export default function EnPreparationTable() {
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Toutes les sociétés</SelectItem>
-            {uniqueDeliveryCompanies.map((company) => (
-              <SelectItem key={company} value={company}>
-                {company}
+             {[...deliveryCompanies, { companyId: "deliveryMen" }].map((company) => (
+              <SelectItem key={company.companyId} value={company.companyId}>
+                {company.companyId}
               </SelectItem>
             ))}
             {deliverymen.map((deliveryman) => (
