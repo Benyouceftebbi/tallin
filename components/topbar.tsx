@@ -43,7 +43,7 @@ export function Topbar() {
   const statusLinks = [
     {
       name: "En attente",
-      path: "/commandes/en-attente",
+      path: "/admin/commandes/en-attente",
       count: statusCounts["en-attente"] || 0,
       icon: Clock,
       color: "text-amber-500",
@@ -53,7 +53,7 @@ export function Topbar() {
     },
     {
       name: "Confirmés",
-      path: "/commandes/confirmes",
+      path: "/admin/commandes/confirmes",
       count: statusCounts["Confirmé"]|| 0,
       icon: CheckCircle,
       color: "text-emerald-500",
@@ -63,7 +63,7 @@ export function Topbar() {
     },
     {
       name: "En préparation",
-      path: "/commandes/en-preparation",
+      path: "/admin/commandes/en-preparation",
       count: statusCounts["En préparation"]|| 0,
       icon: Box,
       color: "text-blue-500",
@@ -73,7 +73,7 @@ export function Topbar() {
     },
     {
       name: "Dispatcher",
-      path: "/commandes/dispatcher",
+      path: "/admin/commandes/dispatcher",
       count: statusCounts["Dispatcher"]|| 0,
       icon: ClipboardCheck,
       color: "text-purple-500",
@@ -83,7 +83,7 @@ export function Topbar() {
     },
     {
       name: "En livraison",
-      path: "/commandes/en-livraison",
+      path: "/admin/commandes/en-livraison",
       count: statusCounts["En livraison"]|| 0,
       icon: Truck,
       color: "text-orange-500",
@@ -93,7 +93,7 @@ export function Topbar() {
     },
     {
       name: "Livrés",
-      path: "/commandes/livres",
+      path: "/admin/commandes/livres",
       count: statusCounts["Livrés"]|| 0,
       icon: PackageCheck,
       color: "text-cyan-500",
@@ -103,7 +103,7 @@ export function Topbar() {
     },
     {
       name: "Retour",
-      path: "/commandes/retour",
+      path: "/admin/commandes/retour",
       count: statusCounts["Retour"]|| 0,
       icon: PackageX,
       color: "text-rose-500",

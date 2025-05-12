@@ -162,7 +162,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   const [isExchange, setIsExchange] = useState(false)
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
   const [selectedPreviousOrder, setSelectedPreviousOrder] = useState<string>("")
-  console.log(selectedArticles);
+
   
 const {products}=useAppContext()
   // Initialiser le formulaire avec les données de la commande
@@ -236,7 +236,7 @@ const {products}=useAppContext()
   // Mettre à jour les communes lorsque la wilaya change
   useEffect(() => {
     if (selectedWilaya) {
-      const communes=getCommunesByWilayaName(order.wilaya) 
+      const communes=getCommunesByWilayaName(order?.wilaya) 
       setCommunes(communes|| [])
 
     } else {
@@ -276,7 +276,7 @@ const {products}=useAppContext()
     if (field === "id") {
       // When article name changes, fetch inventory data
       const inventoryItem = products?.find((product) => product.id === value)
-console.log("dfdsfsdf",inventoryItem);
+
 
       setSelectedArticles(
         selectedArticles.map((article) => {
@@ -320,7 +320,6 @@ console.log("dfdsfsdf",inventoryItem);
       )
     }
   }
-console.log(selectedArticles);
 
   // Ajouter une variante à un article
   const addVariant = (articleId: string) => {
@@ -367,7 +366,7 @@ console.log(selectedArticles);
     setSelectedArticles(
       selectedArticles.map((article) => {
         if (article.id === articleId) {
-        console.log("hi",field);
+  
         
           return {
             ...article,
@@ -887,8 +886,10 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                               type="number"
                               min="0"
                               value={ variant.unit_price || variant.price}
-                              onChange={(e) =>
-                                updateVariant(article.id, variant.id, "unit_price", Number.parseInt(e.target.value) || 0)
+                              onChange={(e) =>{
+                                updateVariant(article.id, variant.id, "unit_price", Number.parseInt(e.target.value) || 0);
+                                updateVariant(article.id, variant.id, "price", Number.parseInt(e.target.value) || 0)
+                              }
                               }
                               className="h-8 text-xs bg-slate-800/50 border-slate-700"
                             />
@@ -1202,7 +1203,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
         .sort((a, b) => a.namefr.localeCompare(b.namefr))
         .map((commune) => {
           const isSelected =
-            normalizeString(commune.namefr) === normalizeString(order.commune)
+            normalizeString(commune.namefr) === normalizeString(order?.commune)
           const hasStopDesk = isStopDeskAvailable(commune.namefr)
 
           return (
@@ -1216,7 +1217,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                   {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
                   {isSelected && " ✓"}
                 </span>
-                {!hasStopDesk && order.deliveryType === "stopdesk" && (
+                {!hasStopDesk && order?.deliveryType === "stopdesk" && (
                   <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
           no stopdesk
                   </span>

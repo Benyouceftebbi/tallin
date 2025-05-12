@@ -886,7 +886,7 @@ console.log("wait",ordersWait);
           </SelectContent>
         </Select>
 
-        <Select value={articleFilter} onValueChange={setArticleFilter}>
+       {/*} <Select value={articleFilter} onValueChange={setArticleFilter}>
           <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
             <SelectValue placeholder="Article" />
           </SelectTrigger>
@@ -898,7 +898,7 @@ console.log("wait",ordersWait);
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select>*/}
 
         <Button
           variant="outline"
