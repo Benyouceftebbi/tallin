@@ -212,7 +212,7 @@ const moveToPreparation = useCallback(async () => {
   // Step 1: Construct rawOrders
   const rawOrders = selectedRows.map((selectedId) => {
     const order = ordersConfirme.find(o => o.id === selectedId);
-    const productTitles = order.articles.map((a) => `${a.product_name} ${a.variant_options?.option1} ${a.variant_options?.option1}`);
+    const productTitles = order.articles.map((a) => `${a.product_name} ${a.variant_options?.option1} ${a.variant_options?.option2}`);
 
     // Find wilaya name from article.wilaya (code)
     const wilayaCode = order.wilaya;

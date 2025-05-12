@@ -25,11 +25,14 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { X, Plus, Trash2, AlertTriangle, Clock } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-import { getAllWilayas, getCommunesByWilayaName, normalizeString } from "@/app/admin/commandes/en-attente/data/algeria-regions"
+import {
+  getAllWilayas,
+  getCommunesByWilayaName,
+  normalizeString,
+} from "@/app/admin/commandes/en-attente/data/algeria-regions"
 import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
 import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipping-availability"
 import { useAppContext } from "@/context/app-context"
-import { ar } from "date-fns/locale"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -141,7 +144,7 @@ const pickupPoints = [
 ]
 
 // Liste des sources
-const sources = ["Manuelle","Boutique"]
+const sources = ["Manuelle", "Boutique"]
 
 // Liste des confirmatrices
 const confirmatrices = ["Amina", "Fatima", "Leila", "Samira", "Yasmine", "Karima"]
@@ -154,7 +157,16 @@ type OrderEditModalProps = {
 }
 
 export function OrderEditModal({ open, onOpenChange, order, isNew = false }: OrderEditModalProps) {
-  const { updateOrder, addOrder, getOrdersByStatus, inventory, getInventoryItem,updateConfirmationStatus, updateInventoryStock,  deliveryCompanies,} = useShop()
+  const {
+    updateOrder,
+    addOrder,
+    getOrdersByStatus,
+    inventory,
+    getInventoryItem,
+    updateConfirmationStatus,
+    updateInventoryStock,
+    deliveryCompanies,
+  } = useShop()
   const [formData, setFormData] = useState<Partial<Order>>({})
   const [selectedWilaya, setSelectedWilaya] = useState<string>("")
   const [communes, setCommunes] = useState<any[]>([])
@@ -163,17 +175,16 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
   const [selectedPreviousOrder, setSelectedPreviousOrder] = useState<string>("")
 
-  
-const {products}=useAppContext()
+  const { products } = useAppContext()
   // Initialiser le formulaire avec les données de la commande
   useEffect(() => {
     if (order) {
-      const cleanedDeliveryPrice = order.deliveryPrice?.replace(/\s?DZD$/, '') || '0';
+      const cleanedDeliveryPrice = order.deliveryPrice?.replace(/\s?DZD$/, "") || "0"
 
       setFormData({
         ...order,
         deliveryPrice: cleanedDeliveryPrice,
-      });
+      })
       //setFormData(order)
       setSelectedWilaya(order.wilaya)
       setCommunes(getCommunesByWilayaName(order.wilaya) || [])
@@ -182,29 +193,29 @@ const {products}=useAppContext()
       const articleNames = order.articles
       const structuredArticles: Article[] = Object.values(
         articleNames.reduce<Record<string, Article>>((acc, item, index) => {
-          const articleId = String(item.product_id);
+          const articleId = String(item.product_id)
           if (!acc[articleId]) {
             acc[articleId] = {
               id: `${articleId}`,
               name: item.product_name,
               sku: item.product_sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
               variants: [],
-            };
+            }
           }
-      
+
           acc[articleId].variants.push({
             id: `variant-${item.variant_id}`,
             size: item.variant_options.option1,
             color: item.variant_options.option2,
             quantity: item.quantity,
-            price: parseFloat(item.unit_price),
+            price: Number.parseFloat(item.unit_price),
             stockStatus: "available", // you can adjust logic for status if needed
-            ...item
-          });
-      
-          return acc;
-        }, {})
-      );
+            ...item,
+          })
+
+          return acc
+        }, {}),
+      )
 
       setSelectedArticles(structuredArticles)
     } else {
@@ -236,20 +247,19 @@ const {products}=useAppContext()
   // Mettre à jour les communes lorsque la wilaya change
   useEffect(() => {
     if (selectedWilaya) {
-      const communes=getCommunesByWilayaName(order?.wilaya) 
-      setCommunes(communes|| [])
-
+      const communes = getCommunesByWilayaName(order?.wilaya)
+      setCommunes(communes || [])
     } else {
       setCommunes([])
     }
-  } , [selectedWilaya])
+  }, [selectedWilaya])
 
   // Gérer les changements dans le formulaire
   const handleChange = (field: keyof Order, value: any) => {
-    if(value === "Confirmé") {
-    setFormData((prev) => ({ ...prev, [field]: value ,status: "Confirmé" }))
-    }else{
-          setFormData((prev) => ({ ...prev, [field]: value }))
+    if (value === "Confirmé") {
+      setFormData((prev) => ({ ...prev, [field]: value, status: "Confirmé" }))
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }))
     }
   }
 
@@ -259,9 +269,7 @@ const {products}=useAppContext()
       id: `article-${Date.now()}`,
       name: "",
       sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-      variants: [
-       
-      ],
+      variants: [],
     }
     setSelectedArticles([...selectedArticles, newArticle])
   }
@@ -277,19 +285,18 @@ const {products}=useAppContext()
       // When article name changes, fetch inventory data
       const inventoryItem = products?.find((product) => product.id === value)
 
-
       setSelectedArticles(
         selectedArticles.map((article) => {
           if (article.id === articleId) {
             // If inventory item exists, update variants with stock info
             if (inventoryItem) {
-            const updatedVariants = inventoryItem.variants.map((invVariant) => ({
+              const updatedVariants = inventoryItem.variants.map((invVariant) => ({
                 id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 size: invVariant.size || "Unique",
                 color: invVariant.color || "Noir",
                 quantity: 1,
                 price: invVariant.price,
-                  unit_price: invVariant.unit_price,
+                unit_price: invVariant.unit_price,
                 inventoryVariantId: invVariant.id,
                 availableStock: "0",
                 stockStatus: "available",
@@ -300,7 +307,7 @@ const {products}=useAppContext()
                 ...article,
                 ...inventoryItem,
                 [field]: value,
-                name:inventoryItem.title,
+                name: inventoryItem.title,
                 sku: inventoryItem.sku,
                 variants: [updatedVariants[0]], // Keep only the first variant for now
               }
@@ -312,8 +319,7 @@ const {products}=useAppContext()
           return article
         }),
       )
-    }
-     else {
+    } else {
       // For other fields, just update normally
       setSelectedArticles(
         selectedArticles.map((article) => (article.id === articleId ? { ...article, [field]: value } : article)),
@@ -335,7 +341,7 @@ const {products}=useAppContext()
                 size: "Unique",
                 color: "Noir",
                 quantity: 1,
-                price: products.find(product=>product.id)?.variants[0].price || 0,
+                price: products.find((product) => product.id)?.variants[0].price || 0,
                 stockStatus: "available",
               },
             ],
@@ -366,13 +372,20 @@ const {products}=useAppContext()
     setSelectedArticles(
       selectedArticles.map((article) => {
         if (article.id === articleId) {
-  
-        
           return {
             ...article,
-            variants: article.variants.map((variant) =>
-              variant.id === variantId ? { ...variant, [field]: value } : variant,
-            ),
+            variants: article.variants.map((variant) => {
+              if (variant.id === variantId) {
+                // If updating price, also update unit_price and vice versa
+                if (field === "price") {
+                  return { ...variant, price: value, unit_price: value }
+                } else if (field === "unit_price") {
+                  return { ...variant, unit_price: value, price: value }
+                }
+                return { ...variant, [field]: value }
+              }
+              return variant
+            }),
           }
         }
         return article
@@ -442,33 +455,31 @@ const {products}=useAppContext()
       }
     })
 
-
-
     // Calculate the total price
     const totalPrice = calculateTotalPrice() + (Number(formData.deliveryPrice) || 0)
 
     // Update the articles and total price
-const updatedFormData = {
-  ...formData,
-  wilaya: selectedWilaya,
-  totalPrice: totalPrice,
-  articles: selectedArticles.flatMap((article) =>
-    article.variants.map((variant) => ({
-      product_id: article.id,
-      product_name: article.name,
-      product_sku: article.sku || "",
-      quantity: variant.quantity,
-      unit_price: variant.unit_price || variant.price,
-      variant_id: variant.variant_id || variant.id,
-      variant_sku: variant.variant_sku || "",
-      variant_title: variant.variant_title  || "",
-      variant_options: {
-        option1: variant.size,
-        option2: variant.color,
-      },
-    }))
-  ),
-};
+    const updatedFormData = {
+      ...formData,
+      wilaya: selectedWilaya,
+      totalPrice: totalPrice,
+      articles: selectedArticles.flatMap((article) =>
+        article.variants.map((variant) => ({
+          product_id: article.id,
+          product_name: article.name,
+          product_sku: article.sku || "",
+          quantity: variant.quantity,
+          unit_price: variant.unit_price || variant.price,
+          variant_id: variant.variant_id || variant.id,
+          variant_sku: variant.variant_sku || "",
+          variant_title: variant.variant_title || "",
+          variant_options: {
+            option1: variant.size,
+            option2: variant.color,
+          },
+        })),
+      ),
+    }
 
     if (isNew) {
       addOrder(updatedFormData as Order)
@@ -511,33 +522,27 @@ const updatedFormData = {
       )
     }
   }
-  function getVariantOptionValue({
-    product,
-    variant,
-    label,
-  }) {
-    const optionIndex = product?.options?.findIndex(opt =>
-      opt.name.toLowerCase() === label.toLowerCase() ||
-      (label === "Taille" && ["pointure", "taille"].includes(opt.name.toLowerCase()))
-    );
-  
-    if (optionIndex === 0) return variant?.option1;
-    if (optionIndex === 1) return variant?.option2;
-    return "";
+  function getVariantOptionValue({ product, variant, label }) {
+    const optionIndex = product?.options?.findIndex(
+      (opt) =>
+        opt.name.toLowerCase() === label.toLowerCase() ||
+        (label === "Taille" && ["pointure", "taille"].includes(opt.name.toLowerCase())),
+    )
+
+    if (optionIndex === 0) return variant?.option1
+    if (optionIndex === 1) return variant?.option2
+    return ""
   }
 
-  
-const [isRestockMode, setIsRestockMode] = useState(false)
-const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
+  const [isRestockMode, setIsRestockMode] = useState(false)
+  const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
   // Add a new article for exchange
   const addExchangeArticle = () => {
     const newArticle: Article = {
       id: `exchange-article-${Date.now()}`,
       name: "",
       sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-      variants: [
-
-      ],
+      variants: [],
     }
     setExchangeArticles([...exchangeArticles, newArticle])
   }
@@ -599,10 +604,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
         if (article.id === articleId) {
           return {
             ...article,
-            variants: [
-              ...article.variants,
-             
-            ],
+            variants: [...article.variants],
           }
         }
         return article
@@ -743,10 +745,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div className="space-y-2">
                         <Label htmlFor={`article-name-${article.id}`}>Nom de l'article *</Label>
-                        <Select
-                          value={article.id}
-                          onValueChange={(value) => updateArticle(article.id, "id", value)}
-                        >
+                        <Select value={article.id} onValueChange={(value) => updateArticle(article.id, "id", value)}>
                           <SelectTrigger id={`article-name-${article.id}`} className="bg-slate-800/50 border-slate-700">
                             <SelectValue placeholder="Sélectionner un article" />
                           </SelectTrigger>
@@ -789,62 +788,58 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                           key={variant.id}
                           className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
                         >
-<div className="space-y-1">
-  <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
-    Taille
-  </Label>
-  <Select
-    value={variant.size}
-    onValueChange={(value) =>
-      updateVariant(article.id, variant.id, "size", value)
-    }
-  >
-    <SelectTrigger
-      id={`variant-size-${variant.id}`}
-      className="h-8 text-xs bg-slate-800/50 border-slate-700"
-    >
-      <SelectValue placeholder="Taille" />
-    </SelectTrigger>
-    <SelectContent className="bg-slate-900 border-slate-800">
-      {products?.find((p) => p.id === article.id)
-        ?.options.find((opt) =>
-          ["Pointure", "pointure", "Taille"].includes(opt.name)
-        )
-        ?.values.map((size: string) => (
-          <SelectItem key={size} value={size}>
-            {size}
-          </SelectItem>
-        ))}
-    </SelectContent>
-  </Select>
-</div>
-<div className="space-y-1">
-  <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
-    Couleur
-  </Label>
-  <Select
-    value={variant.color}
-    onValueChange={(value) =>
-      updateVariant(article.id, variant.id, "color", value)
-    }
-  >
-    <SelectTrigger
-      id={`variant-color-${variant.id}`}
-      className="h-8 text-xs bg-slate-800/50 border-slate-700"
-    >
-      <SelectValue placeholder="Couleur" />
-    </SelectTrigger>
-    <SelectContent className="bg-slate-900 border-slate-800">
-      {products?.find((p) => p.id === article.id)
-        ?.options.find((opt) => opt.name === "Couleur")
-        ?.values.map((color: string) => (
-          <SelectItem key={color} value={color}>
-            {color}
-          </SelectItem>
-        ))}
-    </SelectContent>
-  </Select>
-</div>
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
+                              Taille
+                            </Label>
+                            <Select
+                              value={variant.size}
+                              onValueChange={(value) => updateVariant(article.id, variant.id, "size", value)}
+                            >
+                              <SelectTrigger
+                                id={`variant-size-${variant.id}`}
+                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                              >
+                                <SelectValue placeholder="Taille" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-900 border-slate-800">
+                                {products
+                                  ?.find((p) => p.id === article.id)
+                                  ?.options.find((opt) => ["Pointure", "pointure", "Taille"].includes(opt.name))
+                                  ?.values.map((size: string) => (
+                                    <SelectItem key={size} value={size}>
+                                      {size}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
+                              Couleur
+                            </Label>
+                            <Select
+                              value={variant.color}
+                              onValueChange={(value) => updateVariant(article.id, variant.id, "color", value)}
+                            >
+                              <SelectTrigger
+                                id={`variant-color-${variant.id}`}
+                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                              >
+                                <SelectValue placeholder="Couleur" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-900 border-slate-800">
+                                {products
+                                  ?.find((p) => p.id === article.id)
+                                  ?.options.find((opt) => opt.name === "Couleur")
+                                  ?.values.map((color: string) => (
+                                    <SelectItem key={color} value={color}>
+                                      {color}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-quantity-${variant.id}`} className="text-xs">
@@ -865,17 +860,15 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                           </div>
 
                           <div className="space-y-1">
-  <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
-    Stock disponible
-  </Label>
-  <p className="text-sm text-muted-foreground">
-    {
-      products?.find(product => product.id === article.id)
-        ?.variants.find(v => v.id === variant.id)
-        ?.inventory_quantity ?? 0
-    }
-  </p>
-</div>
+                            <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
+                              Stock disponible
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              {products
+                                ?.find((product) => product.id === article.id)
+                                ?.variants.find((v) => v.id === variant.id)?.inventory_quantity ?? 0}
+                            </p>
+                          </div>
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-price-${variant.id}`} className="text-xs">
@@ -885,12 +878,12 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                               id={`variant-price-${variant.id}`}
                               type="number"
                               min="0"
-                              value={ variant.unit_price || variant.price}
-                              onChange={(e) =>{
-                                updateVariant(article.id, variant.id, "unit_price", Number.parseInt(e.target.value) || 0);
-                                updateVariant(article.id, variant.id, "price", Number.parseInt(e.target.value) || 0)
-                              }
-                              }
+                              value={variant.unit_price || variant.price}
+                              onChange={(e) => {
+                                const newPrice = Number.parseInt(e.target.value) || 0
+                                updateVariant(article.id, variant.id, "unit_price", newPrice)
+                                updateVariant(article.id, variant.id, "price", newPrice)
+                              }}
                               className="h-8 text-xs bg-slate-800/50 border-slate-700"
                             />
                           </div>
@@ -1119,7 +1112,11 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                                 value={
                                   products
                                     ?.find((product) => product.id === article.id)
-                                    ?.variants.find((v) =>[variant.size,variant.color]?.includes(v.option1)&& [variant.size,variant.color]?.includes(v.option2))?.price
+                                    ?.variants.find(
+                                      (v) =>
+                                        [variant.size, variant.color]?.includes(v.option1) &&
+                                        [variant.size, variant.color]?.includes(v.option2),
+                                    )?.price
                                 }
                                 onChange={(e) =>
                                   updateExchangeVariant(
@@ -1164,11 +1161,10 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                   value={formData.wilaya}
                   onValueChange={(value) => {
                     const selectedWilaya = getAllWilayas().find((w) => w.code === value)
-                    setSelectedWilaya(selectedWilaya?.name_ascii);
-                    handleChange("wilaya", value);
-                    handleChange("wilayaName", selectedWilaya?.name_ascii);
-                            handleChange("wilayaCode", value);
-                    
+                    setSelectedWilaya(selectedWilaya?.name_ascii)
+                    handleChange("wilaya", value)
+                    handleChange("wilayaName", selectedWilaya?.name_ascii)
+                    handleChange("wilayaCode", value)
                   }}
                 >
                   <SelectTrigger id="wilaya" className="bg-slate-800/50 border-slate-700">
@@ -1194,38 +1190,38 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                     <SelectValue placeholder="Sélectionner une commune" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                    {getCommunesByWilayaName(selectedWilaya) .map((commune) => ({
-          id: commune.id,
-          namefr: commune.commune_name_ascii,
-          namear: commune.commune_name,
-          normalizedName: normalizeString(commune.commune_name_ascii),
-        }))
-        .sort((a, b) => a.namefr.localeCompare(b.namefr))
-        .map((commune) => {
-          const isSelected =
-            normalizeString(commune.namefr) === normalizeString(order?.commune)
-          const hasStopDesk = isStopDeskAvailable(commune.namefr)
+                    {getCommunesByWilayaName(selectedWilaya)
+                      .map((commune) => ({
+                        id: commune.id,
+                        namefr: commune.commune_name_ascii,
+                        namear: commune.commune_name,
+                        normalizedName: normalizeString(commune.commune_name_ascii),
+                      }))
+                      .sort((a, b) => a.namefr.localeCompare(b.namefr))
+                      .map((commune) => {
+                        const isSelected = normalizeString(commune.namefr) === normalizeString(order?.commune)
+                        const hasStopDesk = isStopDeskAvailable(commune.namefr)
 
-          return (
-            <SelectItem
-              key={commune.id}
-              value={commune.namefr}
-              className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
-            >
-              <div className="flex items-center justify-between w-full">
-                <span>
-                  {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
-                  {isSelected && " ✓"}
-                </span>
-                {!hasStopDesk && order?.deliveryType === "stopdesk" && (
-                  <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
-          no stopdesk
-                  </span>
-                )}
-              </div>
-            </SelectItem>
-          )
-        })}
+                        return (
+                          <SelectItem
+                            key={commune.id}
+                            value={commune.namefr}
+                            className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span>
+                                {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
+                                {isSelected && " ✓"}
+                              </span>
+                              {!hasStopDesk && order?.deliveryType === "stopdesk" && (
+                                <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
+                                  no stopdesk
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        )
+                      })}
                   </SelectContent>
                 </Select>
               </div>
@@ -1239,7 +1235,7 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                     <SelectValue placeholder="Sélectionner un type" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                    {["stopdesk","domicile"].map((type) => (
+                    {["stopdesk", "domicile"].map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -1257,11 +1253,11 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                     <SelectValue placeholder="Sélectionner une entreprise" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
-                  {[...deliveryCompanies,{companyId:"deliveryMen"}].map((center) => (
-                                <SelectItem key={center.companyId} value={center.companyId}>
-                                  {center.companyId || "Non défini"}
-                                </SelectItem>
-                              ))}
+                    {[...deliveryCompanies, { companyId: "deliveryMen" }].map((center) => (
+                      <SelectItem key={center.companyId} value={center.companyId}>
+                        {center.companyId || "Non défini"}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1276,15 +1272,17 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                       <SelectValue placeholder="Sélectionner un point de relais" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800">
-                    { getYalidinCentersForCommune(formData.commune) .sort((a, b) => a.name.localeCompare(b.name)).map((desk) => {
-                      // Use key for NOEST centers and center_id for Yalidin centers
-                      const centerId =desk.center_id
-                      return (
-                        <SelectItem key={centerId} value={centerId?.toString() || ""}>
-                          {desk.name}
-                        </SelectItem>
-                      )
-                    })}
+                      {getYalidinCentersForCommune(formData.commune)
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((desk) => {
+                          // Use key for NOEST centers and center_id for Yalidin centers
+                          const centerId = desk.center_id
+                          return (
+                            <SelectItem key={centerId} value={centerId?.toString() || ""}>
+                              {desk.name}
+                            </SelectItem>
+                          )
+                        })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1343,7 +1341,11 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="source">Source *</Label>
-                <Select disabled={!isNew} value={formData.source || ""} onValueChange={(value) => handleChange("source", value)}>
+                <Select
+                  disabled={!isNew}
+                  value={formData.source || ""}
+                  onValueChange={(value) => handleChange("source", value)}
+                >
                   <SelectTrigger id="source" className="bg-slate-800/50 border-slate-700">
                     <SelectValue placeholder="Sélectionner une source" />
                   </SelectTrigger>
@@ -1360,8 +1362,8 @@ const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
                 <Label htmlFor="confirmationStatus">Statut de confirmation *</Label>
                 <Select
                   value={formData.confirmationStatus || ""}
-                  onValueChange={(value) =>{ handleChange("confirmationStatus", value);
-                    
+                  onValueChange={(value) => {
+                    handleChange("confirmationStatus", value)
                   }}
                 >
                   <SelectTrigger id="confirmationStatus" className="bg-slate-800/50 border-slate-700">

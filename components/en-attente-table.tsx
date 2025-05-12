@@ -66,7 +66,7 @@ export function EnAttenteTable() {
     workers,
     orders, // Assuming this comes from the shop context
   } = useShop()
-  const {userRole}=useAuth()
+  const { userRole } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
@@ -90,29 +90,29 @@ export function EnAttenteTable() {
   // Colonnes visibles
   const [visibleColumns, setVisibleColumns] = useState({
     id: true,
+    source: true,
     date: true,
     name: true,
     phone: true,
-    articles: true,
+    status: true,
+    deliveryCompany: true,
+    deliveryType: true,
     wilaya: true,
     commune: true,
-    deliveryType: true,
-    deliveryCompany: true, // Renamed from "entreprise"
-    deliveryCenter: true, // New column
-    status: true,
-    pickupPoint: false,
+    deliveryCenter: true,
+    articles: true,
     deliveryPrice: true,
+    totalPrice: true,
+    confirmatrice: true,
+    pickupPoint: false,
     address: false,
     additionalInfo: false,
-    confirmatrice: true,
-    totalPrice: true,
-    source: true,
   })
 
   // Filtrer pour n'avoir que les commandes en attente
   const ordersWait = useMemo(() => {
-    console.log("ghiihi");
-    
+    console.log("ghiihi")
+
     return orders.filter((order) => order.status === "en-attente")
   }, [orders])
 
@@ -140,7 +140,7 @@ export function EnAttenteTable() {
   ]
   const sources = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.source))), [ordersWait])
   const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c) => c.name)
-console.log("wait",ordersWait);
+  console.log("wait", ordersWait)
 
   // Extraire tous les articles uniques de toutes les commandes
   const articles = useMemo(() => {
@@ -611,7 +611,7 @@ console.log("wait",ordersWait);
                   variant="outline"
                   size="sm"
                   onClick={openConfirmatriceModal}
-                  disabled={selectedRows.length === 0 || userRole!=="worker"}
+                  disabled={selectedRows.length === 0 || userRole !== "worker"}
                   className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
                 >
                   <UserCheck className="h-4 w-4 mr-2" />
@@ -646,6 +646,13 @@ console.log("wait",ordersWait);
                 ID
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
+                checked={visibleColumns.source}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, source: checked })}
+                className="hover:bg-slate-800 focus:bg-slate-800"
+              >
+                Source
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
                 checked={visibleColumns.date}
                 onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, date: checked })}
                 className="hover:bg-slate-800 focus:bg-slate-800"
@@ -667,11 +674,25 @@ console.log("wait",ordersWait);
                 Téléphone
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={visibleColumns.articles}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, articles: checked })}
+                checked={visibleColumns.status}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, status: checked })}
                 className="hover:bg-slate-800 focus:bg-slate-800"
               >
-                Articles
+                Statut
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.deliveryCompany}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, deliveryCompany: checked })}
+                className="hover:bg-slate-800 focus:bg-slate-800"
+              >
+                Société de livraison
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.deliveryType}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, deliveryType: checked })}
+                className="hover:bg-slate-800 focus:bg-slate-800"
+              >
+                Type de livraison
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={visibleColumns.wilaya}
@@ -688,20 +709,6 @@ console.log("wait",ordersWait);
                 Commune
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={visibleColumns.deliveryType}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, deliveryType: checked })}
-                className="hover:bg-slate-800 focus:bg-slate-800"
-              >
-                Type de livraison
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={visibleColumns.deliveryCompany}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, deliveryCompany: checked })}
-                className="hover:bg-slate-800 focus:bg-slate-800"
-              >
-                Société de livraison
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
                 checked={visibleColumns.deliveryCenter}
                 onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, deliveryCenter: checked })}
                 className="hover:bg-slate-800 focus:bg-slate-800"
@@ -709,18 +716,11 @@ console.log("wait",ordersWait);
                 Centre de livraison
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={visibleColumns.status}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, status: checked })}
+                checked={visibleColumns.articles}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, articles: checked })}
                 className="hover:bg-slate-800 focus:bg-slate-800"
               >
-                Statut
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={visibleColumns.pickupPoint}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, pickupPoint: checked })}
-                className="hover:bg-slate-800 focus:bg-slate-800"
-              >
-                Point de relais
+                Articles
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={visibleColumns.deliveryPrice}
@@ -728,6 +728,27 @@ console.log("wait",ordersWait);
                 className="hover:bg-slate-800 focus:bg-slate-800"
               >
                 Prix de livraison
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.totalPrice}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, totalPrice: checked })}
+                className="hover:bg-slate-800 focus:bg-slate-800"
+              >
+                Prix total
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.confirmatrice}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, confirmatrice: checked })}
+                className="hover:bg-slate-800 focus:bg-slate-800"
+              >
+                Confirmatrice
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.pickupPoint}
+                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, pickupPoint: checked })}
+                className="hover:bg-slate-800 focus:bg-slate-800"
+              >
+                Point de relais
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={visibleColumns.address}
@@ -742,27 +763,6 @@ console.log("wait",ordersWait);
                 className="hover:bg-slate-800 focus:bg-slate-800"
               >
                 Informations supplémentaires
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={visibleColumns.confirmatrice}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, confirmatrice: checked })}
-                className="hover:bg-slate-800 focus:bg-slate-800"
-              >
-                Confirmatrice
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={visibleColumns.totalPrice}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, totalPrice: checked })}
-                className="hover:bg-slate-800 focus:bg-slate-800"
-              >
-                Prix total
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={visibleColumns.source}
-                onCheckedChange={(checked) => setVisibleColumns({ ...visibleColumns, source: checked })}
-                className="hover:bg-slate-800 focus:bg-slate-800"
-              >
-                Source
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -886,7 +886,7 @@ console.log("wait",ordersWait);
           </SelectContent>
         </Select>
 
-       {/*} <Select value={articleFilter} onValueChange={setArticleFilter}>
+        {/*} <Select value={articleFilter} onValueChange={setArticleFilter}>
           <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
             <SelectValue placeholder="Article" />
           </SelectTrigger>
@@ -924,6 +924,9 @@ console.log("wait",ordersWait);
                     />
                   </th>
                   {visibleColumns.id && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">ID</th>}
+                  {visibleColumns.source && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Source</th>
+                  )}
                   {visibleColumns.date && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Date</th>
                   )}
@@ -933,8 +936,14 @@ console.log("wait",ordersWait);
                   {visibleColumns.phone && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Téléphone</th>
                   )}
-                  {visibleColumns.articles && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Articles</th>
+                  {visibleColumns.status && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Statut</th>
+                  )}
+                  {visibleColumns.deliveryCompany && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Société de livraison</th>
+                  )}
+                  {visibleColumns.deliveryType && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Type de livraison</th>
                   )}
                   {visibleColumns.wilaya && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Wilaya</th>
@@ -942,38 +951,29 @@ console.log("wait",ordersWait);
                   {visibleColumns.commune && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Commune</th>
                   )}
-                  {visibleColumns.deliveryType && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Type de livraison</th>
-                  )}
-                  {visibleColumns.deliveryCompany && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Société de livraison</th>
-                  )}
                   {visibleColumns.deliveryCenter && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Centre de livraison</th>
                   )}
-                  {visibleColumns.status && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Statut</th>
-                  )}
-                  {visibleColumns.pickupPoint && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Point de relais</th>
+                  {visibleColumns.articles && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Articles</th>
                   )}
                   {visibleColumns.deliveryPrice && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Prix livraison</th>
+                  )}
+                  {visibleColumns.totalPrice && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Prix total</th>
+                  )}
+                  {visibleColumns.confirmatrice && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Confirmatrice</th>
+                  )}
+                  {visibleColumns.pickupPoint && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Point de relais</th>
                   )}
                   {visibleColumns.address && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Adresse</th>
                   )}
                   {visibleColumns.additionalInfo && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Infos supp.</th>
-                  )}
-                  {visibleColumns.confirmatrice && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Confirmatrice</th>
-                  )}
-                  {visibleColumns.totalPrice && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Prix total</th>
-                  )}
-                  {visibleColumns.source && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Source</th>
                   )}
                   <th className="sticky top-0 bg-slate-900 p-3 text-right text-slate-400">Actions</th>
                 </tr>
@@ -993,10 +993,10 @@ console.log("wait",ordersWait);
                         "border-b border-slate-800 hover:bg-slate-800/50",
                         selectedRows.includes(order.id) && "bg-slate-800/30",
                         order.confirmationStatus?.startsWith("Ne répond pas") && "bg-orange-900/40",
-  order.confirmationStatus === "Double" && "bg-gray-900/50",
-  order.confirmationStatus === "Annulé" && "bg-red-900/40",
-  order.confirmationStatus === "Reporté" && "bg-violet-900/40",
-  order.confirmationStatus === "Confirmé" && "bg-green-900/40",
+                        order.confirmationStatus === "Double" && "bg-gray-900/50",
+                        order.confirmationStatus === "Annulé" && "bg-red-900/40",
+                        order.confirmationStatus === "Reporté" && "bg-violet-900/40",
+                        order.confirmationStatus === "Confirmé" && "bg-green-900/40",
                       )}
                     >
                       <td className="p-3">
@@ -1007,6 +1007,7 @@ console.log("wait",ordersWait);
                         />
                       </td>
                       {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.docId}</td>}
+                      {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && (
                         <td className="p-3 text-slate-300">
@@ -1060,9 +1061,75 @@ console.log("wait",ordersWait);
                         </td>
                       )}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
-                      {visibleColumns.articles && (
+                      {visibleColumns.status && (
                         <td className="p-3 text-slate-300">
-                          {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
+                          <Select
+                            value={order?.confirmationStatus}
+                            onValueChange={(value) => {
+                              updateConfirmationStatus(order.id, value as ConfirmationStatus)
+                              // Show a toast to confirm the status change
+                              toast({
+                                title: "Statut mis à jour",
+                                description: `Le statut a été changé en "${value}".`,
+                              })
+                            }}
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                "h-8 w-full border",
+                                getConfirmationStatusColor(order.confirmationStatus as ConfirmationStatus),
+                              )}
+                            >
+                              <SelectValue placeholder="Statut" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {confirmationStatuses.map((status) => (
+                                <SelectItem key={status} value={status}>
+                                  {status}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      )}
+                      {visibleColumns.deliveryCompany && (
+                        <td className="p-3 text-slate-300">
+                          <Select
+                            defaultValue={order.deliveryCompany}
+                            onValueChange={(value) => handleUpdateDeliveryCompany(order.id, value)}
+                          >
+                            <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
+                              <SelectValue placeholder="Société de livraison" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {[...deliveryCompanies, { companyId: "deliveryMen" }].map((center) => (
+                                <SelectItem key={center.companyId} value={center.companyId}>
+                                  {center.companyId || "Non défini"}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      )}
+                      {visibleColumns.deliveryType && (
+                        <td className="p-3 text-slate-300">
+                          <Select
+                            defaultValue={order.deliveryType}
+                            onValueChange={(value) => handleUpdateDeliveryType(order.id, value as DeliveryType)}
+                          >
+                            <SelectTrigger
+                              className={cn("h-8 w-full border", getDeliveryTypeColor(order.deliveryType))}
+                            >
+                              <SelectValue placeholder="Type" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-800">
+                              {deliveryTypes.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                  {type}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </td>
                       )}
                       {visibleColumns.wilaya && (
@@ -1077,7 +1144,6 @@ console.log("wait",ordersWait);
                             <SelectContent className="bg-slate-900 border-slate-800">
                               {wilayas.map((wilaya) => {
                                 // Check if this wilaya matches the current value using normalized comparison
-
                                 const isSelected = normalizeString(wilaya.wilaya_code) === normalizeString(order.wilaya)
 
                                 return (
@@ -1140,46 +1206,6 @@ console.log("wait",ordersWait);
                           </Select>
                         </td>
                       )}
-                      {visibleColumns.deliveryType && (
-                        <td className="p-3 text-slate-300">
-                          <Select
-                            defaultValue={order.deliveryType}
-                            onValueChange={(value) => handleUpdateDeliveryType(order.id, value as DeliveryType)}
-                          >
-                            <SelectTrigger
-                              className={cn("h-8 w-full border", getDeliveryTypeColor(order.deliveryType))}
-                            >
-                              <SelectValue placeholder="Type" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-900 border-slate-800">
-                              {deliveryTypes.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                  {type}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                      )}
-                      {visibleColumns.deliveryCompany && (
-                        <td className="p-3 text-slate-300">
-                          <Select
-                            defaultValue={order.deliveryCompany}
-                            onValueChange={(value) => handleUpdateDeliveryCompany(order.id, value)}
-                          >
-                            <SelectTrigger className="h-8 w-full bg-slate-800/50 border-slate-700">
-                              <SelectValue placeholder="Société de livraison" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-900 border-slate-800">
-                              {[...deliveryCompanies, { companyId: "deliveryMen" }].map((center) => (
-                                <SelectItem key={center.companyId} value={center.companyId}>
-                                  {center.companyId || "Non défini"}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                      )}
                       {visibleColumns.deliveryCenter && (
                         <td className="p-3 text-slate-300">
                           <Select
@@ -1205,49 +1231,21 @@ console.log("wait",ordersWait);
                           </Select>
                         </td>
                       )}
-                      {visibleColumns.status && (
+                      {visibleColumns.articles && (
                         <td className="p-3 text-slate-300">
-                          <Select
-                            value={order?.confirmationStatus}
-                            onValueChange={(value) => {
-                              updateConfirmationStatus(order.id, value as ConfirmationStatus)
-                              // Show a toast to confirm the status change
-                              toast({
-                                title: "Statut mis à jour",
-                                description: `Le statut a été changé en "${value}".`,
-                              })
-                            }}
-                          >
-                            <SelectTrigger
-                              className={cn(
-                                "h-8 w-full border",
-                                getConfirmationStatusColor(order.confirmationStatus as ConfirmationStatus),
-                              )}
-                            >
-                              <SelectValue placeholder="Statut" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-900 border-slate-800">
-                              {confirmationStatuses.map((status) => (
-                                <SelectItem key={status} value={status}>
-                                  {status}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
                         </td>
                       )}
-                      {visibleColumns.pickupPoint && <td className="p-3 text-slate-300">{order.pickupPoint || "-"}</td>}
                       {visibleColumns.deliveryPrice && <td className="p-3 text-slate-300">{order.deliveryPrice}</td>}
+                      {visibleColumns.totalPrice && <td className="p-3 text-slate-300">{order.totalPrice}</td>}
+                      {visibleColumns.confirmatrice && <td className="p-3 text-slate-300">{order.confirmatrice}</td>}
+                      {visibleColumns.pickupPoint && <td className="p-3 text-slate-300">{order.pickupPoint || "-"}</td>}
                       {visibleColumns.address && (
                         <td className="p-3 text-slate-300 max-w-[200px] truncate">{order.address}</td>
                       )}
                       {visibleColumns.additionalInfo && (
                         <td className="p-3 text-slate-300">{order.additionalInfo || "-"}</td>
                       )}
-                      {visibleColumns.confirmatrice && <td className="p-3 text-slate-300">{order.confirmatrice}</td>}
-
-                      {visibleColumns.totalPrice && <td className="p-3 text-slate-300">{order.totalPrice}</td>}
-                      {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
                       <td className="p-3 text-right">
                         <div className="flex justify-end gap-1">
                           <Button

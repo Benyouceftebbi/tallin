@@ -55,7 +55,7 @@ export default function ParametresPage() {
   const [newEntityWebhookUrl, setNewEntityWebhookUrl] = useState("")
   const [newEntityWebhookName, setNewEntityWebhookName] = useState("")
   const [selectedDeliveryCompanies, setSelectedDeliveryCompanies] = useState<string[]>([])
-
+const [newEntityCompanyName, setNewEntityCompanyName] = useState("")
   // State for editing
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -72,6 +72,7 @@ export default function ParametresPage() {
     webhookUrl: "",
     webhookName: "",
     companies: [] as string[],
+    entity:""
   })
 
   // State for delivery pricing
@@ -223,6 +224,7 @@ export default function ParametresPage() {
         webhookUrl: newEntityWebhookUrl,
         webhookName: newEntityWebhookName,
         phone: newEntityPhone,
+        entity:newEntityCompanyName
       })
     } else {
       if (!newEntityName || !newEntityEmail || !newEntityStartDate) return
@@ -249,6 +251,7 @@ export default function ParametresPage() {
     setNewEntityWebhookUrl("")
     setNewEntityWebhookName("")
     setSelectedDeliveryCompanies([])
+    setNewEntityCompanyName("")
   }
 
   const handleCompanySelection = (companyId: string) => {
@@ -332,6 +335,7 @@ export default function ParametresPage() {
         webhookUrl: editForm.webhookUrl,
         webhookName: editForm.webhookName,
         phone: editForm.phone,
+        entity:editForm.entity
       })
     } else {
       updateDeliveryMan(editingId, {
@@ -554,350 +558,350 @@ export default function ParametresPage() {
         </TabsContent>
 
         <TabsContent value="delivery" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sociétés de livraison</CardTitle>
-              <CardDescription>Gérez les sociétés de livraison et les livreurs.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">Ajouter une nouvelle entité</h3>
+ <Card>
+    <CardHeader>
+      <CardTitle>Sociétés de livraison</CardTitle>
+      <CardDescription>Gérez les sociétés de livraison et les livreurs.</CardDescription>
+    </CardHeader>
+    <CardContent className="space-y-6">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Ajouter une nouvelle entité</h3>
 
-                  <div className="space-y-4">
-                    <RadioGroup
-                      value={newEntityType}
-                      onValueChange={(value) => setNewEntityType(value as "company" | "deliveryMan")}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="company" id="company" />
-                        <Label htmlFor="company">Société de livraison</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="deliveryMan" id="deliveryMan" />
-                        <Label htmlFor="deliveryMan">Livreur</Label>
-                      </div>
-                    </RadioGroup>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {newEntityType === "company" ? (
-                        <div className="space-y-2">
-                          <Label htmlFor="company-select">Société de livraison</Label>
-                          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-                            <SelectTrigger id="company-select">
-                              <SelectValue placeholder="Sélectionner une société" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableCompanies.map((company) => (
-                                <SelectItem key={company.id} value={company.id}>
-                                  {company.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <Label htmlFor="entity-name">Nom du livreur</Label>
-                          <Input
-                            id="entity-name"
-                            value={newEntityName}
-                            onChange={(e) => setNewEntityName(e.target.value)}
-                            placeholder="Ex: Jean Dupont"
-                          />
-                        </div>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label htmlFor="entity-email">Email</Label>
-                        <Input
-                          id="entity-email"
-                          type="email"
-                          value={newEntityEmail}
-                          onChange={(e) => setNewEntityEmail(e.target.value)}
-                          placeholder={
-                            newEntityType === "company" ? "Ex: contact@yalidine.com" : "Ex: jean.dupont@example.com"
-                          }
-                        />
-                      </div>
-
-                      {newEntityType === "company" && (
-                        <>
-                          <div className="space-y-2">
-                            <Label htmlFor="entity-webhook-url">URL du Webhook</Label>
-                            <Input
-                              id="entity-webhook-url"
-                              value={newEntityWebhookUrl}
-                              onChange={(e) => setNewEntityWebhookUrl(e.target.value)}
-                              placeholder="Ex: https://api.company.com/webhook"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="entity-webhook-name">Nom du Webhook</Label>
-                            <Input
-                              id="entity-webhook-name"
-                              value={newEntityWebhookName}
-                              onChange={(e) => setNewEntityWebhookName(e.target.value)}
-                              placeholder="Ex: Order Status Updates"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="entity-api-id">ID API</Label>
-                            <Input
-                              id="entity-api-id"
-                              value={newEntityApiId}
-                              onChange={(e) => setNewEntityApiId(e.target.value)}
-                              placeholder="Entrez votre ID API"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="entity-api-token">Token API</Label>
-                            <Input
-                              id="entity-api-token"
-                              value={newEntityApiToken}
-                              onChange={(e) => setNewEntityApiToken(e.target.value)}
-                              placeholder="Entrez votre token API"
-                              type="password"
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {newEntityType === "deliveryMan" && (
-                        <>
-                          <div className="space-y-2">
-                            <Label htmlFor="entity-start-date">Date de début</Label>
-                            <Input
-                              id="entity-start-date"
-                              type="date"
-                              value={newEntityStartDate}
-                              onChange={(e) => setNewEntityStartDate(e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="entity-phone">Téléphone</Label>
-                            <Input
-                              id="entity-phone"
-                              value={newEntityPhone}
-                              onChange={(e) => setNewEntityPhone(e.target.value)}
-                              placeholder="Ex: +33 6 12 34 56 78"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="entity-address">Adresse</Label>
-                            <Textarea
-                              id="entity-address"
-                              value={newEntityAddress}
-                              onChange={(e) => setNewEntityAddress(e.target.value)}
-                              placeholder="Ex: 123 Rue de Paris, 75001 Paris"
-                              className="min-h-[80px]"
-                            />
-                          </div>
-                          <div className="space-y-2 md:col-span-2">
-                            <Label>Sociétés de livraison</Label>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                              {availableCompanies.map((company) => (
-                                <div key={company.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`company-${company.id}`}
-                                    checked={selectedDeliveryCompanies.includes(company.id)}
-                                    onCheckedChange={() => handleCompanySelection(company.id)}
-                                  />
-                                  <Label htmlFor={`company-${company.id}`} className="text-sm font-normal">
-                                    {company.label}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    <Button onClick={handleAddEntity} className="mt-2">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Ajouter {newEntityType === "company" ? "la société" : "le livreur"}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">Sociétés de livraison</h3>
-
-                  {deliveryCompanies.length === 0 ? (
-                    <Alert>
-                      <AlertDescription>Aucune société de livraison n'a été ajoutée pour le moment.</AlertDescription>
-                    </Alert>
-                  ) : (
-                    <Accordion type="multiple" className="w-full">
-                      {deliveryCompanies.map((company) => (
-                        <AccordionItem key={company.id} value={company.id}>
-                          <AccordionTrigger className="hover:no-underline">
-                            <div className="flex items-center">
-                              <span className="font-medium">{company.name}</span>
-                              <span className="ml-2 text-xs bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded-full">
-                                Société de livraison
-                              </span>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="space-y-4 pt-2">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {company.email && (
-                                  <div>
-                                    <Label className="text-sm font-medium">Email</Label>
-                                    <p className="text-sm">{company.email}</p>
-                                  </div>
-                                )}
-                                {company.phone && (
-                                  <div>
-                                    <Label className="text-sm font-medium">Téléphone</Label>
-                                    <p className="text-sm">{company.phone}</p>
-                                  </div>
-                                )}
-                                {company.webhookUrl && (
-                                  <div>
-                                    <Label className="text-sm font-medium">URL du Webhook</Label>
-                                    <p className="text-sm">{company.webhookUrl}</p>
-                                  </div>
-                                )}
-                                {company.webhookName && (
-                                  <div>
-                                    <Label className="text-sm font-medium">Nom du Webhook</Label>
-                                    <p className="text-sm">{company.webhookName}</p>
-                                  </div>
-                                )}
-                                {company.apiId && (
-                                  <div>
-                                    <Label className="text-sm font-medium">ID API</Label>
-                                    <p className="text-sm">••••••••••••••••</p>
-                                  </div>
-                                )}
-                                {company.apiToken && (
-                                  <div>
-                                    <Label className="text-sm font-medium">Token API</Label>
-                                    <p className="text-sm">••••••••••••••••</p>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => openEditDialog(company.id, "company")}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Modifier
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => deleteDeliveryCompany(company.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Supprimer
-                                </Button>
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  )}
-                </div>
-
-                <div className="space-y-2 pt-4 border-t">
-                  <h3 className="text-lg font-medium">Livreurs</h3>
-
-                  {deliveryMen.length === 0 ? (
-                    <Alert>
-                      <AlertDescription>Aucun livreur n'a été ajouté pour le moment.</AlertDescription>
-                    </Alert>
-                  ) : (
-                    <Accordion type="multiple" className="w-full">
-                      {deliveryMen.map((man) => (
-                        <AccordionItem key={man.id} value={man.id}>
-                          <AccordionTrigger className="hover:no-underline">
-                            <div className="flex items-center">
-                              <span className="font-medium">{man.name}</span>
-                              <span className="ml-2 text-xs bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded-full">
-                                Livreur
-                              </span>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="space-y-4 pt-2">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label className="text-sm font-medium">Email</Label>
-                                  <p className="text-sm">{man.email}</p>
-                                </div>
-                                <div>
-                                  <Label className="text-sm font-medium">Date de début</Label>
-                                  <p className="text-sm">{man.startDate}</p>
-                                </div>
-                                {man.phone && (
-                                  <div>
-                                    <Label className="text-sm font-medium">Téléphone</Label>
-                                    <p className="text-sm">{man.phone}</p>
-                                  </div>
-                                )}
-                                {man.address && (
-                                  <div>
-                                    <Label className="text-sm font-medium">Adresse</Label>
-                                    <p className="text-sm">{man.address}</p>
-                                  </div>
-                                )}
-                                {man.companies && man.companies.length > 0 && (
-                                  <div className="md:col-span-2">
-                                    <Label className="text-sm font-medium">Sociétés de livraison</Label>
-                                    <div className="flex flex-wrap gap-2 mt-1">
-                                      {man.companies.map((companyId) => {
-                                        const company = availableCompanies.find((c) => c.id === companyId)
-                                        return company ? (
-                                          <span
-                                            key={companyId}
-                                            className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full"
-                                          >
-                                            {company.label}
-                                          </span>
-                                        ) : null
-                                      })}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => openEditDialog(man.id, "deliveryMan")}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Modifier
-                                </Button>
-                                <Button size="sm" variant="destructive" onClick={() => deleteDeliveryMan(man.id)}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Supprimer
-                                </Button>
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  )}
-                </div>
+          <div className="space-y-4">
+            <RadioGroup
+              value={newEntityType}
+              onValueChange={(value) => setNewEntityType(value as "company" | "deliveryMan")}
+              className="flex space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="company" id="company" />
+                <Label htmlFor="company">Société de livraison</Label>
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button>
-                <Save className="mr-2 h-4 w-4" />
-                Enregistrer les modifications
-              </Button>
-            </CardFooter>
-          </Card>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="deliveryMan" id="deliveryMan" />
+                <Label htmlFor="deliveryMan">Livreur</Label>
+              </div>
+            </RadioGroup>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {newEntityType === "company" ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="company-select">Société de livraison</Label>
+                    <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                      <SelectTrigger id="company-select">
+                        <SelectValue placeholder="Sélectionner une société" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableCompanies.map((company) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name-reference">Nom de référence</Label>
+                    <Input
+                      id="company-name-reference"
+                      value={newEntityCompanyName}
+                      onChange={(e) => setNewEntityCompanyName(e.target.value)}
+                      placeholder="Ex: Yalidine Alger"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="entity-name">Nom du livreur</Label>
+                  <Input
+                    id="entity-name"
+                    value={newEntityName}
+                    onChange={(e) => setNewEntityName(e.target.value)}
+                    placeholder="Ex: Jean Dupont"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="entity-email">Email</Label>
+                <Input
+                  id="entity-email"
+                  type="email"
+                  value={newEntityEmail}
+                  onChange={(e) => setNewEntityEmail(e.target.value)}
+                  placeholder={newEntityType === "company" ? "Ex: contact@yalidine.com" : "Ex: jean.dupont@example.com"}
+                />
+              </div>
+
+              {newEntityType === "company" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-webhook-url">URL du Webhook</Label>
+                    <Input
+                      id="entity-webhook-url"
+                      value={newEntityWebhookUrl}
+                      onChange={(e) => setNewEntityWebhookUrl(e.target.value)}
+                      placeholder="Ex: https://api.company.com/webhook"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-webhook-name">Nom du Webhook</Label>
+                    <Input
+                      id="entity-webhook-name"
+                      value={newEntityWebhookName}
+                      onChange={(e) => setNewEntityWebhookName(e.target.value)}
+                      placeholder="Ex: Order Status Updates"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-api-id">ID API</Label>
+                    <Input
+                      id="entity-api-id"
+                      value={newEntityApiId}
+                      onChange={(e) => setNewEntityApiId(e.target.value)}
+                      placeholder="Entrez votre ID API"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-api-token">Token API</Label>
+                    <Input
+                      id="entity-api-token"
+                      value={newEntityApiToken}
+                      onChange={(e) => setNewEntityApiToken(e.target.value)}
+                      placeholder="Entrez votre token API"
+                      type="password"
+                    />
+                  </div>
+                </>
+              )}
+
+              {newEntityType === "deliveryMan" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-start-date">Date de début</Label>
+                    <Input
+                      id="entity-start-date"
+                      type="date"
+                      value={newEntityStartDate}
+                      onChange={(e) => setNewEntityStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-phone">Téléphone</Label>
+                    <Input
+                      id="entity-phone"
+                      value={newEntityPhone}
+                      onChange={(e) => setNewEntityPhone(e.target.value)}
+                      placeholder="Ex: +33 6 12 34 56 78"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-address">Adresse</Label>
+                    <Textarea
+                      id="entity-address"
+                      value={newEntityAddress}
+                      onChange={(e) => setNewEntityAddress(e.target.value)}
+                      placeholder="Ex: 123 Rue de Paris, 75001 Paris"
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Sociétés de livraison</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      {availableCompanies.map((company) => (
+                        <div key={company.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`company-${company.id}`}
+                            checked={selectedDeliveryCompanies.includes(company.id)}
+                            onCheckedChange={() => handleCompanySelection(company.id)}
+                          />
+                          <Label htmlFor={`company-${company.id}`} className="text-sm font-normal">
+                            {company.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <Button onClick={handleAddEntity} className="mt-2">
+              <Plus className="mr-2 h-4 w-4" />
+              Ajouter {newEntityType === "company" ? "la société" : "le livreur"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Sociétés de livraison</h3>
+
+          {deliveryCompanies.length === 0 ? (
+            <Alert>
+              <AlertDescription>Aucune société de livraison n'a été ajoutée pour le moment.</AlertDescription>
+            </Alert>
+          ) : (
+            <Accordion type="multiple" className="w-full">
+              {deliveryCompanies.map((company) => (
+                <AccordionItem key={company.id} value={company.id}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center">
+                      <span className="font-medium">{company.name}</span>
+                      {company.label && company.label !== company.name && (
+                        <span className="ml-2 text-xs text-slate-500">({company.label})</span>
+                      )}
+                      <span className="ml-2 text-xs bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded-full">
+                        Société de livraison
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 pt-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {company.email && (
+                          <div>
+                            <Label className="text-sm font-medium">Email</Label>
+                            <p className="text-sm">{company.email}</p>
+                          </div>
+                        )}
+                        {company.phone && (
+                          <div>
+                            <Label className="text-sm font-medium">Téléphone</Label>
+                            <p className="text-sm">{company.phone}</p>
+                          </div>
+                        )}
+                        {company.webhookUrl && (
+                          <div>
+                            <Label className="text-sm font-medium">URL du Webhook</Label>
+                            <p className="text-sm">{company.webhookUrl}</p>
+                          </div>
+                        )}
+                        {company.webhookName && (
+                          <div>
+                            <Label className="text-sm font-medium">Nom du Webhook</Label>
+                            <p className="text-sm">{company.webhookName}</p>
+                          </div>
+                        )}
+                        {company.apiId && (
+                          <div>
+                            <Label className="text-sm font-medium">ID API</Label>
+                            <p className="text-sm">••••••••••••••••</p>
+                          </div>
+                        )}
+                        {company.apiToken && (
+                          <div>
+                            <Label className="text-sm font-medium">Token API</Label>
+                            <p className="text-sm">••••••••••••••••</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={() => openEditDialog(company.id, "company")}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Modifier
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteDeliveryCompany(company.id)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Supprimer
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </div>
+
+        <div className="space-y-2 pt-4 border-t">
+          <h3 className="text-lg font-medium">Livreurs</h3>
+
+          {deliveryMen.length === 0 ? (
+            <Alert>
+              <AlertDescription>Aucun livreur n'a été ajouté pour le moment.</AlertDescription>
+            </Alert>
+          ) : (
+            <Accordion type="multiple" className="w-full">
+              {deliveryMen.map((man) => (
+                <AccordionItem key={man.id} value={man.id}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center">
+                      <span className="font-medium">{man.name}</span>
+                      <span className="ml-2 text-xs bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded-full">
+                        Livreur
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 pt-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">Email</Label>
+                          <p className="text-sm">{man.email}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Date de début</Label>
+                          <p className="text-sm">{man.startDate}</p>
+                        </div>
+                        {man.phone && (
+                          <div>
+                            <Label className="text-sm font-medium">Téléphone</Label>
+                            <p className="text-sm">{man.phone}</p>
+                          </div>
+                        )}
+                        {man.address && (
+                          <div>
+                            <Label className="text-sm font-medium">Adresse</Label>
+                            <p className="text-sm">{man.address}</p>
+                          </div>
+                        )}
+                        {man.companies && man.companies.length > 0 && (
+                          <div className="md:col-span-2">
+                            <Label className="text-sm font-medium">Sociétés de livraison</Label>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {man.companies.map((companyId) => {
+                                const company = availableCompanies.find((c) => c.id === companyId)
+                                return company ? (
+                                  <span
+                                    key={companyId}
+                                    className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full"
+                                  >
+                                    {company.label}
+                                  </span>
+                                ) : null
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={() => openEditDialog(man.id, "deliveryMan")}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Modifier
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteDeliveryMan(man.id)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Supprimer
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </div>
+      </div>
+    </CardContent>
+    <CardFooter>
+      <Button>
+        <Save className="mr-2 h-4 w-4" />
+        Enregistrer les modifications
+      </Button>
+    </CardFooter>
+  </Card>
         </TabsContent>
         <TabsContent value="pricing" className="space-y-4 mt-4">
           <Card>
