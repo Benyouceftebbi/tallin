@@ -235,9 +235,13 @@ export function ConfirmesTable() {
   
     // Step 3: Upload grouped orders per delivery company
     const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders");
+      console.log("coll");
   
     for (const [company, orders] of Object.entries(ordersByCompany)) {
+      console.log(company);
+      
       const deliveryKeys = deliveryCompanies.find(d => d.entity === company);
+      
       if (!deliveryKeys) {
         console.warn(`Missing credentials for ${company}`);
         continue;

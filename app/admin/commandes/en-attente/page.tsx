@@ -8,6 +8,9 @@ export const metadata = {
 export default function EnAttentePage() {
   return (
     <div className="space-y-4">
+
+
+      
       <h1 className="text-2xl font-bold tracking-tight">Commandes en attente</h1>
       <EnAttenteTable />
     </div>
