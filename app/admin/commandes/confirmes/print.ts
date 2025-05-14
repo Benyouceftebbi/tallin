@@ -64,7 +64,7 @@ const generateBarcode = async (trackingId: string): Promise<string> => {
       styles: { fontSize: 8 },
       head: [['Article', 'Qté', 'Prix']],
       body: order.articles.map((a: any) => [
-        a.product_name,
+        `${a.product_name} ${a.variant_title}`,
         a.quantity.toString(),
         `${a.unit_price} DA`,
       ]),
