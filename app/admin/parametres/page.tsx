@@ -748,7 +748,8 @@ const [newEntityCompanyName, setNewEntityCompanyName] = useState("")
                 <AccordionItem key={company.id} value={company.id}>
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center">
-                      <span className="font-medium">{company.name}</span>
+                    <span className="font-medium">{company?.entity}</span>
+                      <span className="ml-2 font-medium">{company.name}</span>
                       {company.label && company.label !== company.name && (
                         <span className="ml-2 text-xs text-slate-500">({company.label})</span>
                       )}

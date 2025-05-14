@@ -1102,9 +1102,9 @@ export function EnAttenteTable() {
                               <SelectValue placeholder="Société de livraison" />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800">
-                              {[...deliveryCompanies, { companyId: "deliveryMen" }].map((center) => (
-                                <SelectItem key={center.companyId} value={center.companyId}>
-                                  {center.companyId || "Non défini"}
+                              {[...deliveryCompanies, {entity: "deliveryMen" }].map((center) => (
+                                <SelectItem key={center?.entity} value={center?.entity}>
+                                  {center?.entity|| "Non défini"}
                                 </SelectItem>
                               ))}
                             </SelectContent>

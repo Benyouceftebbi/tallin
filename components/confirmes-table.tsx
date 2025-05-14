@@ -193,67 +193,87 @@ export function ConfirmesTable() {
   }, [])
   const [isPrinting, setIsPrinting] = useState(false);
   // Déplacer les commandes sélectionnées vers "En préparation" - mémorisé
-const moveToPreparation = useCallback(async () => {
-  if (selectedRows.length === 0) {
-    toast({
-      title: "Aucune commande sélectionnée",
-      description: "Veuillez sélectionner au moins une commande à déplacer.",
-      variant: "destructive",
-    });
-    return;
-  }
-
- 
-  setIsPrinting(true); // Start loading
-  // for (const order of ordersConfirme) {
-  //   await generateParcelLabel(order);
-  // }
-
-  // Step 1: Construct rawOrders
-  const rawOrders = selectedRows.map((selectedId) => {
-    const order = ordersConfirme.find(o => o.id === selectedId);
-    const productTitles = order.articles.map((a) => `${a.product_name} ${a.variant_options?.option1} ${a.variant_options?.option2}`);
-
-    // Find wilaya name from article.wilaya (code)
-    const wilayaCode = order.wilaya;
-    const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
-    const wilayaName = region?.wilaya_name_ascii || "Unknown";
-    console.log("")
-    return {
-      ...order,
-      articlesNames: productTitles,
-      wilayaName: wilayaName,
-    };
-  });
-
-  console.log(selectedRows);
+  const moveToPreparation = useCallback(async () => {
+    if (selectedRows.length === 0) {
+      toast({
+        title: "Aucune commande sélectionnée",
+        description: "Veuillez sélectionner au moins une commande à déplacer.",
+        variant: "destructive",
+      });
+      return;
+    }
   
-  console.log(rawOrders);
-
-  const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders")
-    // Step 2: Call Cloud Function
-    const res = await uploadYalidineOrders({
-      apiKey: "52528606089270324708",
-      apiToken: "YunCzjP8vgJxygpDBihLomWBGuAKHY6rUDRKIS0QsPS3wq9M5OLmGV5Oh2IrdZQa",
-      rawOrders,
+    setIsPrinting(true); // Start loading
+  
+    // Step 1: Build enriched raw orders
+    const rawOrders = selectedRows.map((selectedId) => {
+      const order = ordersConfirme.find(o => o.id === selectedId);
+      const productTitles = order.articles.map((a) => `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''}`.trim());
+  
+      const wilayaCode = order.wilaya;
+      const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
+      const wilayaName = region?.wilaya_name_ascii || "Unknown";
+  
+      return {
+        ...order,
+        articlesNames: productTitles,
+        wilayaName,
+      };
     });
   
-    const confirmedOrders = res.data.confirmedOrders; // returned from function
-    confirmedOrders.forEach(confirmedOrder => {
+    // Step 2: Group orders by delivery company
+    const ordersByCompany: Record<string, typeof rawOrders> = {};
+    for (const order of rawOrders) {
+      const company = order.deliveryCompany;
+      if (!ordersByCompany[company]) {
+        ordersByCompany[company] = [];
+      }
+      ordersByCompany[company].push(order);
+    }
+  
+    const allConfirmedOrders: typeof rawOrders = [];
+  
+    // Step 3: Upload grouped orders per delivery company
+    const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders");
+  
+    for (const [company, orders] of Object.entries(ordersByCompany)) {
+      const deliveryKeys = deliveryCompanies.find(d => d.entity === company);
+      if (!deliveryKeys) {
+        console.warn(`Missing credentials for ${company}`);
+        continue;
+      }
+  
+      try {
+        const res = await uploadYalidineOrders({
+          apiKey: deliveryKeys.apiId,
+          apiToken: deliveryKeys.apiToken,
+          rawOrders: orders,
+        });
+  
+        allConfirmedOrders.push(...res.data.confirmedOrders);
+      } catch (err) {
+        console.error(`Failed to upload orders for ${company}`, err);
+      }
+    }
+  
+    // Step 4: Update orders in local state
+    allConfirmedOrders.forEach(confirmedOrder => {
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === confirmedOrder.id ? { ...order, ...confirmedOrder } : order
         )
       );
     });
-  toast({
-    title: "Commandes déplacées",
-    description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation" et envoyée(s) à Yalidine.`,
-  });
- updateMultipleOrdersStatus(selectedRows, "En préparation");
- setIsPrinting(false); // Stop loading
-  setSelectedRows([]);
-}, [selectedRows, updateMultipleOrdersStatus, ordersConfirme]);
+  
+    toast({
+      title: "Commandes déplacées",
+      description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation" et envoyée(s) aux services de livraison.`,
+    });
+  
+    updateMultipleOrdersStatus(selectedRows, "En préparation");
+    setIsPrinting(false); // Stop loading
+    setSelectedRows([]);
+  }, [selectedRows, updateMultipleOrdersStatus, ordersConfirme]);
 
   // Ouvrir la modal d'édition - mémorisé
   const openEditModal = useCallback((order: Order) => {
