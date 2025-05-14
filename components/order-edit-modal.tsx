@@ -33,6 +33,8 @@ import {
 import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
 import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipping-availability"
 import { useAppContext } from "@/context/app-context"
+import { doc, getDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -165,7 +167,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     getInventoryItem,
     updateConfirmationStatus,
     updateInventoryStock,
-    deliveryCompanies,
+    deliveryCompanies,deliveryPrices
   } = useShop()
   const [formData, setFormData] = useState<Partial<Order>>({})
   const [selectedWilaya, setSelectedWilaya] = useState<string>("")
@@ -255,14 +257,37 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   }, [selectedWilaya])
 
   // Gérer les changements dans le formulaire
-  const handleChange = (field: keyof Order, value: any) => {
-    if (value === "Confirmé") {
-      setFormData((prev) => ({ ...prev, [field]: value, status: "Confirmé" }))
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: value }))
+  const handleChange = async (field: keyof Order, value: any) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+  
+      if (value === "Confirmé") {
+        updated.status = "Confirmé";
+      }
+  
+      return updated;
+    });
+  
+    const wilaya = field === "wilaya" ? value : formData.wilaya;
+    const type = field === "deliveryType" ? value : formData.deliveryType;
+  
+    if (wilaya && type) {
+      try {
+        const docRef = doc(db, "deliveryPrices", wilaya);
+        const snap = await getDoc(docRef);
+  
+        if (snap.exists()) {
+          const price = snap.data()[type]; // either "domicile" or "stopdesk"
+          setFormData((prev) => ({ ...prev, deliveryPrice: price || 0 }));
+        } else {
+          setFormData((prev) => ({ ...prev, deliveryPrice: 0 }));
+        }
+      } catch (err) {
+        console.error("Error fetching delivery price:", err);
+        setFormData((prev) => ({ ...prev, deliveryPrice: 0 }));
+      }
     }
-
-  }
+  };
 
   // Ajouter un nouvel article
   const addNewArticle = () => {
