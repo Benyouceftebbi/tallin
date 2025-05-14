@@ -1338,16 +1338,34 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
           <div className="space-y-4 md:col-span-2">
             <h3 className="text-lg font-medium">Informations de paiement</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="deliveryPrice">Prix de livraison (DA) *</Label>
-                <Input
-  id="deliveryPrice"
-  type="number"
-  value={formData.deliveryPrice || ""}
-  onChange={(e) => handleChange("deliveryPrice", Number(e.target.value))}
-  className="bg-slate-800/50 border-slate-700"
-/>
-              </div>
+            <div className="space-y-2">
+  <Label htmlFor="deliveryPrice">Prix de livraison (DA) *</Label>
+  <Input
+    id="deliveryPrice"
+    type="number"
+    value={formData.deliveryPrice || ""}
+    onChange={(e) => handleChange("deliveryPrice", Number(e.target.value))}
+    className="bg-slate-800/50 border-slate-700"
+    disabled={formData.freeDelivery}
+  />
+
+  <div className="flex items-center space-x-2 mt-1">
+    <input
+      id="freeDelivery"
+      type="checkbox"
+      checked={formData.freeDelivery || false}
+      onChange={(e) => {
+        const checked = e.target.checked;
+        setFormData((prev) => ({
+          ...prev,
+          freeDelivery: checked,
+          deliveryPrice: checked ? 0 : prev.deliveryPrice,
+        }));
+      }}
+    />
+    <Label htmlFor="freeDelivery">Livraison gratuite</Label>
+  </div>
+</div>
               <div className="space-y-2">
                 <Label htmlFor="calculatedTotalPrice">Prix total calculé (DA)</Label>
                 <Input
