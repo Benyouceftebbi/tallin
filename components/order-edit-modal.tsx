@@ -261,6 +261,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     } else {
       setFormData((prev) => ({ ...prev, [field]: value }))
     }
+
   }
 
   // Ajouter un nouvel article
@@ -1315,12 +1316,12 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
               <div className="space-y-2">
                 <Label htmlFor="deliveryPrice">Prix de livraison (DA) *</Label>
                 <Input
-                  id="deliveryPrice"
-                  type="number"
-                  value={formData.deliveryPrice || ""}
-                  onChange={(e) => handleChange("deliveryPrice", Number(e.target.value))}
-                  className="bg-slate-800/50 border-slate-700"
-                />
+  id="deliveryPrice"
+  type="number"
+  value={formData.deliveryPrice || ""}
+  onChange={(e) => handleChange("deliveryPrice", Number(e.target.value))}
+  className="bg-slate-800/50 border-slate-700"
+/>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="calculatedTotalPrice">Prix total calculé (DA)</Label>
