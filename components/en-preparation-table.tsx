@@ -51,6 +51,7 @@ import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
 import { httpsCallable } from "firebase/functions"
 import { functions } from "@/lib/firebase"
+import { generateParcelLabel } from "@/app/admin/commandes/confirmes/print"
 
 // Liste des livreurs disponibles - définie en dehors du composant car elle ne change pas
 const deliverymen = [
@@ -618,36 +619,46 @@ export default function EnPreparationTable() {
         title: "Aucune commande sélectionnée",
         description: "Veuillez sélectionner au moins une commande pour imprimer les étiquettes.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
- 
-    // Get the selected orders
-    const ordersToPrint = filteredOrders.filter((order) => selectedRows.includes(order.id))
-
-
-  console.log("orders to ",ordersToPrint);
-
-
-  // Step 3: Open all labels in new tab for printing
-  const labelUrls = ordersToPrint.map(o => o.label); // assuming `label` is a URL
-  const labelWindow = window.open();
-  if (labelWindow) {
-    labelWindow.document.write("<html><body>");
-    labelUrls.forEach(url => {
-      labelWindow.document.write(`<iframe src="${url}" style="width:100%;height:1000px;"></iframe><hr/>`);
-    });
-    labelWindow.document.write("</body></html>");
-    labelWindow.document.close();
-  }
-  await Promise.all(
-    selectedRows.map(id => updateOrder(id, { isPrinted: true }))
-  );
+  
+    // Get selected orders
+    const ordersToPrint = filteredOrders.filter(order => selectedRows.includes(order.id));
+  
+    // Separate orders based on deliveryCompany
+    const deliverymanOrders = ordersToPrint.filter(o => o.deliveryCompany === "deliveryMen");
+    const externalOrders = ordersToPrint.filter(o => o.deliveryCompany !== "deliveryMen");
+  
+    // Generate and print labels for deliveryman orders
+    for (const order of deliverymanOrders) {
+      await generateParcelLabel(order); // opens and prints
+    }
+  
+    // Open external label URLs
+    if (externalOrders.length > 0) {
+      const labelUrls = externalOrders.map(o => o.label); // assume label is a URL
+      const labelWindow = window.open();
+      if (labelWindow) {
+        labelWindow.document.write("<html><body>");
+        labelUrls.forEach(url => {
+          labelWindow.document.write(`<iframe src="${url}" style="width:100%;height:1000px;"></iframe><hr/>`);
+        });
+        labelWindow.document.write("</body></html>");
+        labelWindow.document.close();
+      }
+    }
+  
+    // Mark all selected orders as printed
+    await Promise.all(
+      selectedRows.map(id => updateOrder(id, { isPrinted: true }))
+    );
+  
     toast({
       title: "Impression en cours",
       description: `Impression de ${selectedRows.length} étiquette(s) de commande.`,
-    })
-  }, [selectedRows, orders, toast])
+    });
+  }, [selectedRows, filteredOrders, toast]);
   if (loading) {
     return (
       <div className="space-y-4">
