@@ -208,7 +208,9 @@ export function ConfirmesTable() {
     // Step 1: Build enriched raw orders
     const rawOrders = selectedRows.map((selectedId) => {
       const order = ordersConfirme.find(o => o.id === selectedId);
-      const productTitles = order.articles.map((a) => `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''}`.trim());
+      const productTitles = order.articles.map((a) =>
+        `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''}`.trim()
+      );
   
       const wilayaCode = order.wilaya;
       const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
@@ -232,16 +234,17 @@ export function ConfirmesTable() {
     }
   
     const allConfirmedOrders: typeof rawOrders = [];
-  
-    // Step 3: Upload grouped orders per delivery company
     const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders");
-      console.log("coll");
   
+    // Step 3: Handle orders per company
     for (const [company, orders] of Object.entries(ordersByCompany)) {
-      console.log(company);
-      
+      if (company === "deliveryMen") {
+        // Directly mark these as confirmed (or just push them as-is)
+        allConfirmedOrders.push(...orders);
+        continue;
+      }
+  
       const deliveryKeys = deliveryCompanies.find(d => d.entity === company);
-      
       if (!deliveryKeys) {
         console.warn(`Missing credentials for ${company}`);
         continue;
@@ -271,7 +274,7 @@ export function ConfirmesTable() {
   
     toast({
       title: "Commandes déplacées",
-      description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation" et envoyée(s) aux services de livraison.`,
+      description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation".`,
     });
   
     updateMultipleOrdersStatus(selectedRows, "En préparation");
