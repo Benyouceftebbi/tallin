@@ -193,6 +193,93 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const [deliveryCompanies, setDeliveryCompanies] = useState<DeliveryCompany[]>([])
   const [deliveryMen, setDeliveryMen] = useState<DeliveryMan[]>([])
+  
+// Add a new depot
+async function addDepot(depot: Omit<Depot, "id">): Promise<string> {
+  try {
+    const docRef = await addDoc(collection(db, "depots"), {
+      ...depot,
+      createdAt: Timestamp.fromDate(depot.createdAt),
+    })
+    return docRef.id
+  } catch (error) {
+    console.error("Error adding depot:", error)
+    throw error
+  }
+}
+
+// Get all depots
+ async function getDepots(): Promise<Depot[]> {
+  try {
+    const q = query(collection(db, "depots"), orderBy("createdAt", "desc"))
+    const querySnapshot = await getDocs(q)
+
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data() as DocumentData
+      return {
+        id: doc.id,
+        name: data.name,
+        description: data.description,
+        createdAt: (data.createdAt as Timestamp).toDate(),
+      }
+    })
+  } catch (error) {
+    console.error("Error getting depots:", error)
+    throw error
+  }
+}
+
+// Get a single depot by ID
+ async function getDepot(id: string): Promise<Depot | null> {
+  try {
+    const docRef = doc(db, "depots", id)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+      const data = docSnap.data() as DocumentData
+      return {
+        id: docSnap.id,
+        name: data.name,
+        description: data.description,
+        createdAt: (data.createdAt as Timestamp).toDate(),
+      }
+    } else {
+      return null
+    }
+  } catch (error) {
+    console.error("Error getting depot:", error)
+    throw error
+  }
+}
+
+// Update a depot
+ async function updateDepot(depot: Depot): Promise<void> {
+  if (!depot.id) throw new Error("Depot ID is required for update")
+
+  try {
+    const docRef = doc(db, "depots", depot.id)
+    await updateDoc(docRef, {
+      name: depot.name,
+      description: depot.description,
+      // Don't update createdAt
+    })
+  } catch (error) {
+    console.error("Error updating depot:", error)
+    throw error
+  }
+}
+
+// Delete a depot
+async function deleteDepot(id: string): Promise<void> {
+  try {
+    const docRef = doc(db, "depots", id)
+    await deleteDoc(docRef)
+  } catch (error) {
+    console.error("Error deleting depot:", error)
+    throw error
+  }
+}
+
   const addOrder = async (order: Order) => {
     try {
       // Add timestamp if not provided
@@ -760,7 +847,12 @@ const value = {
   addInvoice,
   invoices,
   updateInvoice,
-  setOrders
+  setOrders,
+  addDepot,
+  getDepots,
+  getDepot,
+  updateDepot,
+  deleteDepot
 }
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>
