@@ -78,7 +78,7 @@ export function WorkerFormModal({ open, onOpenChange, workerId }: WorkerFormModa
   const { workers, addWorker, updateWorker, getWorkerById } = useShop()
   const [activeTab, setActiveTab] = useState("general")
 
-  const form = useForm<FormValues>({
+  const form = useForm<any>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",

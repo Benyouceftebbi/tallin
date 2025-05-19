@@ -157,7 +157,7 @@ type ShopContextType = {
   addWorker: (worker: Omit<Worker, "id" | "createdAt" | "updatedAt">) => void
   updateWorker: (id: string, worker: Partial<Worker>) => void
   deleteWorker: (id: string) => void
-  getWorkerById: (id: string) => Worker | undefined
+  getWorkerById: (id: string) => any | undefined
 }
 export type DeliveryMan = {
   id: string
