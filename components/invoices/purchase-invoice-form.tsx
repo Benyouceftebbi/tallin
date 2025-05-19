@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { SuppliersManagement, type Supplier } from "./suppliers-management"
 import { PacksManagement, type Pack } from "./packs-management"
+import { DepotsManagement, type Depot } from "./depots-management"
 import { useAppContext } from "@/context/app-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useShop } from "@/context/shop-context"
@@ -34,13 +35,24 @@ type ProductVariant = {
   packSize: number // Taille du pack pour cette variante
 }
 
+// Simplified ProductDepot type
+type ProductDepot = {
+  id: string
+  name: string
+  priority: "principale" | "secondaire" | "tertiaire"
+  quantity: number
+}
+
 type Product = {
   id: string
   name: string
+  title?: string
   sku: string
   category: string
   variantTypes: string[] // Les types de variantes que ce produit possède (ex: ["size", "color"])
   variants: ProductVariant[]
+  options?: any[]
+  depots?: ProductDepot[] // Add depots to the Product type
 }
 
 // Type pour les éléments de la facture
@@ -54,6 +66,7 @@ type InvoiceItem = {
   packQuantity: number // Quantité en packs
   packSize: number // Taille du pack
   unitPrice: number
+  depot: string // Add this field for depot selection
 }
 
 // Type pour les variantes en cours d'ajout
@@ -67,6 +80,7 @@ type CurrentVariant = {
   byPack: boolean // Indique si la quantité est saisie en packs ou en unités
   isPackSelection: boolean // Indique si on utilise un pack prédéfini
   selectedPackId?: string // ID du pack sélectionné si isPackSelection est true
+  // depot field removed from here
 }
 
 interface PurchaseInvoiceFormProps {
@@ -98,9 +112,10 @@ export function PurchaseInvoiceForm({
   // État pour le fournisseur sélectionné
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
 
-  // État pour la gestion des fournisseurs et des packs
+  // État pour la gestion des fournisseurs, des packs et des dépôts
   const [isSuppliersManagementOpen, setIsSuppliersManagementOpen] = useState(false)
   const [isPacksManagementOpen, setIsPacksManagementOpen] = useState(false)
+  const [isDepotsManagementOpen, setIsDepotsManagementOpen] = useState(false)
 
   // État pour les articles de la facture
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([])
@@ -117,6 +132,9 @@ export function PurchaseInvoiceForm({
   // État pour l'onglet actif dans la section produit
   const [productEntryMode, setProductEntryMode] = useState<"manual" | "pack">("manual")
 
+  // Add this near the other state declarations
+  const [selectedDepot, setSelectedDepot] = useState<string>("")
+
   const appContext = useAppContext()
   const packs = appContext?.packs || []
 
@@ -124,6 +142,11 @@ export function PurchaseInvoiceForm({
   const selectedProduct = useMemo(() => {
     return products?.find((p) => p.id === selectedProductId)
   }, [selectedProductId, products])
+
+  // Get product depots
+  const productDepots = useMemo(() => {
+    return selectedProduct?.depots || []
+  }, [selectedProduct])
 
   // Filtrer les packs qui correspondent au produit sélectionné
   const filteredPacks = packs
@@ -148,16 +171,38 @@ export function PurchaseInvoiceForm({
     }
   }, [initialData, isEditing])
 
-  // Ajouter une nouvelle variante vide quand un produit est sélectionné
+  // Update when product changes to also update available depots
   useEffect(() => {
     if (selectedProduct) {
       if (productEntryMode === "manual" && currentVariants.length === 0) {
         addNewVariant()
       }
+
+      // Get the product-specific depots
+      if (productDepots.length > 0) {
+        // Set the default depot to the main depot if available
+        const mainDepot = productDepots.find((d) => d.priority === "principale")
+        setSelectedDepot(mainDepot?.id || productDepots[0]?.id || "")
+
+        // Show a message about product-specific depots
+        toast({
+          title: "Dépôts spécifiques au produit",
+          description: `${productDepots.length} dépôt(s) disponible(s) pour ${selectedProduct.title || selectedProduct.name}`,
+        })
+      } else {
+        // If no product-specific depots, show a warning
+        toast({
+          title: "Attention",
+          description: `Aucun dépôt n'est configuré pour ${selectedProduct.title || selectedProduct.name}`,
+          variant: "destructive",
+        })
+        setSelectedDepot("")
+      }
     } else {
       setCurrentVariants([])
+      setSelectedDepot("")
     }
-  }, [selectedProduct, productEntryMode, currentVariants.length])
+  }, [selectedProduct, productEntryMode, currentVariants.length, productDepots])
 
   // Fonction pour ajouter une nouvelle variante vide
   const addNewVariant = () => {
@@ -175,6 +220,7 @@ export function PurchaseInvoiceForm({
       unitPrice: Number(selectedProduct.variants[0]?.price),
       byPack: false,
       isPackSelection: false,
+      // depot field removed from here
     }
 
     setCurrentVariants([...currentVariants, newVariant])
@@ -195,7 +241,7 @@ export function PurchaseInvoiceForm({
     // Créer des variantes à partir des variantes du pack
     const newVariants: CurrentVariant[] = []
     pack.variants.forEach((variant, index) => {
-      const matchingOption = selectedProduct.options.find((option) => option.values.includes(variant.size))
+      const matchingOption = selectedProduct.options?.find((option) => option.values.includes(variant.size))
 
       if (matchingOption) {
         const attributes: Record<string, string> = {
@@ -211,6 +257,7 @@ export function PurchaseInvoiceForm({
           unitPrice: Number(selectedProduct.variants[0]?.price),
           byPack: false,
           isPackSelection: false,
+          // Remove depot field
         })
       }
     })
@@ -261,13 +308,14 @@ export function PurchaseInvoiceForm({
         newItems.push({
           id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           productId: selectedProduct.id,
-          productName: selectedProduct.name,
+          productName: selectedProduct.title || selectedProduct.name,
           variantId: productVariant.id,
           attributes: productVariant.attributes,
           quantity: Number(matchingPackVariant.unity || 1),
           packQuantity: Math.ceil(Number(matchingPackVariant.unity || 1) / productVariant.packSize),
           packSize: productVariant.packSize,
           unitPrice: productVariant.price,
+          depot: selectedDepot, // Use selectedDepot instead of depots[0]?.id
         })
       }
     })
@@ -328,7 +376,7 @@ export function PurchaseInvoiceForm({
 
         let updatedPrice = variant.unitPrice
 
-        const selectedOptions = selectedProduct?.options.map((opt) => opt.name) || []
+        const selectedOptions = selectedProduct?.options?.map((opt) => opt.name) || []
         const matchingVariant = selectedProduct?.variants.find((v) => {
           return selectedOptions.every((name, index) => {
             const selectedValue = variant.attributes[name]
@@ -420,13 +468,13 @@ export function PurchaseInvoiceForm({
     if (!currentVariant) return null
 
     // Vérifier si tous les attributs sont sélectionnés
-    const allAttributesSelected = selectedProduct.options.every((type) => currentVariant.attributes[type.name])
+    const allAttributesSelected = selectedProduct.options?.every((type) => currentVariant.attributes[type.name])
 
     if (!allAttributesSelected) return null
 
     // Trouver la variante correspondante
     return selectedProduct.variants.find((variant) => {
-      return selectedProduct.options.every((option, index) => {
+      return selectedProduct.options?.every((option, index) => {
         const selectedValue = currentVariant.attributes[option.name]
         const variantOption = variant[`option${index + 1}`] // "option1", "option2", ...
         return selectedValue === variantOption
@@ -471,7 +519,19 @@ export function PurchaseInvoiceForm({
         description: "Ce pack ne contient aucune variante.",
         variant: "destructive",
       })
+      return
     }
+  }
+
+  // Gérer la sélection d'un dépôt
+  const handleSelectDepot = (depot: Depot) => {
+    // Update the selected depot for the current product
+    setSelectedDepot(depot.id)
+
+    toast({
+      title: "Dépôt sélectionné",
+      description: `Le dépôt "${depot.name}" a été sélectionné pour ce produit.`,
+    })
   }
 
   // Ajouter les variantes à la facture
@@ -480,6 +540,15 @@ export function PurchaseInvoiceForm({
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner un produit.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!selectedDepot) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un dépôt pour ce produit.",
         variant: "destructive",
       })
       return
@@ -526,13 +595,14 @@ export function PurchaseInvoiceForm({
           newItems.push({
             id: `item-${Date.now()}-${newItems.length}`,
             productId: selectedProduct.id,
-            productName: selectedProduct.name,
+            productName: selectedProduct.title || selectedProduct.name,
             variantId: matchingVariant.id,
             attributes: matchingVariant.attributes,
             quantity: baseQuantity,
             packQuantity: Math.ceil(baseQuantity / matchingVariant.packSize),
             packSize: matchingVariant.packSize,
             unitPrice: currentVariant.unitPrice || matchingVariant.price,
+            depot: selectedDepot, // Use selectedDepot instead of currentVariant.depot
           })
         }
       }
@@ -568,6 +638,7 @@ export function PurchaseInvoiceForm({
           packQuantity: currentVariant.packQuantity,
           packSize: currentVariant.packSize,
           unitPrice: currentVariant.unitPrice,
+          depot: selectedDepot, // Use selectedDepot instead of currentVariant.depot
         })
       }
     }
@@ -671,6 +742,16 @@ export function PurchaseInvoiceForm({
     }
 
     return `${typeLabels[attr.type] || attr.type}: ${attr.value}`
+  }
+
+  // Get depot name by ID
+  const getDepotName = (depotId: string) => {
+    // First check in product depots
+    const productDepot = productDepots.find((d) => d.id === depotId)
+    if (productDepot) return productDepot.name
+
+    // If not found, check in global depots list
+    return "Non spécifié"
   }
 
   return (
@@ -789,6 +870,35 @@ export function PurchaseInvoiceForm({
 
                 {selectedProduct && (
                   <div className="space-y-4">
+                    {/* Depot selection section */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label htmlFor="product-depot">
+                          Dépôt pour {selectedProduct?.title || selectedProduct?.name}
+                        </Label>
+                      </div>
+
+                      {productDepots.length > 0 ? (
+                        <Select value={selectedDepot} onValueChange={setSelectedDepot}>
+                          <SelectTrigger id="product-depot">
+                            <SelectValue placeholder="Sélectionner un dépôt pour ce produit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {productDepots.map((depot) => (
+                              <SelectItem key={depot.id} value={depot.id}>
+                                {depot.name} ({depot.priority}) - Qté: {depot.quantity}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="text-sm text-red-500 p-2 border border-red-200 rounded-md bg-red-50">
+                          Aucun dépôt n'est configuré pour ce produit. Veuillez en ajouter un dans la gestion des
+                          produits.
+                        </div>
+                      )}
+                    </div>
+
                     <Tabs
                       value={productEntryMode}
                       onValueChange={(value) => setProductEntryMode(value as "manual" | "pack")}
@@ -800,7 +910,7 @@ export function PurchaseInvoiceForm({
 
                       <TabsContent value="manual" className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <h4 className="font-medium">Variantes de {selectedProduct.name}</h4>
+                          <h4 className="font-medium">Variantes de {selectedProduct.title || selectedProduct.name}</h4>
                           <Button type="button" variant="outline" size="sm" onClick={addNewVariant}>
                             <PlusCircle className="h-4 w-4 mr-2" />
                             Ajouter une variante
@@ -894,7 +1004,9 @@ export function PurchaseInvoiceForm({
 
                       <TabsContent value="pack" className="space-y-4">
                         <div className="space-y-4">
-                          <h4 className="font-medium">Packs disponibles pour {selectedProduct.name}</h4>
+                          <h4 className="font-medium">
+                            Packs disponibles pour {selectedProduct.title || selectedProduct.name}
+                          </h4>
 
                           {filteredPacks.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -972,13 +1084,19 @@ export function PurchaseInvoiceForm({
                         </div>
                       </TabsContent>
                     </Tabs>
-
-                    {currentVariants.length > 0 && (
+                    {currentVariants.length > 0 && selectedDepot && (
                       <div className="flex justify-end">
                         <Button type="button" onClick={addVariantsToInvoice}>
                           <Plus className="h-4 w-4 mr-2" />
                           Ajouter à la facture
                         </Button>
+                      </div>
+                    )}
+                    {currentVariants.length > 0 && !selectedDepot && (
+                      <div className="text-center p-2 border border-red-200 rounded-md bg-red-50 mt-4">
+                        <p className="text-red-600">
+                          Veuillez sélectionner un dépôt pour ce produit avant d'ajouter à la facture.
+                        </p>
                       </div>
                     )}
                   </div>
@@ -998,7 +1116,8 @@ export function PurchaseInvoiceForm({
                       <TableRow>
                         <TableHead>Produit</TableHead>
                         <TableHead>Variantes</TableHead>
-                        <TableHead>nombre de variant</TableHead>
+                        <TableHead>Dépôt</TableHead>
+                        <TableHead>Quantité</TableHead>
                         <TableHead>Prix unitaire</TableHead>
                         <TableHead>Prix total</TableHead>
                         <TableHead></TableHead>
@@ -1033,10 +1152,21 @@ export function PurchaseInvoiceForm({
                         const unitPrice = items[0]?.unitPrice || 0
                         const totalPrice = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 
+                        // Find the product to get its depots
+                        const product = products?.find((p) => p.id === items[0]?.productId)
+
                         return (
                           <TableRow key={productName}>
                             <TableCell>{productName}</TableCell>
                             <TableCell className="whitespace-pre-line w-[150px]">{variantsText}</TableCell>
+                            <TableCell>
+                              {items.map((item) => {
+                                // Find depot name from product's depots
+                                const depotName =
+                                  product?.depots?.find((d) => d.id === item.depot)?.name || "Non spécifié"
+                                return <div key={item.id}>{depotName}</div>
+                              })}
+                            </TableCell>
                             <TableCell>{totalQuantity}</TableCell>
                             <TableCell>{unitPrice.toFixed(2)} DZD</TableCell>
                             <TableCell>{totalPrice.toFixed(2)} DZD</TableCell>
@@ -1109,6 +1239,14 @@ export function PurchaseInvoiceForm({
         open={isPacksManagementOpen}
         onOpenChange={setIsPacksManagementOpen}
         onSelectPack={handleSelectPack}
+        selectable={true}
+      />
+
+      {/* Gestion des dépôts */}
+      <DepotsManagement
+        open={isDepotsManagementOpen}
+        onOpenChange={setIsDepotsManagementOpen}
+        onSelectDepot={handleSelectDepot}
         selectable={true}
       />
     </Sheet>

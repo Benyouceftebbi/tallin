@@ -211,11 +211,11 @@ async function addDepot(depot: Omit<Depot, "id">): Promise<string> {
 // Get all depots
  async function getDepots(): Promise<Depot[]> {
   try {
-    const q = query(collection(db, "depots"), orderBy("createdAt", "desc"))
+    const q = query(collection(db, "depots"))
     const querySnapshot = await getDocs(q)
 
     return querySnapshot.docs.map((doc) => {
-      const data = doc.data() as DocumentData
+      const data = doc.data() 
       return {
         id: doc.id,
         name: data.name,

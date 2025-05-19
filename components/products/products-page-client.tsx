@@ -48,6 +48,7 @@ const { getDepots, addDepot, updateDepot, deleteDepot}=useShop()
       setLoading(false)
     }
   }
+console.log("depot", depots);
 
   const handleAddDepot = async () => {
     if (!name.trim()) {

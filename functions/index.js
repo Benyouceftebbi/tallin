@@ -119,27 +119,6 @@ function formatTimestamp(isoString) {
 }
 
 
-exports.shopifyOrderCreated = onRequest( async (req, res) => {
-  if (req.method !== "POST") {
-    res.status(405).send("Method Not Allowed");
-    return;
-  }
-
-  try {
-    const orderData = req.body;
-    const order=convertShopifyOrderToCustomFormat(orderData)
-    logger.info("Order received", orderData);
-
-    // Save to Firestore
-    await db.collection("Orders").add(orderData);
-    await db.collection("orders").add(order);
-
-    res.status(200).send("Order stored successfully");
-  } catch (error) {
-    logger.error("Error storing order", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
 exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (event) => {
   const snapshot = event.data;
   if (!snapshot) return;

@@ -676,7 +676,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const productWithVariants = {
             ...productData,  // Spread the product data
             id: productId,   // Add the product ID
-            variants,        // Add the variants array
+            variants, 
+            depots: [ {
+              id: "depot1",
+              name: "Dépôt A",
+              location: "Zone Industrielle, Alger",
+              manager: "Mohamed Ali",
+              capacity: "5000 m²",
+              status: "active",
+              priority: "principale",
+              quantity: 500,
+              productId: "prod1",
+              productName: "T-Shirt",
+            },
+            ],       // Add the variants array
           };
     
           // Push the combined product data and variants to the inventory

@@ -23,7 +23,7 @@ import {
   type StockStatus,
 } from "@/context/shop-context"
 import { toast } from "@/components/ui/use-toast"
-import { X, Plus, Trash2, AlertTriangle, Clock } from "lucide-react"
+import { X, Plus, Trash2, AlertTriangle, Clock, Warehouse } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import {
   getAllWilayas,
@@ -35,6 +35,7 @@ import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipp
 import { useAppContext } from "@/context/app-context"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -47,6 +48,14 @@ type ArticleVariant = {
   availableStock?: number // Add this to show available stock
   stockStatus?: StockStatus // Add this to track stock status
   expectedDate?: string // Add this for coming soon items
+}
+
+// Add these new types after the existing ArticleVariant type
+type DepotOption = {
+  id: string
+  name: string
+  priority: string
+  quantity: number
 }
 
 type Article = {
@@ -167,7 +176,8 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     getInventoryItem,
     updateConfirmationStatus,
     updateInventoryStock,
-    deliveryCompanies,deliveryPrices
+    deliveryCompanies,
+    deliveryPrices,
   } = useShop()
   const [formData, setFormData] = useState<Partial<Order>>({})
   const [selectedWilaya, setSelectedWilaya] = useState<string>("")
@@ -176,6 +186,22 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   const [isExchange, setIsExchange] = useState(false)
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
   const [selectedPreviousOrder, setSelectedPreviousOrder] = useState<string>("")
+
+  // Add these new state variables after the existing state declarations (around line 150)
+  const [selectedDepots, setSelectedDepots] = useState<Record<string, DepotOption>>({})
+  const [showDepotDialog, setShowDepotDialog] = useState(false)
+  const [currentVariantForDepot, setCurrentVariantForDepot] = useState<{ articleId: string; variantId: string } | null>(
+    null,
+  )
+  const [orderReference, setOrderReference] = useState("")
+  const [isReferenceValid, setIsReferenceValid] = useState(true)
+  const [availableDepots, setAvailableDepots] = useState<DepotOption[]>([
+    { id: "depot1", name: "Dépôt Principal", priority: "Haute", quantity: 120 },
+    { id: "depot2", name: "Dépôt Secondaire", priority: "Moyenne", quantity: 85 },
+    { id: "depot3", name: "Dépôt Tertiaire", priority: "Basse", quantity: 50 },
+    { id: "depot4", name: "Dépôt Express", priority: "Haute", quantity: 30 },
+    { id: "depot5", name: "Dépôt Réserve", priority: "Basse", quantity: 200 },
+  ])
 
   const { products } = useAppContext()
   // Initialiser le formulaire avec les données de la commande
@@ -259,35 +285,35 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   // Gérer les changements dans le formulaire
   const handleChange = async (field: keyof Order, value: any) => {
     setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
-  
+      const updated = { ...prev, [field]: value }
+
       if (value === "Confirmé") {
-        updated.status = "Confirmé";
+        updated.status = "Confirmé"
       }
-  
-      return updated;
-    });
-  
-    const wilaya = field === "wilaya" ? value : formData.wilaya;
-    const type = field === "deliveryType" ? value : formData.deliveryType;
-  
+
+      return updated
+    })
+
+    const wilaya = field === "wilaya" ? value : formData.wilaya
+    const type = field === "deliveryType" ? value : formData.deliveryType
+
     if (wilaya && type) {
       try {
-        const docRef = doc(db, "deliveryPrices", wilaya);
-        const snap = await getDoc(docRef);
-  
+        const docRef = doc(db, "deliveryPrices", wilaya)
+        const snap = await getDoc(docRef)
+
         if (snap.exists()) {
-          const price = snap.data()[type]; // either "domicile" or "stopdesk"
-          setFormData((prev) => ({ ...prev, deliveryPrice: price || 0 }));
+          const price = snap.data()[type] // either "domicile" or "stopdesk"
+          setFormData((prev) => ({ ...prev, deliveryPrice: price || 0 }))
         } else {
-          setFormData((prev) => ({ ...prev, deliveryPrice: 0 }));
+          setFormData((prev) => ({ ...prev, deliveryPrice: 0 }))
         }
       } catch (err) {
-        console.error("Error fetching delivery price:", err);
-        setFormData((prev) => ({ ...prev, deliveryPrice: 0 }));
+        console.error("Error fetching delivery price:", err)
+        setFormData((prev) => ({ ...prev, deliveryPrice: 0 }))
       }
     }
-  };
+  }
 
   // Ajouter un nouvel article
   const addNewArticle = () => {
@@ -418,7 +444,6 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
       }),
     )
   }
-
   // Charger les articles d'une commande précédente
   const loadPreviousOrderArticles = () => {
     if (!selectedPreviousOrder) return
@@ -457,6 +482,62 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     return total
   }
 
+  // Add this function after the handleStockCheck function
+  const openDepotSelection = (articleId: string, variantId: string) => {
+    setCurrentVariantForDepot({ articleId, variantId })
+    setShowDepotDialog(true)
+  }
+
+  const selectDepotForVariant = (depotId: string) => {
+    if (!currentVariantForDepot) return
+
+    const selectedDepot = availableDepots.find((d) => d.id === depotId)
+    if (!selectedDepot) return
+
+    const variantKey = `${currentVariantForDepot.articleId}-${currentVariantForDepot.variantId}`
+
+    setSelectedDepots((prev) => ({
+      ...prev,
+      [variantKey]: selectedDepot,
+    }))
+
+    // Generate reference based on selected depots
+    setTimeout(generateReference, 100)
+
+    setShowDepotDialog(false)
+  }
+
+  const generateReference = () => {
+    const depots = Object.values(selectedDepots)
+
+    if (depots.length === 0) {
+      setOrderReference("")
+      return
+    }
+
+    // Check if all depots are the same
+    const allSameDepot = depots.every((d) => d.id === depots[0].id)
+
+    let prefix = ""
+    if (allSameDepot) {
+      // If all items come from the same depot, use that depot's name
+      prefix = depots[0].name.substring(0, 5).toUpperCase()
+    } else {
+      // If items come from different depots, use "DEPOTD"
+      prefix = "DEPOTD"
+    }
+
+    // Generate a random string to complete the reference
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const timestamp = Date.now().toString().substring(9, 13)
+
+    const newReference = `${prefix}-${randomStr}${timestamp}`
+    setOrderReference(newReference)
+
+    // Validate reference length
+    setIsReferenceValid(newReference.length >= 10)
+  }
+
   // Gérer la soumission du formulaire
   const handleSubmit = () => {
     // Vérifier les champs obligatoires
@@ -464,6 +545,18 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
       toast({
         title: "Champs obligatoires manquants",
         description: "Veuillez remplir tous les champs obligatoires.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Check if we need a reference (if any depots are selected)
+    const hasSelectedDepots = Object.keys(selectedDepots).length > 0
+
+    if (hasSelectedDepots && !isReferenceValid) {
+      toast({
+        title: "Référence invalide",
+        description: "Une référence d'au moins 10 caractères est requise lorsque des dépôts sont sélectionnés.",
         variant: "destructive",
       })
       return
@@ -489,21 +582,30 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
       ...formData,
       wilaya: selectedWilaya,
       totalPrice: totalPrice,
+      orderReference: hasSelectedDepots ? orderReference : undefined,
+      depotAttachments: hasSelectedDepots ? selectedDepots : undefined,
       articles: selectedArticles.flatMap((article) =>
-        article.variants.map((variant) => ({
-          product_id: article.id,
-          product_name: article.name,
-          product_sku: article.sku || "",
-          quantity: variant.quantity,
-          unit_price: variant.unit_price || variant.price,
-          variant_id: variant.variant_id || variant.id,
-          variant_sku: variant.variant_sku || "",
-          variant_title: variant.variant_title || "",
-          variant_options: {
-            option1: variant.size,
-            option2: variant.color,
-          },
-        })),
+        article.variants.map((variant) => {
+          const variantKey = `${article.id}-${variant.id}`
+          const selectedDepot = selectedDepots[variantKey]
+
+          return {
+            product_id: article.id,
+            product_name: article.name,
+            product_sku: article.sku || "",
+            quantity: variant.quantity,
+            unit_price: variant.unit_price || variant.price,
+            variant_id: variant.variant_id || variant.id,
+            variant_sku: variant.variant_sku || "",
+            variant_title: variant.variant_title || "",
+            variant_options: {
+              option1: variant.size,
+              option2: variant.color,
+            },
+            depotId: selectedDepot?.id,
+            depotName: selectedDepot?.name,
+          }
+        }),
       ),
     }
 
@@ -524,9 +626,32 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     onOpenChange(false)
   }
 
+  // Add this function to check if a variant needs a depot
+  const variantNeedsDepot = (variant: ArticleVariant) => {
+    return (
+      variant.stockStatus === "out_of_stock" ||
+      (variant.availableStock !== undefined && Number(variant.availableStock) === 0)
+    )
+  }
+
+  // Add this function to get the depot name for a variant
+  const getDepotForVariant = (articleId: string, variantId: string) => {
+    return selectedDepots[`${articleId}-${variantId}`]
+  }
+
   // Function to render stock status with appropriate styling
+  // Modify the renderStockStatus function to show alerts for zero stock
   const renderStockStatus = (variant: ArticleVariant) => {
     if (!variant.stockStatus || variant.stockStatus === "available") {
+      const stockNum = Number(variant.availableStock)
+      if (stockNum === 0) {
+        return (
+          <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-red-900/20 text-red-400">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Stock épuisé
+          </div>
+        )
+      }
       return (
         <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-green-900/20 text-green-400">
           {variant.availableStock !== undefined ? variant.availableStock : "En stock"}
@@ -668,6 +793,63 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
         return article
       }),
     )
+  }
+  // Add this function to check stock when a variant is selected
+  // Add this after the updateVariant function
+  const handleStockCheck = (articleId: string, variantId: string) => {
+    const article = selectedArticles.find((a) => a.id === articleId)
+    const variant = article?.variants.find((v) => v.id === variantId)
+
+    if (article && variant) {
+      const inventoryItem = products?.find((product) => product.id === article.id)
+      const inventoryVariant = inventoryItem?.variants.find(
+        (iv) => iv.size === variant.size && iv.color === variant.color,
+      )
+
+      if (inventoryVariant) {
+        setSelectedArticles(
+          selectedArticles.map((a) => {
+            if (a.id === articleId) {
+              return {
+                ...a,
+                variants: a.variants.map((v) => {
+                  if (v.id === variantId) {
+                    return {
+                      ...v,
+                      availableStock: inventoryVariant.inventory_quantity,
+                      stockStatus: inventoryVariant.inventory_quantity > 0 ? "available" : "out_of_stock",
+                    }
+                  }
+                  return v
+                }),
+              }
+            }
+            return a
+          }),
+        )
+      } else {
+        setSelectedArticles(
+          selectedArticles.map((a) => {
+            if (a.id === articleId) {
+              return {
+                ...a,
+                variants: a.variants.map((v) => {
+                  if (v.id === variantId) {
+                    return {
+                      ...v,
+                      availableStock: 0,
+                      stockStatus: "out_of_stock",
+                    }
+                  }
+                  return v
+                }),
+              }
+            }
+            return a
+          }),
+        )
+      }
+    }
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -912,6 +1094,37 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                               }}
                               className="h-8 text-xs bg-slate-800/50 border-slate-700"
                             />
+                          </div>
+
+                          {/* Add this after the price column and before the actions column */}
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-depot-${variant.id}`} className="text-xs">
+                              Dépôt
+                            </Label>
+                            {variantNeedsDepot(variant) ? (
+                              <div>
+                                {getDepotForVariant(article.id, variant.id) ? (
+                                  <div className="flex items-center h-8 text-xs">
+                                    <Warehouse className="h-3 w-3 mr-1 text-amber-300" />
+                                    <span className="text-amber-300">
+                                      {getDepotForVariant(article.id, variant.id)?.name}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openDepotSelection(article.id, variant.id)}
+                                    className="h-8 text-xs bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30"
+                                  >
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Sélectionner
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center h-8 text-xs text-slate-400">Non requis</div>
+                            )}
                           </div>
 
                           <div className="flex justify-end">
@@ -1338,34 +1551,34 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
           <div className="space-y-4 md:col-span-2">
             <h3 className="text-lg font-medium">Informations de paiement</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-  <Label htmlFor="deliveryPrice">Prix de livraison (DA) *</Label>
-  <Input
-    id="deliveryPrice"
-    type="number"
-    value={formData.deliveryPrice || ""}
-    onChange={(e) => handleChange("deliveryPrice", Number(e.target.value))}
-    className="bg-slate-800/50 border-slate-700"
-    disabled={formData.freeDelivery}
-  />
+              <div className="space-y-2">
+                <Label htmlFor="deliveryPrice">Prix de livraison (DA) *</Label>
+                <Input
+                  id="deliveryPrice"
+                  type="number"
+                  value={formData.deliveryPrice || ""}
+                  onChange={(e) => handleChange("deliveryPrice", Number(e.target.value))}
+                  className="bg-slate-800/50 border-slate-700"
+                  disabled={formData.freeDelivery}
+                />
 
-  <div className="flex items-center space-x-2 mt-1">
-    <input
-      id="freeDelivery"
-      type="checkbox"
-      checked={formData.freeDelivery || false}
-      onChange={(e) => {
-        const checked = e.target.checked;
-        setFormData((prev) => ({
-          ...prev,
-          freeDelivery: checked,
-          deliveryPrice: checked ? 0 : prev.deliveryPrice,
-        }));
-      }}
-    />
-    <Label htmlFor="freeDelivery">Livraison gratuite</Label>
-  </div>
-</div>
+                <div className="flex items-center space-x-2 mt-1">
+                  <input
+                    id="freeDelivery"
+                    type="checkbox"
+                    checked={formData.freeDelivery || false}
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      setFormData((prev) => ({
+                        ...prev,
+                        freeDelivery: checked,
+                        deliveryPrice: checked ? 0 : prev.deliveryPrice,
+                      }))
+                    }}
+                  />
+                  <Label htmlFor="freeDelivery">Livraison gratuite</Label>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="calculatedTotalPrice">Prix total calculé (DA)</Label>
                 <Input
@@ -1425,6 +1638,94 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
             </div>
           </div>
         </div>
+
+        {/* Add this right before the DialogFooter component (around line 1000) */}
+        {showDepotDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-slate-900 p-6 rounded-lg w-full max-w-md">
+              <h3 className="text-lg font-medium mb-4">Sélectionner un dépôt</h3>
+              <p className="text-sm text-slate-400 mb-4">
+                Ce produit est en rupture de stock. Veuillez sélectionner un dépôt pour cette commande.
+              </p>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {availableDepots.map((depot) => (
+                  <div
+                    key={depot.id}
+                    className="p-3 border border-slate-700 rounded-md hover:bg-slate-800 cursor-pointer"
+                    onClick={() => selectDepotForVariant(depot.id)}
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium">{depot.name}</span>
+                      <span className="text-sm text-slate-400">Qté: {depot.quantity}</span>
+                    </div>
+                    <div className="text-xs text-slate-400">Priorité: {depot.priority}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button variant="outline" onClick={() => setShowDepotDialog(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add this before the DialogFooter */}
+        {Object.keys(selectedDepots).length > 0 && (
+          <div className="mt-6 mb-4">
+            <Alert variant="destructive" className="bg-amber-900/20 border-amber-800 text-amber-300">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Articles en rupture de stock</AlertTitle>
+              <AlertDescription>
+                Certains articles sont en rupture de stock et nécessitent une référence de dépôt.
+              </AlertDescription>
+            </Alert>
+
+            <div className="mt-4 p-4 border border-slate-700 rounded-md bg-slate-800/30">
+              <h3 className="text-lg font-medium mb-3">Référence de commande</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="orderReference">Référence (min. 10 caractères) *</Label>
+                  <Input
+                    id="orderReference"
+                    value={orderReference}
+                    onChange={(e) => {
+                      setOrderReference(e.target.value)
+                      setIsReferenceValid(e.target.value.length >= 10)
+                    }}
+                    className={`bg-slate-800/50 border-${isReferenceValid ? "green" : "red"}-500`}
+                  />
+                  {!isReferenceValid && (
+                    <p className="text-xs text-red-400">La référence doit contenir au moins 10 caractères</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Dépôts sélectionnés</Label>
+                  <div className="text-sm text-slate-300 space-y-1">
+                    {Object.entries(selectedDepots).map(([key, depot]) => {
+                      const [articleId, variantId] = key.split("-")
+                      const article = selectedArticles.find((a) => a.id === articleId)
+                      const variant = article?.variants.find((v) => v.id === variantId)
+
+                      return (
+                        <div key={key} className="flex justify-between">
+                          <span>
+                            {article?.name} ({variant?.size}, {variant?.color})
+                          </span>
+                          <span className="text-amber-300">
+                            <Warehouse className="h-3 w-3 inline mr-1" />
+                            {depot.name}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
