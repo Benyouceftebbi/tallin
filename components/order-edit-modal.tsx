@@ -22,6 +22,7 @@ import {
   type ConfirmationStatus,
   type StockStatus,
 } from "@/context/shop-context"
+import { useAppContext } from "@/context/app-context"
 import { toast } from "@/components/ui/use-toast"
 import { X, Plus, Trash2, AlertTriangle, Clock, Warehouse } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
@@ -32,8 +33,8 @@ import {
 } from "@/app/admin/commandes/en-attente/data/algeria-regions"
 import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
 import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipping-availability"
-import { useAppContext } from "@/context/app-context"
-import { doc, getDoc } from "firebase/firestore"
+
+import { collection, doc, getDoc, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -48,6 +49,7 @@ type ArticleVariant = {
   availableStock?: number // Add this to show available stock
   stockStatus?: StockStatus // Add this to track stock status
   expectedDate?: string // Add this for coming soon items
+  depot?: DepotOption
 }
 
 // Add these new types after the existing ArticleVariant type
@@ -56,6 +58,7 @@ type DepotOption = {
   name: string
   priority: string
   quantity: number
+  type?: string
 }
 
 type Article = {
@@ -195,14 +198,52 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   )
   const [orderReference, setOrderReference] = useState("")
   const [isReferenceValid, setIsReferenceValid] = useState(true)
-  const [availableDepots, setAvailableDepots] = useState<DepotOption[]>([
-    { id: "depot1", name: "Dépôt Principal", priority: "Haute", quantity: 120 },
-    { id: "depot2", name: "Dépôt Secondaire", priority: "Moyenne", quantity: 85 },
-    { id: "depot3", name: "Dépôt Tertiaire", priority: "Basse", quantity: 50 },
-    { id: "depot4", name: "Dépôt Express", priority: "Haute", quantity: 30 },
-    { id: "depot5", name: "Dépôt Réserve", priority: "Basse", quantity: 200 },
-  ])
 
+  const [availableDepots, setAvailableDepots] = useState<DepotOption[]>([])
+ useEffect(() => {
+    const fetchDepots = async () => {
+      try {
+        const depotsCollection = collection(db, "depots")
+        const depotsSnapshot = await getDocs(depotsCollection)
+        const depotsList = depotsSnapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            name: data.name || "Dépôt sans nom",
+            location: data.location || "",
+            manager: data.manager || "",
+            capacity: data.capacity || "",
+            status: data.status || "active",
+            priority: data.priority || "principale",
+            quantity: data.quantity || 0,
+            type: data.type || "principale",
+            productId: data.productId || "",
+            productName: data.productName || "",
+          }
+        })
+
+        setAvailableDepots(depotsList)
+      } catch (error) {
+        console.error("Error fetching depots:", error)
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les dépôts depuis la base de données.",
+          variant: "destructive",
+        })
+
+        // Fallback to default depots if Firebase fetch fails
+        setAvailableDepots([
+          { id: "depot1", name: "Dépôt Principal", priority: "principale", type: "principale", quantity: 120 },
+          { id: "depot2", name: "Dépôt Secondaire", priority: "secondaire", type: "principale", quantity: 85 },
+          { id: "depot3", name: "Dépôt Tertiaire", priority: "tertiaire", type: "principale", quantity: 50 },
+          { id: "depot4", name: "Dépôt Express", priority: "principale", type: "principale", quantity: 30 },
+          { id: "depot5", name: "Dépôt Réserve", priority: "tertiaire", type: "principale", quantity: 200 },
+        ])
+      }
+    }
+
+    fetchDepots()
+  }, [])
   const { products } = useAppContext()
   // Initialiser le formulaire avec les données de la commande
   useEffect(() => {
@@ -488,55 +529,77 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     setShowDepotDialog(true)
   }
 
-  const selectDepotForVariant = (depotId: string) => {
-    if (!currentVariantForDepot) return
+const selectDepotForVariant = (depotId: string) => {
+  if (!currentVariantForDepot) return
 
-    const selectedDepot = availableDepots.find((d) => d.id === depotId)
-    if (!selectedDepot) return
+  const selectedDepot = availableDepots.find((d) => d.id === depotId)
+  if (!selectedDepot) return
 
-    const variantKey = `${currentVariantForDepot.articleId}-${currentVariantForDepot.variantId}`
+  const variantKey = `${currentVariantForDepot.articleId}-${currentVariantForDepot.variantId}`
 
-    setSelectedDepots((prev) => ({
+  // Update the selectedDepots state
+  setSelectedDepots((prev) => {
+    const updated = {
       ...prev,
       [variantKey]: selectedDepot,
-    }))
-
-    // Generate reference based on selected depots
-    setTimeout(generateReference, 100)
-
-    setShowDepotDialog(false)
-  }
-
-  const generateReference = () => {
-    const depots = Object.values(selectedDepots)
-
-    if (depots.length === 0) {
-      setOrderReference("")
-      return
     }
 
-    // Check if all depots are the same
-    const allSameDepot = depots.every((d) => d.id === depots[0].id)
+    // Call generateReference with the updated depots
+    generateReference(updated)
 
-    let prefix = ""
-    if (allSameDepot) {
-      // If all items come from the same depot, use that depot's name
-      prefix = depots[0].name.substring(0, 5).toUpperCase()
-    } else {
-      // If items come from different depots, use "DEPOTD"
-      prefix = "DEPOTD"
-    }
+    return updated
+  })
 
-    // Generate a random string to complete the reference
-    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
-    const timestamp = Date.now().toString().substring(9, 13)
+  // Update the variant with the depot information directly
+  setSelectedArticles(
+    selectedArticles.map((article) => {
+      if (article.id === currentVariantForDepot.articleId) {
+        return {
+          ...article,
+          variants: article.variants.map((variant) => {
+            if (variant.id === currentVariantForDepot.variantId) {
+              return {
+                ...variant,
+                depot: selectedDepot,
+              }
+            }
+            return variant
+          }),
+        }
+      }
+      return article
+    }),
+  )
 
-    const newReference = `${prefix}-${randomStr}${timestamp}`
-    setOrderReference(newReference)
+  setShowDepotDialog(false)
+}
 
-    // Validate reference length
-    setIsReferenceValid(newReference.length >= 10)
+const generateReference = (depotsObj = selectedDepots) => {
+  const depots = Object.values(depotsObj)
+
+  console.log("depots", depots)
+
+  if (depots.length === 0) {
+    setOrderReference("")
+    return
   }
+
+  const allSameDepot = depots.every((d) => d.id === depots[0].id)
+
+  let prefix = ""
+  if (allSameDepot) {
+    prefix = depots[0].name.substring(0, 5).toUpperCase()
+  } else {
+    prefix = "DEPOTD"
+  }
+
+  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
+  const timestamp = Date.now().toString().substring(9, 13)
+
+  const newReference = `${prefix}-${randomStr}${timestamp}`
+  setOrderReference(newReference)
+  setIsReferenceValid(newReference.length >= 10)
+}
 
   // Gérer la soumission du formulaire
   const handleSubmit = () => {
@@ -851,6 +914,8 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
       }
     }
   }
+  console.log("selectedArticles", selectedArticles);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1067,16 +1132,18 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                             />
                           </div>
 
-                          <div className="space-y-1">
-                            <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
-                              Stock disponible
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              {products
-                                ?.find((product) => product.id === article.id)
-                                ?.variants.find((v) => v.id === variant.id)?.inventory_quantity ?? 0}
-                            </p>
-                          </div>
+           <div className="space-y-1">
+  <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
+    Stock disponible
+  </Label>
+  <p className="text-sm text-muted-foreground">
+    {products
+      ?.find((product) => product.id === article.id)
+      ?.variants.find((v) => v.id === variant.variant_id
+)
+      ?.depots?.find((depot) => depot.type === "principale")?.quantity ?? 0}
+  </p>
+</div>
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-price-${variant.id}`} className="text-xs">
@@ -1101,30 +1168,24 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                             <Label htmlFor={`variant-depot-${variant.id}`} className="text-xs">
                               Dépôt
                             </Label>
-                            {variantNeedsDepot(variant) ? (
-                              <div>
-                                {getDepotForVariant(article.id, variant.id) ? (
-                                  <div className="flex items-center h-8 text-xs">
-                                    <Warehouse className="h-3 w-3 mr-1 text-amber-300" />
-                                    <span className="text-amber-300">
-                                      {getDepotForVariant(article.id, variant.id)?.name}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => openDepotSelection(article.id, variant.id)}
-                                    className="h-8 text-xs bg-red-900/20 border-red-800 text-red-400 hover:bg-red-900/30"
-                                  >
-                                    <AlertTriangle className="h-3 w-3 mr-1" />
-                                    Sélectionner
-                                  </Button>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex items-center h-8 text-xs text-slate-400">Non requis</div>
-                            )}
+                            <div>
+                              {variant.depot ? (
+                                <div className="flex items-center h-8 text-xs">
+                                  <Warehouse className="h-3 w-3 mr-1 text-amber-300" />
+                                  <span className="text-amber-300">{variant.depot.name}</span>
+                                </div>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openDepotSelection(article.id, variant.id)}
+                                  className="h-8 text-xs bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+                                >
+                                  <Warehouse className="h-3 w-3 mr-1" />
+                                  Sélectionner
+                                </Button>
+                              )}
+                            </div>
                           </div>
 
                           <div className="flex justify-end">
@@ -1656,7 +1717,6 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                   >
                     <div className="flex justify-between">
                       <span className="font-medium">{depot.name}</span>
-                      <span className="text-sm text-slate-400">Qté: {depot.quantity}</span>
                     </div>
                     <div className="text-xs text-slate-400">Priorité: {depot.priority}</div>
                   </div>

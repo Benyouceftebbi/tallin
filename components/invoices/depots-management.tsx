@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Trash, Plus, Save, Edit } from "lucide-react"
+import { Trash, Plus, Save, Edit, Loader2 } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import { Badge } from "@/components/ui/badge"
+import { db } from "@/lib/firebase"
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore"
 
 export type Depot = {
   id: string
@@ -18,6 +20,7 @@ export type Depot = {
   capacity: string
   status: "active" | "inactive" | "maintenance"
   priority?: "principale" | "secondaire" | "tertiaire"
+  type?: "principale" | "secondaire" | "tertiaire"
   quantity?: number
   productId?: string // Add this field to associate depots with products
   productName?: string // Add this field for display purposes
@@ -31,129 +34,83 @@ interface DepotsManagementProps {
 }
 
 export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable = false }: DepotsManagementProps) {
-  const [depots, setDepots] = useState<Depot[]>([
-    {
-      id: "depot1",
-      name: "Dépôt A",
-      location: "Zone Industrielle, Alger",
-      manager: "Mohamed Ali",
-      capacity: "5000 m²",
-      status: "active",
-      priority: "principale",
-      quantity: 500,
-      productId: "prod1",
-      productName: "T-Shirt",
-    },
-    {
-      id: "depot2",
-      name: "Dépôt B",
-      location: "Centre Ville, Oran",
-      manager: "Karim Benzema",
-      capacity: "2500 m²",
-      status: "active",
-      priority: "principale",
-      quantity: 300,
-      productId: "prod2",
-      productName: "Jeans",
-    },
-    {
-      id: "depot3",
-      name: "Dépôt C",
-      location: "Port, Annaba",
-      manager: "Sofiane Feghouli",
-      capacity: "3000 m²",
-      status: "maintenance",
-      priority: "principale",
-      quantity: 400,
-      productId: "prod3",
-      productName: "Chemise",
-    },
-    {
-      id: "depot4",
-      name: "Dépôt A2",
-      location: "Zone Industrielle, Alger",
-      manager: "Ahmed Benali",
-      capacity: "2000 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 200,
-      productId: "prod1",
-      productName: "T-Shirt",
-    },
-    {
-      id: "depot5",
-      name: "Dépôt B2",
-      location: "Centre Ville, Oran",
-      manager: "Yacine Brahimi",
-      capacity: "1500 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 150,
-      productId: "prod2",
-      productName: "Jeans",
-    },
-    {
-      id: "depot6",
-      name: "Dépôt C2",
-      location: "Port, Annaba",
-      manager: "Riyad Mahrez",
-      capacity: "1800 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 180,
-      productId: "prod3",
-      productName: "Chemise",
-    },
-    // Add variant-specific depots
-    {
-      id: "depot-var1-main",
-      name: "Dépôt T-Shirt Rouge S",
-      location: "Zone Industrielle, Alger",
-      manager: "Ismail Bennacer",
-      capacity: "500 m²",
-      status: "active",
-      priority: "principale",
-      quantity: 30,
-      productId: "var1",
-      productName: "T-Shirt Rouge S",
-    },
-    {
-      id: "depot-var1-sec",
-      name: "Dépôt Secondaire T-Shirt Rouge S",
-      location: "Zone Industrielle, Alger",
-      manager: "Islam Slimani",
-      capacity: "300 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 15,
-      productId: "var1",
-      productName: "T-Shirt Rouge S",
-    },
-    {
-      id: "depot-var2-main",
-      name: "Dépôt T-Shirt Bleu M",
-      location: "Centre Ville, Oran",
-      manager: "Aissa Mandi",
-      capacity: "400 m²",
-      status: "active",
-      priority: "principale",
-      quantity: 25,
-      productId: "var2",
-      productName: "T-Shirt Bleu M",
-    },
-    {
-      id: "depot-var2-sec",
-      name: "Dépôt Secondaire T-Shirt Bleu M",
-      location: "Centre Ville, Oran",
-      manager: "Youcef Atal",
-      capacity: "250 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 10,
-      productId: "var2",
-      productName: "T-Shirt Bleu M",
-    },
-  ])
+  const [depots, setDepots] = useState<Depot[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    const fetchDepots = async () => {
+      setIsLoading(true)
+      try {
+        const depotsCollection = collection(db, "depots")
+        const depotsSnapshot = await getDocs(depotsCollection)
+        const depotsList = depotsSnapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            name: data.name || "Dépôt sans nom",
+            location: data.location || "",
+            manager: data.manager || "",
+            capacity: data.capacity || "",
+            status: data.status || "active",
+            priority: data.priority || "principale",
+            quantity: data.quantity || 0,
+            type: data.type || "principale",
+            productId: data.productId || "",
+            productName: data.productName || "",
+          }
+        })
+        setDepots(depotsList)
+      } catch (error) {
+        console.error("Error fetching depots:", error)
+        toast({
+          title: "Erreur",
+          description: "Erreur lors du chargement des dépôts.",
+          variant: "destructive",
+        })
+
+        // Fallback to default depots if Firebase fetch fails
+        setDepots([
+          {
+            id: "depot1",
+            name: "Dépôt Principal",
+            priority: "principale",
+            location: "Alger",
+            manager: "Mohamed",
+            capacity: "5000 m²",
+            status: "active",
+            quantity: 120,
+          },
+          {
+            id: "depot2",
+            name: "Dépôt Secondaire",
+            priority: "secondaire",
+            location: "Oran",
+            manager: "Ahmed",
+            capacity: "3000 m²",
+            status: "active",
+            quantity: 85,
+          },
+          {
+            id: "depot3",
+            name: "Dépôt Tertiaire",
+            priority: "tertiaire",
+            location: "Constantine",
+            manager: "Karim",
+            capacity: "2000 m²",
+            status: "active",
+            quantity: 50,
+          },
+        ])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (open) {
+      fetchDepots()
+    }
+  }, [open])
 
   const [newDepot, setNewDepot] = useState<Omit<Depot, "id">>({
     name: "",
@@ -183,7 +140,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
     }
   }
 
-  const handleAddDepot = () => {
+  const handleAddDepot = async () => {
     if (!newDepot.name || !newDepot.location) {
       toast({
         title: "Erreur",
@@ -193,35 +150,56 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
       return
     }
 
-    const depot: Depot = {
-      ...newDepot,
-      id: `depot-${Date.now()}`,
+    setIsSaving(true)
+    try {
+      // Add to Firebase
+      const depotsCollection = collection(db, "depots")
+      const docRef = await addDoc(depotsCollection, {
+        ...newDepot,
+        type: newDepot.priority, // Ensure type is set to match priority
+      })
+
+      // Add to local state with Firebase ID
+      const depot: Depot = {
+        ...newDepot,
+        id: docRef.id,
+        type: newDepot.priority, // Ensure type is set to match priority
+      }
+
+      setDepots([...depots, depot])
+      setNewDepot({
+        name: "",
+        location: "",
+        manager: "",
+        capacity: "",
+        status: "active",
+        priority: "principale",
+        quantity: 0,
+        productId: "",
+        productName: "",
+      })
+
+      toast({
+        title: "Dépôt ajouté",
+        description: `Le dépôt ${depot.name} a été ajouté avec succès.`,
+      })
+    } catch (error) {
+      console.error("Error adding depot:", error)
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'ajout du dépôt.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
     }
-
-    setDepots([...depots, depot])
-    setNewDepot({
-      name: "",
-      location: "",
-      manager: "",
-      capacity: "",
-      status: "active",
-      priority: "principale",
-      quantity: 0,
-      productId: "",
-      productName: "",
-    })
-
-    toast({
-      title: "Dépôt ajouté",
-      description: `Le dépôt ${depot.name} a été ajouté avec succès.`,
-    })
   }
 
   const handleEditDepot = (depot: Depot) => {
     setEditingDepot(depot)
   }
 
-  const handleUpdateDepot = () => {
+  const handleUpdateDepot = async () => {
     if (!editingDepot) return
 
     if (!editingDepot.name || !editingDepot.location) {
@@ -233,21 +211,59 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
       return
     }
 
-    setDepots(depots.map((d) => (d.id === editingDepot.id ? editingDepot : d)))
-    setEditingDepot(null)
+    setIsSaving(true)
+    try {
+      // Update in Firebase
+      const depotRef = doc(db, "depots", editingDepot.id)
+      await updateDoc(depotRef, {
+        ...editingDepot,
+        type: editingDepot.priority, // Ensure type is set to match priority
+      })
 
-    toast({
-      title: "Dépôt mis à jour",
-      description: `Le dépôt ${editingDepot.name} a été mis à jour avec succès.`,
-    })
+      // Update in local state
+      setDepots(depots.map((d) => (d.id === editingDepot.id ? { ...editingDepot, type: editingDepot.priority } : d)))
+      setEditingDepot(null)
+
+      toast({
+        title: "Dépôt mis à jour",
+        description: `Le dépôt ${editingDepot.name} a été mis à jour avec succès.`,
+      })
+    } catch (error) {
+      console.error("Error updating depot:", error)
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la mise à jour du dépôt.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  const handleDeleteDepot = (id: string) => {
-    setDepots(depots.filter((d) => d.id !== id))
-    toast({
-      title: "Dépôt supprimé",
-      description: "Le dépôt a été supprimé avec succès.",
-    })
+  const handleDeleteDepot = async (id: string) => {
+    setIsSaving(true)
+    try {
+      // Delete from Firebase
+      const depotRef = doc(db, "depots", id)
+      await deleteDoc(depotRef)
+
+      // Delete from local state
+      setDepots(depots.filter((d) => d.id !== id))
+
+      toast({
+        title: "Dépôt supprimé",
+        description: "Le dépôt a été supprimé avec succès.",
+      })
+    } catch (error) {
+      console.error("Error deleting depot:", error)
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression du dépôt.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleSelectDepot = (depot: Depot) => {
@@ -291,6 +307,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="ex: Dépôt Principal"
                   required
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -301,6 +318,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   onChange={(e) => handleInputChange("location", e.target.value)}
                   placeholder="ex: Zone Industrielle, Alger"
                   required
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -310,6 +328,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   value={editingDepot ? editingDepot.manager : newDepot.manager}
                   onChange={(e) => handleInputChange("manager", e.target.value)}
                   placeholder="ex: Mohamed Ali"
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -319,6 +338,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   value={editingDepot ? editingDepot.capacity : newDepot.capacity}
                   onChange={(e) => handleInputChange("capacity", e.target.value)}
                   placeholder="ex: 5000 m²"
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -328,6 +348,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={editingDepot ? editingDepot.priority : newDepot.priority}
                   onChange={(e) => handleInputChange("priority", e.target.value as Depot["priority"])}
+                  disabled={isSaving}
                 >
                   <option value="principale">Principale</option>
                   <option value="secondaire">Secondaire</option>
@@ -344,6 +365,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   value={editingDepot ? editingDepot.quantity : newDepot.quantity}
                   onChange={(e) => handleInputChange("quantity", Number.parseInt(e.target.value) || 0)}
                   placeholder="ex: 500"
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -353,6 +375,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={editingDepot ? editingDepot.status : newDepot.status}
                   onChange={(e) => handleInputChange("status", e.target.value as Depot["status"])}
+                  disabled={isSaving}
                 >
                   <option value="active">Actif</option>
                   <option value="inactive">Inactif</option>
@@ -366,6 +389,7 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   value={editingDepot ? editingDepot.productId : newDepot.productId}
                   onChange={(e) => handleInputChange("productId", e.target.value)}
                   placeholder="ex: prod1, var1"
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -375,24 +399,49 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
                   value={editingDepot ? editingDepot.productName : newDepot.productName}
                   onChange={(e) => handleInputChange("productName", e.target.value)}
                   placeholder="ex: T-Shirt, T-Shirt Rouge S"
+                  disabled={isSaving}
                 />
               </div>
             </div>
             <div className="flex justify-end">
               {editingDepot ? (
                 <>
-                  <Button type="button" variant="outline" className="mr-2" onClick={() => setEditingDepot(null)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mr-2"
+                    onClick={() => setEditingDepot(null)}
+                    disabled={isSaving}
+                  >
                     Annuler
                   </Button>
-                  <Button type="button" onClick={handleUpdateDepot}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Mettre à jour
+                  <Button type="button" onClick={handleUpdateDepot} disabled={isSaving}>
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Mise à jour...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Mettre à jour
+                      </>
+                    )}
                   </Button>
                 </>
               ) : (
-                <Button type="button" onClick={handleAddDepot}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter
+                <Button type="button" onClick={handleAddDepot} disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Ajout...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter
+                    </>
+                  )}
                 </Button>
               )}
             </div>
@@ -401,66 +450,93 @@ export function DepotsManagement({ open, onOpenChange, onSelectDepot, selectable
           {/* Liste des dépôts */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Liste des dépôts</h3>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nom</TableHead>
-                    <TableHead>Emplacement</TableHead>
-                    <TableHead>Responsable</TableHead>
-                    <TableHead>Capacité</TableHead>
-                    <TableHead>Priorité</TableHead>
-                    <TableHead>Quantité</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Produit associé</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {depots.map((depot) => (
-                    <TableRow key={depot.id} className={selectable ? "cursor-pointer hover:bg-muted/50" : ""}>
-                      <TableCell className="font-medium" onClick={() => selectable && handleSelectDepot(depot)}>
-                        {depot.name}
-                      </TableCell>
-                      <TableCell onClick={() => selectable && handleSelectDepot(depot)}>{depot.location}</TableCell>
-                      <TableCell onClick={() => selectable && handleSelectDepot(depot)}>{depot.manager}</TableCell>
-                      <TableCell onClick={() => selectable && handleSelectDepot(depot)}>{depot.capacity}</TableCell>
-                      <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
-                        {depot.priority === "principale"
-                          ? "Principale"
-                          : depot.priority === "secondaire"
-                            ? "Secondaire"
-                            : "Tertiaire"}
-                      </TableCell>
-                      <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
-                        {depot.quantity || 0}
-                      </TableCell>
-                      <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
-                        {getStatusBadge(depot.status)}
-                      </TableCell>
-                      <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
-                        {depot.productName || "Non spécifié"} {depot.productId ? `(${depot.productId})` : ""}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button type="button" variant="ghost" size="sm" onClick={() => handleEditDepot(depot)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteDepot(depot.id)}>
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2">Chargement des dépôts...</span>
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Emplacement</TableHead>
+                      <TableHead>Responsable</TableHead>
+                      <TableHead>Capacité</TableHead>
+                      <TableHead>Priorité</TableHead>
+                      <TableHead>Quantité</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Produit associé</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {depots.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-4">
+                          Aucun dépôt trouvé. Ajoutez-en un pour commencer.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      depots.map((depot) => (
+                        <TableRow key={depot.id} className={selectable ? "cursor-pointer hover:bg-muted/50" : ""}>
+                          <TableCell className="font-medium" onClick={() => selectable && handleSelectDepot(depot)}>
+                            {depot.name}
+                          </TableCell>
+                          <TableCell onClick={() => selectable && handleSelectDepot(depot)}>{depot.location}</TableCell>
+                          <TableCell onClick={() => selectable && handleSelectDepot(depot)}>{depot.manager}</TableCell>
+                          <TableCell onClick={() => selectable && handleSelectDepot(depot)}>{depot.capacity}</TableCell>
+                          <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
+                            {depot.priority === "principale"
+                              ? "Principale"
+                              : depot.priority === "secondaire"
+                                ? "Secondaire"
+                                : "Tertiaire"}
+                          </TableCell>
+                          <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
+                            {depot.quantity || 0}
+                          </TableCell>
+                          <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
+                            {getStatusBadge(depot.status)}
+                          </TableCell>
+                          <TableCell onClick={() => selectable && handleSelectDepot(depot)}>
+                            {depot.productName || "Non spécifié"} {depot.productId ? `(${depot.productId})` : ""}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditDepot(depot)}
+                                disabled={isSaving}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteDepot(depot.id)}
+                                disabled={isSaving}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
         </div>
 
         <SheetFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
             Fermer
           </Button>
         </SheetFooter>

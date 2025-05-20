@@ -220,6 +220,7 @@ export function ConfirmesTable() {
         ...order,
         articlesNames: productTitles,
         wilayaName,
+        ref:order.orderReference
       };
     });
   

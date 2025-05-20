@@ -135,6 +135,10 @@ export function PurchaseInvoiceForm({
   // Add this near the other state declarations
   const [selectedDepot, setSelectedDepot] = useState<string>("")
 
+  // Add a new state for the invoice-level depot selection
+  const [invoiceDepot, setInvoiceDepot] = useState<string>("")
+  const [allDepots, setAllDepots] = useState<ProductDepot[]>([])
+
   const appContext = useAppContext()
   const packs = appContext?.packs || []
 
@@ -204,6 +208,30 @@ export function PurchaseInvoiceForm({
     }
   }, [selectedProduct, productEntryMode, currentVariants.length, productDepots])
 
+  // Add this near the other useEffect hooks
+  useEffect(() => {
+    // Collect all unique depots from all products
+    const uniqueDepots: Record<string, ProductDepot> = {}
+
+    products?.forEach((product) => {
+      if (product.depots && product.depots.length > 0) {
+        product.depots.forEach((depot) => {
+          if (!uniqueDepots[depot.id]) {
+            uniqueDepots[depot.id] = depot
+          }
+        })
+      }
+    })
+
+    setAllDepots(Object.values(uniqueDepots))
+
+    // Set default depot if available
+    if (Object.values(uniqueDepots).length > 0) {
+      const mainDepot = Object.values(uniqueDepots).find((d) => d.priority === "principale")
+      setInvoiceDepot(mainDepot?.id || Object.values(uniqueDepots)[0].id)
+    }
+  }, [products])
+
   // Fonction pour ajouter une nouvelle variante vide
   const addNewVariant = () => {
     if (!selectedProduct) return
@@ -257,6 +285,7 @@ export function PurchaseInvoiceForm({
           unitPrice: Number(selectedProduct.variants[0]?.price),
           byPack: false,
           isPackSelection: false,
+            depot: invoiceDepot, // Use selectedDepot instead of currentVariant.depot
           // Remove depot field
         })
       }
@@ -545,10 +574,10 @@ export function PurchaseInvoiceForm({
       return
     }
 
-    if (!selectedDepot) {
+    if (!invoiceDepot) {
       toast({
         title: "Erreur",
-        description: "Veuillez sélectionner un dépôt pour ce produit.",
+        description: "Veuillez sélectionner un dépôt pour cette facture.",
         variant: "destructive",
       })
       return
@@ -602,7 +631,7 @@ export function PurchaseInvoiceForm({
             packQuantity: Math.ceil(baseQuantity / matchingVariant.packSize),
             packSize: matchingVariant.packSize,
             unitPrice: currentVariant.unitPrice || matchingVariant.price,
-            depot: selectedDepot, // Use selectedDepot instead of currentVariant.depot
+            depot: invoiceDepot, // Use selectedDepot instead of currentVariant.depot
           })
         }
       }
@@ -638,7 +667,7 @@ export function PurchaseInvoiceForm({
           packQuantity: currentVariant.packQuantity,
           packSize: currentVariant.packSize,
           unitPrice: currentVariant.unitPrice,
-          depot: selectedDepot, // Use selectedDepot instead of currentVariant.depot
+          depot: invoiceDepot, // Use selectedDepot instead of currentVariant.depot
         })
       }
     }
@@ -708,6 +737,8 @@ export function PurchaseInvoiceForm({
       } else {
         // Add new invoice
         await addInvoice(invoicePayload)
+        
+        
         toast({
           title: "Facture créée",
           description: `La facture ${invoiceData.invoiceNumber} a été créée avec succès.`,
@@ -845,6 +876,52 @@ export function PurchaseInvoiceForm({
 
             <Separator />
 
+            {/* Depot selection for the entire invoice */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Dépôt pour cette facture</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="invoice-depot">Sélectionnez un dépôt pour tous les articles de cette facture</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsDepotsManagementOpen(true)}>
+                    <Package className="h-4 w-4 mr-2" />
+                    Gérer les dépôts
+                  </Button>
+                </div>
+
+                {allDepots.length > 0 ? (
+                  <Select
+                    value={invoiceDepot}
+                    onValueChange={(value) => {
+                      setInvoiceDepot(value)
+                      // Force a UI update by showing a toast notification
+                      const depotName = allDepots.find((d) => d.id === value)?.name || "Non spécifié"
+                      toast({
+                        title: "Dépôt modifié",
+                        description: `Le dépôt "${depotName}" a été sélectionné pour cette facture.`,
+                      })
+                    }}
+                  >
+                    <SelectTrigger id="invoice-depot">
+                      <SelectValue placeholder="Sélectionner un dépôt pour cette facture" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allDepots.map((depot) => (
+                        <SelectItem key={depot.id} value={depot.id}>
+                          {depot.name} ({depot.priority}) - Qté: {depot.quantity}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="text-sm text-red-500 p-2 border border-red-200 rounded-md bg-red-50">
+                    Aucun dépôt n'est configuré. Veuillez en ajouter dans la gestion des dépôts.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Ajout d'articles */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -868,37 +945,9 @@ export function PurchaseInvoiceForm({
                   </Select>
                 </div>
 
+               
                 {selectedProduct && (
                   <div className="space-y-4">
-                    {/* Depot selection section */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label htmlFor="product-depot">
-                          Dépôt pour {selectedProduct?.title || selectedProduct?.name}
-                        </Label>
-                      </div>
-
-                      {productDepots.length > 0 ? (
-                        <Select value={selectedDepot} onValueChange={setSelectedDepot}>
-                          <SelectTrigger id="product-depot">
-                            <SelectValue placeholder="Sélectionner un dépôt pour ce produit" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {productDepots.map((depot) => (
-                              <SelectItem key={depot.id} value={depot.id}>
-                                {depot.name} ({depot.priority}) - Qté: {depot.quantity}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="text-sm text-red-500 p-2 border border-red-200 rounded-md bg-red-50">
-                          Aucun dépôt n'est configuré pour ce produit. Veuillez en ajouter un dans la gestion des
-                          produits.
-                        </div>
-                      )}
-                    </div>
-
                     <Tabs
                       value={productEntryMode}
                       onValueChange={(value) => setProductEntryMode(value as "manual" | "pack")}
@@ -1084,7 +1133,7 @@ export function PurchaseInvoiceForm({
                         </div>
                       </TabsContent>
                     </Tabs>
-                    {currentVariants.length > 0 && selectedDepot && (
+                    {currentVariants.length > 0 && invoiceDepot && (
                       <div className="flex justify-end">
                         <Button type="button" onClick={addVariantsToInvoice}>
                           <Plus className="h-4 w-4 mr-2" />
@@ -1092,10 +1141,10 @@ export function PurchaseInvoiceForm({
                         </Button>
                       </div>
                     )}
-                    {currentVariants.length > 0 && !selectedDepot && (
+                    {currentVariants.length > 0 && !invoiceDepot && (
                       <div className="text-center p-2 border border-red-200 rounded-md bg-red-50 mt-4">
                         <p className="text-red-600">
-                          Veuillez sélectionner un dépôt pour ce produit avant d'ajouter à la facture.
+                          Veuillez sélectionner un dépôt pour cette facture avant d'ajouter des articles.
                         </p>
                       </div>
                     )}

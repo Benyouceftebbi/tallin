@@ -127,14 +127,14 @@ exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (e
   if (!invoice || invoice.type !== "achat") return;
 
   const items = invoice.items || [];
-
   const batch = db.batch();
 
   for (const item of items) {
-    const { productId, variantId, quantity } = item;
+    const { productId, variantId, quantity, depot } = item;
+const depotId= depot
+    if (!productId || !variantId || !quantity || !depotId) continue;
 
-    if (!productId || !variantId || !quantity) continue;
-
+    // References
     const variantRef = db
       .collection("Products")
       .doc(productId)
@@ -144,10 +144,34 @@ exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (e
     const variantSnap = await variantRef.get();
     if (!variantSnap.exists) continue;
 
+    const depotRef = db.collection("depots").doc(depotId);
+    const depotSnap = await depotRef.get();
+    if (!depotSnap.exists) continue;
+
+    const depotData = depotSnap.data();
+    const { name: depotName, type: depotType } = depotData;
+
     const currentQty = variantSnap.get("inventory_quantity") || 0;
+    const existingDepots = variantSnap.get("depots") || [];
+
+    // Update depots array
+    const updatedDepots = [...existingDepots];
+    const depotIndex = updatedDepots.findIndex((d) => d.id === depotId);
+
+    if (depotIndex > -1) {
+      updatedDepots[depotIndex].quantity += quantity;
+    } else {
+      updatedDepots.push({
+        id: depotId,
+        name: depotName,
+        type: depotType,
+        quantity,
+      });
+    }
 
     batch.update(variantRef, {
       inventory_quantity: currentQty + quantity,
+      depots: updatedDepots,
     });
   }
 
@@ -175,22 +199,21 @@ exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", asy
     items.reduce((acc, item) => {
       if (item.productId && item.variantId) {
         const key = `${item.productId}_${item.variantId}`;
-        acc[key] = item.quantity || 0;
+        acc[key] = { quantity: item.quantity || 0, depotId: item.depot };
       }
       return acc;
-    });
+    }, {});
 
   const beforeMap = mapByKey(beforeItems);
   const afterMap = mapByKey(afterItems);
 
-  // Collect all unique keys
   const keys = new Set([...Object.keys(beforeMap), ...Object.keys(afterMap)]);
 
   for (const key of keys) {
     const [productId, variantId] = key.split("_");
-    const beforeQty = beforeMap[key] || 0;
-    const afterQty = afterMap[key] || 0;
 
+    const beforeQty = beforeMap[key]?.quantity || 0;
+    const afterQty = afterMap[key]?.quantity || 0;
     const diff = afterQty - beforeQty;
 
     if (diff === 0) continue;
@@ -199,15 +222,45 @@ exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", asy
       .collection("Products")
       .doc(productId)
       .collection("variants")
-      .doc(String(variantId));
+      .doc(variantId);
 
     const variantSnap = await variantRef.get();
     if (!variantSnap.exists) continue;
 
     const currentQty = variantSnap.get("inventory_quantity") || 0;
+    const currentDepots = variantSnap.get("depots") || [];
 
+    // Update general inventory
     batch.update(variantRef, {
       inventory_quantity: currentQty + diff,
+    });
+
+    // --- Depot update logic ---
+    const depotId = afterMap[key]?.depotId;
+    if (!depotId) continue;
+
+    const depotSnap = await db.collection("depots").doc(depotId).get();
+    if (!depotSnap.exists) continue;
+
+    const depotData = depotSnap.data();
+    const updatedDepots = [...currentDepots];
+
+    const depotIndex = updatedDepots.findIndex((d) => d.id === depotId);
+
+    if (depotIndex !== -1) {
+      updatedDepots[depotIndex].quantity =
+        (updatedDepots[depotIndex].quantity || 0) + diff;
+    } else {
+      updatedDepots.push({
+        id: depotId,
+        name: depotData.name,
+        type: depotData.type,
+        quantity: diff,
+      });
+    }
+
+    batch.update(variantRef, {
+      depots: updatedDepots,
     });
   }
 
@@ -646,7 +699,7 @@ exports.statusUpdate  = onRequest(async (req, res) => {
         contact_phone:order.phone || 0,
         address: order.address,
         product_list: productNames,
-        order_id: order.id,
+        order_id: order.ref,
        do_insurance:false,
        declared_value:Number(totalPrice || 0),
        Length:0,
@@ -703,12 +756,12 @@ exports.statusUpdate  = onRequest(async (req, res) => {
   
         if (!result.success) {
           const failedOrder = rawOrders.find(
-            (order) => order.id === reference
+            (order) => order.ref === reference
           );
           if (failedOrder) failed.push(failedOrder);
         } else {
           const confirmedOrder = rawOrders.find(
-            (order) => order.id === reference
+            (order) => order.ref === reference
           );
           if (confirmedOrder) confirmedOrders.push({...confirmedOrder,trackingId:result.tracking,label:result.label});
         }
