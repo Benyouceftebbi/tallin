@@ -289,14 +289,14 @@ const generateNextInvoiceNumber = () => {
 
     // Trouver la taille de pack par défaut pour ce produit
     const defaultPackSize = selectedProduct.variants[0]?.packSize || 1
-
+   const firstVariantPrice = currentVariants[0]?.unitPrice || selectedProduct.variants[0]?.price
     const newVariant: CurrentVariant = {
       id: `temp-${Date.now()}-${currentVariants.length}`,
       attributes: {},
       quantity: 1,
       packQuantity: 1,
       packSize: defaultPackSize,
-      unitPrice: Number(selectedProduct.variants[0]?.price),
+      unitPrice: Number(firstVariantPrice),
       byPack: false,
       isPackSelection: false,
       // depot field removed from here
@@ -707,7 +707,7 @@ const generateNextInvoiceNumber = () => {
           })
           return
         }
-
+   const firstVariantPrice = currentVariants[0]?.unitPrice || currentVariant.unitPrice
         newItems.push({
           id: `item-${Date.now()}-${newItems.length}`,
           productId: selectedProduct.id,
