@@ -1,115 +1,155 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Offre de Collaboration - ColiTrack x Merigla</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS & Parcel Tracking API Documentation</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      background-color: #f9f9f9;
-      color: #333;
-      line-height: 1.6;
-    }
-    h1, h2 {
-      color: #2a7ae2;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-    th {
-      background-color: #2a7ae2;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    .highlight {
-      background-color: #eafaf1;
-      border: 2px solid #2ecc71;
-    }
+    body { font-family: Arial, sans-serif; padding: 2rem; line-height: 1.6; }
+    h1, h2, h3 { color: #2c3e50; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 5px; overflow-x: auto; }
+    code { background: #f0f0f0; padding: 2px 4px; border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .section { margin-top: 3rem; }
   </style>
 </head>
 <body>
-  <h1>Offre de Collaboration</h1>
-  <h2>ColiTrack x Merigla</h2>
+  <h1>📨 SMS & 📦 Parcel Tracking API Documentation</h1>
 
-  <p>
-    <strong>ColiTrack</strong> est une solution innovante de communication dédiée aux entreprises e-commerce. 
-    Nous facilitons la relation client en envoyant automatiquement des SMS pour informer les clients de l’état de leurs commandes. 
-    Nos messages permettent aux clients de :
-  </p>
+  <div class="section">
+    <h2>📨 SMS Sending Endpoint</h2>
+    <h3>POST /sms/send</h3>
+    <p>Sends a personalized SMS to one or more clients.</p>
 
-  <ul>
-    <li>Suivre leur commande via un lien de tracking personnalisé</li>
-    <li>Être notifiés lorsque le livreur est en route</li>
-    <li>Recevoir une alerte quand leur colis est prêt à être récupéré au point relais</li>
-  </ul>
+    <h4>📤 Request Body</h4>
+    <pre><code>{
+  "clients": [
+    { "name": "Ali", "phoneNumber": "+213612345678" }
+  ],
+  "senderId": "ShopName",
+  "text": "Bonjour {{name}}, votre commande est pr&ecirc;te!",
+  "authToken": "YOUR_CLIENT_TOKEN",
+  "stopdesk": "Bab Ezzouar" // Optional
+}</code></pre>
 
-  <p>
-    Dans le cadre de notre partenariat avec <strong>Merigla</strong>, nous proposons une offre exclusive adaptée à votre volume et à vos besoins.
-  </p>
+    <h4>📌 Notes</h4>
+    <ul>
+      <li><code>{{name}}</code> will be replaced by the client's name.</li>
+      <li>If <code>stopdesk</code> is provided and matches a known commune, a StopDesk URL will be appended to the SMS.</li>
+    </ul>
 
-  <h2>Détails de l'Offre</h2>
+    <h4>✅ Response</h4>
+    <pre><code>{
+  "success": true,
+  "results": [
+    {
+      "sms_id": "abc123",
+      "success": true
+    }
+  ]
+}</code></pre>
+  </div>
 
-  <p>
-    Pour chaque colis livré, ColiTrack enverra <strong>2 SMS</strong> : un SMS de suivi (avec lien) et un SMS de notification.
-    Le tarif unique est de <strong>20 DA</strong> par colis livré.
-  </p>
+  <div class="section">
+    <h2>💰 Check SMS Balance</h2>
+    <h3>GET /balance</h3>
 
-  <p>
-    Cette offre vous permet de ne payer que pour les commandes réellement livrées, sans surcoût pour les colis retournés ou non récupérés. 
-    En plus, nous vous offrons <strong>gratuitement les Sender IDs personnalisés</strong> (valeur annuelle : 10 000 DA).
-  </p>
+    <h4>🔐 Query Parameters</h4>
+    <ul>
+      <li><code>authToken</code> — your client API token</li>
+    </ul>
 
-  <h2>Comparaison des Coûts</h2>
+    <h4>✅ Response</h4>
+    <pre><code>{
+  "success": true,
+  "balance": 42,
+  "unit": "sms"
+}</code></pre>
+  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Volume mensuel</th>
-        <th>Taux de livraison</th>
-        <th>Coût Standard (DA)</th>
-        <th>Offre Spéciale Merigla (DA)</th>
-        <th>Économie (DA)</th>
-        <th>% d'Économie</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>20 000 colis</td>
-        <td>+70%</td>
-        <td>500,000</td>
-        <td class="highlight">280,000</td>
-        <td>120,000</td>
-        <td>44%</td>
-      </tr>
-      <tr>
-        <td>30 000 colis</td>
-        <td>+70%</td>
-        <td>750,000</td>
-        <td class="highlight">420,000</td>
-        <td>180,000</td>
-        <td>44%</td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="section">
+    <h2>📊 SMS Delivery Report</h2>
+    <h3>GET /report</h3>
 
-  <h2>Conclusion</h2>
-  <p>
-    Grâce à cette offre exclusive avec ColiTrack, Merigla peut proposer à ses clients un service professionnel et automatisé de notification par SMS à un tarif préférentiel. 
-    En ne payant que pour les colis effectivement livrés, vous réalisez une économie significative de <strong>44%</strong> sur vos coûts habituels.
-  </p>
+    <h4>🔐 Query Parameters</h4>
+    <ul>
+      <li><code>authToken</code> — your client API token</li>
+    </ul>
 
-  <p><strong>Bonus :</strong> Nous vous offrons également la configuration et l’utilisation des <strong>Sender IDs personnalisés gratuitement</strong>, renforçant ainsi l’image de votre marque auprès de vos clients.</p>
+    <h4>✅ Response</h4>
+    <pre><code>{
+  "success": true,
+  "report": [
+    {
+      "courier": "Mobilis",
+      "delivered": 10,
+      "failed": 2,
+      "success_rate": "83.3%"
+    }
+  ]
+}</code></pre>
+  </div>
 
+  <div class="section">
+    <h2>📦 Parcel Status Update</h2>
+    <h3>POST /parcel/update (Webhook)</h3>
+    <p>This endpoint allows delivery partners to send parcel status updates.</p>
+
+    <h4>📤 Request Body</h4>
+    <pre><code>{
+  "trackingId": "EXP123456789DZ",
+  "status": "delivered",
+  "updatedAt": "2025-05-21T14:00:00Z",
+  "location": "Algiers",
+  "notes": "Received by client"
+}</code></pre>
+
+    <h4>✅ Response</h4>
+    <pre><code>{
+  "success": true,
+  "message": "Parcel status updated"
+}</code></pre>
+  </div>
+
+  <div class="section">
+    <h3>GET /parcel/status</h3>
+    <p>Used to poll the latest status of a parcel.</p>
+
+    <h4>🔐 Query Parameters</h4>
+    <ul>
+      <li><code>trackingId</code> — The parcel tracking number</li>
+      <li><code>authToken</code> — Your client API token</li>
+    </ul>
+
+    <h4>✅ Response</h4>
+    <pre><code>{
+  "success": true,
+  "trackingId": "EXP123456789DZ",
+  "status": "in_transit",
+  "updatedAt": "2025-05-21T10:30:00Z",
+  "location": "Blida",
+  "notes": ""
+}</code></pre>
+
+    <h4>🗂️ Status Values</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>pending</td><td>Registered but not picked up</td></tr>
+        <tr><td>shipped</td><td>Parcel left the warehouse</td></tr>
+        <tr><td>in_transit</td><td>Parcel is en route</td></tr>
+        <tr><td>delivered</td><td>Parcel delivered to recipient</td></tr>
+        <tr><td>failed</td><td>Delivery attempt failed</td></tr>
+        <tr><td>returned</td><td>Returned to sender</td></tr>
+      </tbody>
+    </table>
+  </div>
 </body>
 </html>

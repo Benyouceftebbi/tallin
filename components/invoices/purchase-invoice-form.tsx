@@ -20,6 +20,8 @@ import { DepotsManagement, type Depot } from "./depots-management"
 import { useAppContext } from "@/context/app-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useShop } from "@/context/shop-context"
+import { collection, getDocs } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 // Types pour les produits et leurs variantes
 type VariantAttribute = {
@@ -97,7 +99,8 @@ export function PurchaseInvoiceForm({
   isEditing = false,
 }: PurchaseInvoiceFormProps) {
   const { products } = useAppContext()
-  const { addInvoice, updateInvoice } = useShop()
+   const { addInvoice, updateInvoice, invoices } = useShop()
+
 
   // État pour les informations de la facture
   const [invoiceData, setInvoiceData] = useState({
@@ -154,7 +157,34 @@ export function PurchaseInvoiceForm({
 
   // Filtrer les packs qui correspondent au produit sélectionné
   const filteredPacks = packs
+const generateNextInvoiceNumber = () => {
+    // Get all existing invoice numbers
+    const existingNumbers = invoices
+      .map((inv) => {
+        // Extract the numeric part from invoice numbers that match the format "FACTURE-XXXXX"
+        const match = inv.invoiceNumber.match(/FACTURE-(\d+)/)
+        return match ? Number.parseInt(match[1], 10) : 0
+      })
+      .filter((num) => !isNaN(num))
 
+    // Find the highest number
+    const highestNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0
+
+    // Generate the next number with leading zeros (5 digits)
+    const nextNumber = (highestNumber + 1).toString().padStart(5, "0")
+
+    return `FACTURE-${nextNumber}`
+  }
+    // Auto-generate invoice number when form opens
+  useEffect(() => {
+    if (open && !isEditing) {
+      const nextInvoiceNumber = generateNextInvoiceNumber()
+      setInvoiceData((prev) => ({
+        ...prev,
+        invoiceNumber: nextInvoiceNumber,
+      }))
+    }
+  }, [open, isEditing, invoices])
   // Initialize form with data when editing
   useEffect(() => {
     if (initialData && isEditing) {
@@ -208,30 +238,51 @@ export function PurchaseInvoiceForm({
     }
   }, [selectedProduct, productEntryMode, currentVariants.length, productDepots])
 
-  // Add this near the other useEffect hooks
-  useEffect(() => {
-    // Collect all unique depots from all products
-    const uniqueDepots: Record<string, ProductDepot> = {}
 
-    products?.forEach((product) => {
-      if (product.depots && product.depots.length > 0) {
-        product.depots.forEach((depot) => {
-          if (!uniqueDepots[depot.id]) {
-            uniqueDepots[depot.id] = depot
+ useEffect(() => {
+    const fetchDepots = async () => {
+      try {
+        const depotsCollection = collection(db, "depots")
+        const depotsSnapshot = await getDocs(depotsCollection)
+        const depotsList = depotsSnapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            name: data.name || "Dépôt sans nom",
+            location: data.location || "",
+            manager: data.manager || "",
+            capacity: data.capacity || "",
+            status: data.status || "active",
+            priority: data.priority || "principale",
+            quantity: data.quantity || 0,
+            type: data.type || "principale",
+            productId: data.productId || "",
+            productName: data.productName || "",
           }
         })
+
+        setAllDepots(depotsList)
+      } catch (error) {
+        console.error("Error fetching depots:", error)
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les dépôts depuis la base de données.",
+          variant: "destructive",
+        })
+
+        // Fallback to default depots if Firebase fetch fails
+        setAllDepots([
+          { id: "depot1", name: "Dépôt Principal", priority: "principale", type: "principale", quantity: 120 },
+          { id: "depot2", name: "Dépôt Secondaire", priority: "secondaire", type: "principale", quantity: 85 },
+          { id: "depot3", name: "Dépôt Tertiaire", priority: "tertiaire", type: "principale", quantity: 50 },
+          { id: "depot4", name: "Dépôt Express", priority: "principale", type: "principale", quantity: 30 },
+          { id: "depot5", name: "Dépôt Réserve", priority: "tertiaire", type: "principale", quantity: 200 },
+        ])
       }
-    })
-
-    setAllDepots(Object.values(uniqueDepots))
-
-    // Set default depot if available
-    if (Object.values(uniqueDepots).length > 0) {
-      const mainDepot = Object.values(uniqueDepots).find((d) => d.priority === "principale")
-      setInvoiceDepot(mainDepot?.id || Object.values(uniqueDepots)[0].id)
     }
-  }, [products])
 
+    fetchDepots()
+  }, [])
   // Fonction pour ajouter une nouvelle variante vide
   const addNewVariant = () => {
     if (!selectedProduct) return
@@ -285,7 +336,6 @@ export function PurchaseInvoiceForm({
           unitPrice: Number(selectedProduct.variants[0]?.price),
           byPack: false,
           isPackSelection: false,
-            depot: invoiceDepot, // Use selectedDepot instead of currentVariant.depot
           // Remove depot field
         })
       }
@@ -554,12 +604,13 @@ export function PurchaseInvoiceForm({
 
   // Gérer la sélection d'un dépôt
   const handleSelectDepot = (depot: Depot) => {
-    // Update the selected depot for the current product
+    // Update both depot states
     setSelectedDepot(depot.id)
+    setInvoiceDepot(depot.id)
 
     toast({
       title: "Dépôt sélectionné",
-      description: `Le dépôt "${depot.name}" a été sélectionné pour ce produit.`,
+      description: `Le dépôt "${depot.name}" a été sélectionné pour cette facture.`,
     })
   }
 
@@ -737,8 +788,6 @@ export function PurchaseInvoiceForm({
       } else {
         // Add new invoice
         await addInvoice(invoicePayload)
-        
-        
         toast({
           title: "Facture créée",
           description: `La facture ${invoiceData.invoiceNumber} a été créée avec succès.`,
@@ -907,7 +956,7 @@ export function PurchaseInvoiceForm({
                     <SelectContent>
                       {allDepots.map((depot) => (
                         <SelectItem key={depot.id} value={depot.id}>
-                          {depot.name} ({depot.priority}) - Qté: {depot.quantity}
+                          {depot.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -945,7 +994,15 @@ export function PurchaseInvoiceForm({
                   </Select>
                 </div>
 
-               
+                {selectedProduct && (
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-sm text-blue-700 flex items-center">
+                      <Package className="h-4 w-4 mr-2" />
+                      Dépôt sélectionné: {allDepots.find((d) => d.id === invoiceDepot)?.name || "Non spécifié"}
+                    </p>
+                  </div>
+                )}
+
                 {selectedProduct && (
                   <div className="space-y-4">
                     <Tabs
