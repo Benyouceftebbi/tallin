@@ -163,4 +163,108 @@ const addDepotsToBackend = async ()=> {
  
 }
 }
-addDepotsToBackend()
+// --- Include your existing utility functions here ---
+function extractWilayaFromProvince(province) {
+  if (!province) return undefined;
+  const match = province.match(/\d{2}/);
+  return match ? match[0] : undefined;
+}
+
+function mapFinancialStatusToOrderStatus(financialStatus) {
+  const statusMap = {
+    'pending': 'en-attente',
+    'authorized': 'confirmée',
+    'partially_paid': 'en-cours',
+    'paid': 'confirmée',
+    'partially_refunded': 'retournée',
+    'refunded': 'annulée',
+    'voided': 'annulée'
+  };
+  return statusMap[financialStatus] || 'en-attente';
+}
+
+function formatAddress(address) {
+  if (!address) return undefined;
+  return [address.address1, address.address2, address.city, address.province, address.country]
+    .filter(Boolean).join(', ');
+}
+
+function convertShopifyOrderToCustomFormat(shopifyOrder) {
+  const rawProvince = shopifyOrder.billing_address?.city;
+  const wilaya = extractWilayaFromProvince(rawProvince);
+  const convertedOrder = {
+    id: shopifyOrder.order_number ? shopifyOrder.order_number.toString() : "",
+    date: shopifyOrder.created_at ? shopifyOrder.created_at.split('T')[0] : "",
+    name: shopifyOrder.shipping_address?.name || "",
+    phone: shopifyOrder.phone ? shopifyOrder.phone.replace('+213', '0') : "",
+    articles: [],
+    wilaya: wilaya || "",
+    commune: shopifyOrder.shipping_address?.city || "",
+    deliveryType: "home-delivery",
+    deliveryCompany: "",
+    deliveryCenter: "",
+    confirmationStatus: "En attente",
+    pickupPoint: "",
+    status: mapFinancialStatusToOrderStatus(shopifyOrder.financial_status),
+    deliveryPrice: shopifyOrder.shipping_lines?.[0]?.price ? `${shopifyOrder.shipping_lines[0].price} ${shopifyOrder.currency}` : undefined,
+    address: formatAddress(shopifyOrder.shipping_address),
+    additionalInfo: shopifyOrder.note || "",
+    confirmatrice: "",
+    totalPrice: `${shopifyOrder.total_price} ${shopifyOrder.currency}`,
+    source: shopifyOrder.source_name || "Shopify",
+    statusHistory: [],
+  };
+
+  if (Array.isArray(shopifyOrder.line_items)) {
+    shopifyOrder.line_items.forEach(item => {
+      const variantTitle = item.variant_title || "";
+      const variantParts = variantTitle.split(" / ");
+      convertedOrder.articles.push({
+        product_id: item.product_id,
+        product_name: item.title,
+        variant_id: item.variant_id,
+        variant_title: item.variant_title,
+        variant_options: {
+          option1: variantParts[0] || undefined,
+          option2: variantParts[1] || undefined
+        },
+        quantity: item.quantity,
+        unit_price: item.price,
+        product_sku: item.sku || "",
+        variant_sku: item.sku || ""
+      });
+    });
+  }
+
+  return convertedOrder;
+}
+
+// --- Main function ---
+async function processTodayOrders() {
+  const now = new Date();
+  const todayAt3PM = new Date();
+  todayAt3PM.setHours(15, 0, 0, 0);
+
+  const ordersSnapshot = await db.collection('Orders')
+    .where('processed_at', '>', todayAt3PM.toISOString())
+    .get();
+
+  if (ordersSnapshot.empty) {
+    console.log('No orders found after 15:00 today.');
+    return;
+  }
+
+  const batch = db.batch();
+
+  ordersSnapshot.forEach(doc => {
+    const shopifyOrder = doc.data();
+    const transformedOrder = convertShopifyOrderToCustomFormat(shopifyOrder);
+    const newOrderRef = db.collection('orders').doc();
+    batch.set(newOrderRef, transformedOrder);
+  });
+
+  await batch.commit();
+  console.log(`Processed and stored ${ordersSnapshot.size} orders.`);
+}
+
+processTodayOrders().catch(console.error);
