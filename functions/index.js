@@ -51,7 +51,8 @@ function convertShopifyOrderToCustomFormat(shopifyOrder) {
     totalPrice: `${shopifyOrder.total_price} ${shopifyOrder.currency}`,
     source: shopifyOrder.source_name || "Shopify",
     statusHistory: [
-    ]
+    ],
+    createdAt: new Date()
   };
 
   // Process line items (articles)
@@ -118,7 +119,41 @@ function formatTimestamp(isoString) {
   return date.toISOString().replace('T', ' ').substring(0, 19);
 }
 
+exports.shopifyOrderCreated = onRequest(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
 
+  try {
+    const orderData = req.body;
+    let order = convertShopifyOrderToCustomFormat(orderData);
+    logger.info("Order received", orderData);
+
+    // Normalize phone number to check for duplicates
+    const normalizedPhone = order.phone?.trim();
+
+    // Check for existing order with same phone and status "En attente"
+    const duplicateQuerySnapshot = await db.collection("orders")
+      .where("phone", "==", normalizedPhone)
+      .where("status", "==", "en-attente")
+      .limit(1)
+      .get();
+
+    if (!duplicateQuerySnapshot.empty) {
+      order.confirmationStatus = "Double";
+    }
+
+    // Save to Firestore
+    await db.collection("Orders").add(orderData);  // raw shopify order
+    await db.collection("orders").add(order);      // transformed order
+
+    res.status(200).send("Order stored successfully");
+  } catch (error) {
+    logger.error("Error storing order", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
 exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (event) => {
   const snapshot = event.data;
   if (!snapshot) return;

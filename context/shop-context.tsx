@@ -16,6 +16,7 @@ import {
   writeBatch,
   where,
   setDoc,
+  orderBy,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
 import { auth, db, functions } from "@/lib/firebase"
@@ -638,21 +639,41 @@ useEffect(()=>{
     unsubscribeDeliveryMen()
   }
 },[])
+
 useEffect(() => {
-  const fetchOrders = async () => {
-    try {
+  const ordersQuery = query(
+    collection(db, 'orders')
+    //orderBy('createdAt', 'desc')
+  );
 
-const ordersQuery = query(collection(db, 'orders'));
-const ordersCollection= await getDocs(ordersQuery);
-      const ordersData = ordersCollection.docs.map(doc =>( {...doc.data(),id:doc.id}) as Order);
-      setOrders(ordersData);
-    } catch (error) {
-      console.error("Error fetching orders: ", error);
+  const unsubscribe = onSnapshot(
+    ordersQuery,
+    (snapshot) => {
+      const addedOrders = snapshot.docChanges()
+        .filter(change => change.type === "added")
+        .map(change => ({
+          ...change.doc.data(),
+          id: change.doc.id,
+        })) as Order[];
+
+      if (addedOrders.length > 0) {
+        setOrders(prev => {
+          // Merge and sort the result by createdAt descending
+          const merged = [...prev, ...addedOrders];
+
+          return merged.sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        });
+      }
+    },
+    (error) => {
+      console.error("Error with order listener:", error);
     }
-  };
+  );
 
-  fetchOrders();
-}, []); // Empty dependency array ensures this effect runs only once on mount
+  return () => unsubscribe();
+}, []);
 const [suppliers, setSuppliers] = useState<Supplier[]>([])
 const [error, setError] = useState<string | null>(null)
 const [isOffline, setIsOffline] = useState<boolean>(false)

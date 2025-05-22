@@ -60,14 +60,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Error signing out:", error)
     }
   }
-
+const [workerName, setWorkerName] = useState<string | null>(null);
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser)
 
       if (currentUser) {
+          const role = await getUserRole(); // should set userRole internally
         await getUserRole()
+          if (role === "worker") {
+        const workerSnap = await getDoc(doc(db, "Workers", currentUser.uid));
+        if (workerSnap.exists()) {
+          const workerData = workerSnap.data();
+          setWorkerName(workerData.name); // save this in a useState
+        }
+      }
       } else {
         setUserRole(null)
 
@@ -84,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pathname])
 
   return (
-    <AuthContext.Provider value={{ user, userRole, isLoading, getUserRole, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, userRole, isLoading, getUserRole, logout,workerName }}>{children}</AuthContext.Provider>
   )
 }
 

@@ -66,7 +66,7 @@ export function EnAttenteTable() {
     workers,
     orders, // Assuming this comes from the shop context
   } = useShop()
-  const { userRole } = useAuth()
+  const { userRole,workerName } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
@@ -108,13 +108,15 @@ export function EnAttenteTable() {
     address: false,
     additionalInfo: false,
   })
+const ordersWait = useMemo(() => {
+  if (userRole === "worker" && workerName) {
+    return orders.filter(order =>
+      order.status === "en-attente" || order.confirmatrice === workerName
+    );
+  }
+  return orders.filter((order) => order.status === "en-attente")
+}, [orders, userRole, workerName]);
 
-  // Filtrer pour n'avoir que les commandes en attente
-  const ordersWait = useMemo(() => {
-    console.log("ghiihi")
-
-    return orders.filter((order) => order.status === "en-attente")
-  }, [orders])
 
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const wilayas = getAllWilayas().sort((a, b) => a.name_ascii.localeCompare(b.name_ascii))
@@ -147,7 +149,7 @@ export function EnAttenteTable() {
     const allArticles = new Set<string>()
     ordersWait.forEach((order) => {
       order.articles?.forEach((article: { product_name: string }) => {
-        allArticles.add(article.name)
+        allArticles.add(article.name || article.product_name)
       })
     })
     return Array.from(allArticles)
@@ -171,7 +173,7 @@ export function EnAttenteTable() {
       const matchesStatus = statusFilter === "all" || order.confirmationStatus === statusFilter
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
       const matchesConfirmatrice = confirmatriceFilter === "all" || order.confirmatrice === confirmatriceFilter
-      const matchesArticle = articleFilter === "all" || order.articles.includes(articleFilter)
+      const matchesArticle = articleFilter === "all" ||  order.articles.some(article => article.product_name === articleFilter);
 
       let matchesDateRange = true
       if (dateRange) {
@@ -886,7 +888,7 @@ export function EnAttenteTable() {
           </SelectContent>
         </Select>
 
-        {/*} <Select value={articleFilter} onValueChange={setArticleFilter}>
+        <Select value={articleFilter} onValueChange={setArticleFilter}>
           <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
             <SelectValue placeholder="Article" />
           </SelectTrigger>
@@ -898,7 +900,7 @@ export function EnAttenteTable() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>*/}
+        </Select>
 
         <Button
           variant="outline"

@@ -1065,27 +1065,46 @@ const generateReference = (depotsObj = selectedDepots) => {
                             <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
                               Taille
                             </Label>
-                            <Select
-                              value={variant.size}
-                              onValueChange={(value) => updateVariant(article.id, variant.id, "size", value)}
-                            >
-                              <SelectTrigger
-                                id={`variant-size-${variant.id}`}
-                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
-                              >
-                                <SelectValue placeholder="Taille" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-slate-900 border-slate-800">
-                                {products
-                                  ?.find((p) => p.id === article.id)
-                                  ?.options.find((opt) => ["Pointure", "pointure", "Taille"].includes(opt.name))
-                                  ?.values.map((size: string) => (
-                                    <SelectItem key={size} value={size}>
-                                      {size}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
+<div className="space-y-1">
+  <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
+    Taille
+  </Label>
+  <Select
+    value={variant.size }
+    onValueChange={(value) => updateVariant(article.id, variant.id, "size", value)}
+  >
+    <SelectTrigger
+      id={`variant-size-${variant.id}`}
+      className="h-8 text-xs bg-slate-800/50 border-slate-700"
+    >
+      <SelectValue placeholder="Taille" />
+    </SelectTrigger>
+
+    <SelectContent className="bg-slate-900 border-slate-800">
+      {(() => {
+        const product = products?.find((p) => p.id === article.id);
+        if (!product) return null;
+
+        const sizeOption = product.options.find(opt =>
+          ["Pointure", "pointure", "Taille"].includes(opt.name)
+        );
+        const colorOption = product.options.find(opt => opt.name === "Couleur");
+
+        const useSizeValues = sizeOption?.values.includes(variant.size);
+
+        const valuesToShow = useSizeValues
+          ? sizeOption?.values
+          : colorOption?.values;
+
+        return valuesToShow?.map((value: string) => (
+          <SelectItem key={value} value={value}>
+            {value}
+          </SelectItem>
+        ));
+      })()}
+    </SelectContent>
+  </Select>
+</div>
                           </div>
                           <div className="space-y-1">
                             <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
@@ -1101,16 +1120,29 @@ const generateReference = (depotsObj = selectedDepots) => {
                               >
                                 <SelectValue placeholder="Couleur" />
                               </SelectTrigger>
-                              <SelectContent className="bg-slate-900 border-slate-800">
-                                {products
-                                  ?.find((p) => p.id === article.id)
-                                  ?.options.find((opt) => opt.name === "Couleur")
-                                  ?.values.map((color: string) => (
-                                    <SelectItem key={color} value={color}>
-                                      {color}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
+   <SelectContent className="bg-slate-900 border-slate-800">
+      {(() => {
+        const product = products?.find((p) => p.id === article.id);
+        if (!product) return null;
+
+        const colorOption = product.options.find(opt => opt.name === "Couleur");
+        const sizeOption = product.options.find(opt =>
+          ["Pointure", "pointure", "Taille"].includes(opt.name)
+        );
+
+        const useColorValues = colorOption?.values.includes(variant.color);
+
+        const valuesToShow = useColorValues
+          ? colorOption?.values
+          : sizeOption?.values;
+
+        return valuesToShow?.map((value: string) => (
+          <SelectItem key={value} value={value}>
+            {value}
+          </SelectItem>
+        ));
+      })()}
+    </SelectContent>
                             </Select>
                           </div>
 
