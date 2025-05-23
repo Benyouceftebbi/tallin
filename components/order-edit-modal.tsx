@@ -674,6 +674,8 @@ const generateReference = (depotsObj = selectedDepots) => {
 
     if (isNew) {
       addOrder(updatedFormData as Order)
+      console.log(updatedFormData);
+      
       toast({
         title: "Commande ajoutée",
         description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
