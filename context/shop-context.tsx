@@ -654,6 +654,7 @@ useEffect(() => {
         .map(change => ({
           ...change.doc.data(),
           id: change.doc.id,
+          idd: change.doc.data().id,
         })) as Order[];
 
       if (addedOrders.length > 0) {
