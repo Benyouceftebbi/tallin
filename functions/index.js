@@ -758,7 +758,7 @@ exports.statusUpdate  = onRequest(async (req, res) => {
         from_wilaya_name:'Alger',
         to_wilaya_name:order.wilayaName,
         firstname: order.name,
-        familyname: order.name,
+        familyname: " ",
         contact_phone:order.phone || 0,
         address: order.address,
         product_list: productNames,

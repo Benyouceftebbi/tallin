@@ -26,6 +26,7 @@ import {
   Package,
   FileText,
   BarChart2,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -502,17 +503,34 @@ export function MobileSidebar() {
 }
 
 export function SidebarToggle() {
-  const { isOpen, toggle } = useSidebar()
+  const { isOpen, toggle } = useSidebar();
+const { logout} = useAuth();
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggle}
-      className="hidden lg:flex"
-      aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-    >
-      {isOpen ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
-    </Button>
-  )
+    <div className="hidden lg:flex items-center justify-between w-full px-4">
+      {/* Sidebar toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggle}
+        aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
+      >
+        {isOpen ? (
+          <PanelLeftClose className="h-5 w-5" />
+        ) : (
+          <PanelLeft className="h-5 w-5" />
+        )}
+      </Button>
+
+      {/* Logout button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={logout}
+        aria-label="Logout"
+      >
+        <LogOut className="h-5 w-5 text-red-500" />
+      </Button>
+    </div>
+  );
 }

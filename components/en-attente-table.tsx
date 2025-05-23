@@ -616,7 +616,7 @@ const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c)
                   variant="outline"
                   size="sm"
                   onClick={openConfirmatriceModal}
-                  disabled={selectedRows.length === 0 || userRole !== "worker"}
+                  disabled={selectedRows.length === 0 || userRole === "worker"}
                   className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
                 >
                   <UserCheck className="h-4 w-4 mr-2" />
