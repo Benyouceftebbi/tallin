@@ -468,7 +468,7 @@ async function main() {
     console.error('❌ Error:', error);
   }
 }
-
+//main().catch(console.error);
 async function retryUnfoundVariantsFromFile(filePath) {
   const unfoundVariants = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
   const stillUnfound = [];
@@ -542,7 +542,7 @@ async function main1() {
     console.error('❌ Error:', error);
   }
 }
-//ain1().catch(console.error);
+main1().catch(console.error);
 async function enrichOrderArticlesWithDepot() {
   const ordersSnapshot = await db.collection("orders").get();
 
@@ -641,4 +641,4 @@ async function addReferenceToExistingOrders() {
   console.log("🎉 Finished updating references for all orders.");
 }
 
-addReferenceToExistingOrders().catch(console.error);
+//addReferenceToExistingOrders().catch(console.error);
