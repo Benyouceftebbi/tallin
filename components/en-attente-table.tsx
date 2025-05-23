@@ -109,13 +109,14 @@ export function EnAttenteTable() {
     additionalInfo: false,
   })
 const ordersWait = useMemo(() => {
-  if (userRole === "worker" && workerName) {
+  if (workerName) {
     return orders.filter(order =>
       order.status === "en-attente" || order.confirmatrice === workerName
     );
   }
   return orders.filter((order) => order.status === "en-attente")
 }, [orders, userRole, workerName]);
+console.log("worler",userRole,workerName);
 
 
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
@@ -141,8 +142,7 @@ const ordersWait = useMemo(() => {
     "Ne répond pas 3",
   ]
   const sources = useMemo(() => Array.from(new Set(ordersWait.map((order) => order.source))), [ordersWait])
-  const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c) => c.name)
-  console.log("wait", ordersWait)
+const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c) => c.name)
 
   // Extraire tous les articles uniques de toutes les commandes
   const articles = useMemo(() => {
@@ -810,8 +810,8 @@ const ordersWait = useMemo(() => {
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Société de livraison</SelectItem>
-            {[...deliveryCompanies, { companyId: "deliveryMen" }].map((company) => (
-              <SelectItem key={company.companyId} value={company.companyId}>
+            {[...deliveryCompanies, { companyId: "deliveryMen" }].map((company,index) => (
+              <SelectItem key={index} value={company.companyId}>
                 {company.companyId}
               </SelectItem>
             ))}
@@ -882,7 +882,7 @@ const ordersWait = useMemo(() => {
             <SelectItem value="all">Confirmatrice</SelectItem>
             {confirmatrices.map((confirmatrice) => (
               <SelectItem key={confirmatrice} value={confirmatrice}>
-                {confirmatrice}
+                {confirmatrice=== "" ? "non assigné" : confirmatrice}
               </SelectItem>
             ))}
           </SelectContent>

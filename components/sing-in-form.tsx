@@ -37,7 +37,7 @@ export function SignInForm() {
       
       if (role === "worker") {
         router.push("/worker")
-      } else if (role === "admin") {
+      } else if (role === "admin" || role === undefined) {
         router.push("/admin")
       }
     } catch (err) {
