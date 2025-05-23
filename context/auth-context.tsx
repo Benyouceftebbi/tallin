@@ -43,7 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Get the role from custom claims
       const role = idTokenResult.claims.role as UserRole
-      setUserRole(role)
+      console.log("User role from claims:", role);
+      
+      setUserRole(role==='worker'?role:"admin")
       return role
     } catch (error) {
       console.error("Error fetching user role from claims:", error)

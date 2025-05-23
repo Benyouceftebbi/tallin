@@ -130,10 +130,9 @@ exports.shopifyOrderCreated = onRequest(async (req, res) => {
     let order = convertShopifyOrderToCustomFormat(orderData);
     logger.info("Order received", orderData);
 
-    // Normalize phone number to check for duplicates
     const normalizedPhone = order.phone?.trim();
 
-    // Check for existing order with same phone and status "En attente"
+    // Check for duplicate orders
     const duplicateQuerySnapshot = await db.collection("orders")
       .where("phone", "==", normalizedPhone)
       .where("status", "==", "en-attente")
@@ -144,9 +143,38 @@ exports.shopifyOrderCreated = onRequest(async (req, res) => {
       order.confirmationStatus = "Double";
     }
 
+    // Fetch and enrich each article with depot data
+    const enrichedArticles = await Promise.all(
+      order.articles.map(async (article) => {
+        try {
+          const variantRef = db
+            .collection("Products")
+            .doc(article.product_id.toString())
+            .collection("variants")
+            .doc(article.variant_id.toString());
+
+          const variantSnap = await variantRef.get();
+
+          if (variantSnap.exists) {
+            const variantData = variantSnap.data();
+            if (variantData.depot) {
+              article.depot = variantData.depots[0]; // Add depot info to article
+            }
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch depot for variant ${article.variant_id}:`, err);
+        }
+
+        return article;
+      })
+    );
+
+    // Update order with enriched articles
+    order.articles = enrichedArticles;
+
     // Save to Firestore
-    await db.collection("Orders").add(orderData);  // raw shopify order
-    await db.collection("orders").add(order);      // transformed order
+    await db.collection("Orders").add(orderData); // raw shopify order
+    await db.collection("orders").add(order);     // enriched order
 
     res.status(200).send("Order stored successfully");
   } catch (error) {

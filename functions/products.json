@@ -1,0 +1,10256 @@
+[
+  {
+    "code": "sam-1001",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "noir - biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "noir - biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "noir - biege",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "noir - biege",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "noir - biege",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "noir - biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "noir - camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "noir - camel",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "noir - camel",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "noir - camel",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "noir - camel",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "noir - camel",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "biege - camel",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege - camel",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "biege - camel",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "biege - camel",
+        "size": "39",
+        "quantity": 1
+      },
+      {
+        "color": "biege - camel",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "biege - camel",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1002",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Camel",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Camel",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1003",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "noir - biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "noir - biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "noir - biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "noir - biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "noir - biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "noir - biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "noir - camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "noir - camel",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "noir - camel",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "noir - camel",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "noir - camel",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "noir - camel",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege - camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege - camel",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege - camel",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege - camel",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege - camel",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege - camel",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1004",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "orange",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "orange",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "orange",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "orange",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "orange",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "orange",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1005",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "   sam-1006",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Camel",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "bois de rose",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "bois de rose",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "bois de rose",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "bois de rose",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "bois de rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "bois de rose",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1007",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1008",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1009",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1010",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Camel",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1011",
+    "price": 3500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1012",
+    "price": 3500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1013",
+    "price": 4700,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1014",
+    "price": 4700,
+    "variants": [
+      {
+        "color": "Noir glacé",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1015",
+    "price": 4700,
+    "variants": [
+      {
+        "color": "Noir glacé",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1016",
+    "price": 4700,
+    "variants": [
+      {
+        "color": "Noir glacé",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir glacé",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Biege glacé",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1017",
+    "price": 4900,
+    "variants": [
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1018",
+    "price": 5300,
+    "variants": [
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1019",
+    "price": 5300,
+    "variants": [
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1020",
+    "price": 4900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1021",
+    "price": 5500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1022",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc casse",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc casse",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc casse",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "rose",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "rose",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "rose",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "rose",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "rose",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "rose",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1023",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc casse",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc casse",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc casse",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1024",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "D.BEIGE",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "D.BEIGE",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "D.BEIGE",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "D.BEIGE",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "D.BEIGE",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "D.BEIGE",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1028",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Camel",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "D. beige",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1026",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "D. beige",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "D. beige",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc casse",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc casse",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Jaune",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1027",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "D. beige",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1025",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "D. beige",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "D. beige",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "D. beige",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "D. beige",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1030",
+    "price": 4600,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc casse",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1031",
+    "price": 4200,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1032",
+    "price": 4200,
+    "variants": [
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1033",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 4
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1034",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "BLACK",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "BLACK",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "BLACK",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "BLACK",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "BLACK",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "BLACK",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1035",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1036",
+    "price": 4200,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1037",
+    "price": 4700,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1039",
+    "price": 4700,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1038",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Brown",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Brown",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1040",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Brown",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Brown",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1041",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Brown",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Brown",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Brown",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Brown",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Vert",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Vert",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1042",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Gris",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Gris",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Gris",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Gris",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Gris",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Gris",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1043",
+    "price": 3500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1044",
+    "price": 4200,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1045",
+    "price": 4200,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Tabac",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Tabac",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1046",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1047",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "black",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "black",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "black",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "black",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "black",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "black",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1048",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Gris",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Gris",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Gris",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Gris",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Gris",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Gris",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1049",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "beige",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "beige",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "beige",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "beige",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "beige",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "beige",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Tabac",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Tabac",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1050",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "silver",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "silver",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "silver",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "silver",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "silver",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "silver",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1051",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1052",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1053",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1054",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1055",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1056",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "ivory",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "ivory",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "ivory",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "ivory",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "ivory",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "ivory",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1057",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "ivory",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "ivory",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "ivory",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "ivory",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "ivory",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "ivory",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Grenat",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Grenat",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Grenat",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Grenat",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Grenat",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Grenat",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1058",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "ivory",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "ivory",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "ivory",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "ivory",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "ivory",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "ivory",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1059",
+    "price": 3500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1160",
+    "price": 3500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1061",
+    "price": 3500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1062",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1063",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1064",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1065",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1066",
+    "price": 3800,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1067",
+    "price": 3800,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "apricot",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "apricot",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "apricot",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Rose",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Rose",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Rose",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1068",
+    "price": 4300,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1069",
+    "price": 4300,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Marron",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Marron",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Marron",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Marron",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Marron",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Marron",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1070",
+    "price": 4300,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu nuit",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Camel",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Camel",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Camel",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Camel",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1071",
+    "price": 4300,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc casse",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc casse",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc casse",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc casse",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1072",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "Brown",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1073",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Gris",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Gris",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Gris",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Gris",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Gris",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Gris",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 0
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 0
+      }
+    ]
+  },
+  {
+    "code": "sam-1074",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Gris",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Gris",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Gris",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Gris",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Gris",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Gris",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1075",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1076",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "nude",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "nude",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "nude",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "nude",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "nude",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "nude",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1077",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "orange",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "orange",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "orange",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "orange",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "orange",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "orange",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Vert",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Vert",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Vert",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Vert",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Vert",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Vert",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1078",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Bleu",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Bleu",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Bleu",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": 1079,
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1080",
+    "price": 4400,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "nude",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "nude",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "nude",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "nude",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "nude",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "nude",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Kaki",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Kaki",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Kaki",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1081",
+    "price": 3900,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Argent",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Argent",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Argent",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Doré",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Doré",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Doré",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Champagne",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Champagne",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Champagne",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1082",
+    "price": 4200,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1083",
+    "price": 4200,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1084",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "code": "sam-1085",
+    "price": 4500,
+    "variants": [
+      {
+        "color": "Noir",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Noir",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Noir",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Noir",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "biege",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "biege",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "biege",
+        "size": "41",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "36",
+        "quantity": 1
+      },
+      {
+        "color": "Blanc",
+        "size": "37",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "38",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "39",
+        "quantity": 3
+      },
+      {
+        "color": "Blanc",
+        "size": "40",
+        "quantity": 2
+      },
+      {
+        "color": "Blanc",
+        "size": "41",
+        "quantity": 1
+      }
+    ]
+  }
+]

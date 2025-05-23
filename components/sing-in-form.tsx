@@ -33,10 +33,11 @@ export function SignInForm() {
 
       // Get user role and redirect accordingly
       const role = await getUserRole()
-
+      console.log("test",role);
+      
       if (role === "worker") {
         router.push("/worker")
-      } else {
+      } else if (role === "admin") {
         router.push("/admin")
       }
     } catch (err) {

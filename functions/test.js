@@ -1,5 +1,7 @@
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
+const xlsx = require('xlsx');
+const fs = require('fs');
 // Initialize Firebase Admin
 const firebaseConfig = {
  apiKey: "AIzaSyDf8fWEqcsW4MW5xUj-jXIUiSRKib06GpQ",
@@ -267,4 +269,279 @@ async function processTodayOrders() {
   console.log(`Processed and stored ${ordersSnapshot.size} orders.`);
 }
 
-processTodayOrders().catch(console.error);
+//processTodayOrders().catch(console.error);
+async function enrichVariantsWithDepot(documentPath) {
+  const docRef = db.doc(documentPath);
+  const docSnap = await docRef.get();
+
+  if (!docSnap.exists) {
+    console.error("Document not found at:", documentPath);
+    return;
+  }
+
+  const data = docSnap.data();
+  const items = data.items || [];
+
+  for (const item of items) {
+    const { productId, variantId, depot: depotId } = item;
+
+    if (!productId || !variantId || !depotId) continue;
+
+    const variantRef = db
+      .collection("Products")
+      .doc(productId.toString())
+      .collection("variants")
+      .doc(variantId.toString());
+
+    const variantSnap = await variantRef.get();
+    if (!variantSnap.exists) {
+      console.warn(`Variant not found: product ${productId}, variant ${variantId}`);
+      continue;
+    }
+
+    const depotRef = db.collection("depots").doc(depotId);
+    const depotSnap = await depotRef.get();
+
+    if (!depotSnap.exists) {
+      console.warn(`Depot not found: ${depotId}`);
+      continue;
+    }
+
+    const depotData = depotSnap.data();
+
+    const variantData = variantSnap.data();
+    const updatedDepots = Array.isArray(variantData.depots)
+      ? [...variantData.depots]
+      : [];
+
+    // Prevent duplicate depot entry
+    const alreadyExists = updatedDepots.some(d => d.id === depotId);
+    if (!alreadyExists) {
+      updatedDepots.push({
+        id: depotId,
+        ...depotData,
+      });
+
+      await variantRef.update({
+        depots: updatedDepots,
+      });
+
+      console.log(`Depot added to variant ${variantId} in product ${productId}`);
+    }
+  }
+}
+
+
+/**
+ * Parse Excel file to extract product information with each color-size as a separate variant
+ * @param {string} filePath - Path to the Excel file
+ * @returns {Array} - Array of products with their variants
+ */
+function parseProductExcel(filePath) {
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const data = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: 0 });
+
+  const products = [];
+  let currentProduct = null;
+  let sizeColumns = {};
+  const headerRow = data[0];
+
+  for (let i = 0; i < Math.min(headerRow.length, 9); i++) {
+    const header = headerRow[i];
+    if (header && /^[0-9]+$/.test(header.toString())) {
+      const num = parseInt(header);
+      if (num >= 30 && num <= 50) {
+        sizeColumns[i] = num.toString();
+      }
+    }
+  }
+
+  for (let rowIndex = 1; rowIndex < data.length; rowIndex++) {
+    const row = data[rowIndex];
+    if (!row || row.slice(0, 9).every(cell => cell === 0 || cell === null || cell === '')) continue;
+
+    if (row[0] && row[1] && !isNaN(parseFloat(row[1]))) {
+      if (currentProduct) products.push(currentProduct);
+      currentProduct = {
+        code: row[0],
+        price: parseFloat(row[1]),
+        variants: []
+      };
+    }
+
+    if (row[2] && currentProduct) {
+      const color = row[2].toString().trim();
+      Object.keys(sizeColumns).forEach(colIndex => {
+        const size = sizeColumns[colIndex];
+        let quantity = parseInt(row[colIndex]) || 0;
+
+        currentProduct.variants.push({
+          color,
+          size,
+          quantity
+        });
+      });
+    }
+  }
+
+  if (currentProduct) products.push(currentProduct);
+  return products;
+}
+
+/**
+ * Syncs parsed variants to Firestore
+ */
+async function syncVariantsToFirestore(products) {
+  const unfound = [];
+
+  for (const product of products) {
+    const productSnap = await db.collection('Products')
+      .where('title', '==', product.code)
+      .limit(1)
+      .get();
+
+    if (productSnap.empty) {
+      console.log(`❌ Product not found: ${product.code}`);
+      product.variants.forEach(v => unfound.push({ code: product.code, ...v }));
+      continue;
+    }
+
+    const productDoc = productSnap.docs[0];
+    const productRef = db.collection('Products').doc(productDoc.id);
+
+    for (const variant of product.variants) {
+      const variantsRef = productRef.collection('variants');
+      const query = await variantsRef
+        .where('option1', 'in', [variant.color, variant.size])
+        .where('option2', 'in', [variant.color, variant.size])
+        .get();
+
+      let matched = false;
+      query.forEach(doc => {
+        const data = doc.data();
+        const match1 = data.option1 === variant.color && data.option2 === variant.size;
+        const match2 = data.option1 === variant.size && data.option2 === variant.color;
+
+
+        if (match1 || match2) {
+          matched = true;
+          const updatedQty = (data.inventory_quantity || 0) + variant.inventory_quantity;
+        
+          variantsRef.doc(doc.id).update({
+            quantity: updatedQty,
+            depots: [{
+  "id": "orHpkO2hxJfIBxzcBOyM",
+   "name": "en linge chine",
+  type:"principale",
+quantity: variant.quantity,
+}]
+          });
+
+          console.log(`✅ Updated: ${variant.color} / ${variant.size}`);
+        }
+      });
+
+      if (!matched) {
+        unfound.push({ code: product.code, ...variant });
+      }
+    }
+  }
+
+  if (unfound.length > 0) {
+    fs.writeFileSync('unfound_variants.json', JSON.stringify(unfound, null, 2));
+    console.log(`⚠️  Unfound variants saved to unfound_variants.json`);
+  }
+}
+
+/**
+ * Run everything
+ */
+async function main() {
+  const filePath = 'product.xlsx';
+  try {
+    const products = parseProductExcel(filePath);
+    fs.writeFileSync('products.json', JSON.stringify(products, null, 2));
+    console.log(`✅ Parsed ${products.length} products`);
+
+    await syncVariantsToFirestore(products);
+  } catch (error) {
+    console.error('❌ Error:', error);
+  }
+}
+
+async function retryUnfoundVariantsFromFile(filePath) {
+  const unfoundVariants = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  const stillUnfound = [];
+
+  for (const variant of unfoundVariants) {
+    const productSnap = await db.collection('Products')
+      .where('handle', '==', variant.code)
+      .limit(1)
+      .get();
+
+    if (productSnap.empty) {
+      console.log(`❌ Product with handle not found: ${variant.code}`);
+      stillUnfound.push(variant);
+      continue;
+    }
+
+    const productDoc = productSnap.docs[0];
+    const variantsRef = db.collection('Products').doc(productDoc.id).collection('variants');
+
+    const query = await variantsRef
+      .where('option1', 'in', [variant.color, variant.size])
+      .where('option2', 'in', [variant.color, variant.size])
+      .get();
+
+    let matched = false;
+    query.forEach(doc => {
+      const data = doc.data();
+      const match1 = data.option1 === variant.color && data.option2 === variant.size;
+      const match2 = data.option1 === variant.size && data.option2 === variant.color;
+
+        if (match1 || match2) {
+          matched = true;
+          const updatedQty = (data.inventory_quantity || 0) + variant.inventory_quantity;
+        
+          variantsRef.doc(doc.id).update({
+            quantity: updatedQty,
+            depots: [{
+  "id": "orHpkO2hxJfIBxzcBOyM",
+   "name": "en linge chine",
+  type:"principale",
+quantity: variant.quantity,
+}]
+          });
+
+          console.log(`✅ Updated: ${variant.color} / ${variant.size}`);
+        }
+    });
+
+    if (!matched) {
+      stillUnfound.push(variant);
+    }
+  }
+
+  if (stillUnfound.length > 0) {
+    fs.writeFileSync('unfound_variants.json', JSON.stringify(stillUnfound, null, 2));
+    console.log('⚠️ Still unfound variants saved back to unfound_variants.json');
+  } else {
+    console.log('✅ All previously unfound variants processed successfully.');
+    fs.unlinkSync('unfound_variants.json');
+  }
+}
+async function main1() {
+  try {
+
+
+    if (fs.existsSync('unfound_variants.json')) {
+      console.log('🔁 Retrying unfound variants based on product handle...');
+      await retryUnfoundVariantsFromFile('unfound_variants.json');
+    }
+  } catch (error) {
+    console.error('❌ Error:', error);
+  }
+}
+main1().catch(console.error);
