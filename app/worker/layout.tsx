@@ -27,6 +27,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className={`${inter.className} bg-slate-900 text-slate-50`}>
         <AppProvider>
+          <AuthProvider>
           <ShopProvider>
             <SidebarProvider>
               <div className="flex h-screen">
@@ -43,6 +44,7 @@ export default function RootLayout({
               </div>
             </SidebarProvider>
           </ShopProvider>
+          </AuthProvider>
           </AppProvider>
 
       </body>

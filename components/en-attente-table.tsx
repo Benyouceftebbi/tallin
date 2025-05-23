@@ -87,6 +87,7 @@ export function EnAttenteTable() {
   const [confirmatriceFilter, setConfirmatriceFilter] = useState<string>("all")
   const [articleFilter, setArticleFilter] = useState<string>("all")
 
+
   // Colonnes visibles
   const [visibleColumns, setVisibleColumns] = useState({
     id: true,
@@ -109,18 +110,20 @@ export function EnAttenteTable() {
     additionalInfo: false,
   })
 const ordersWait = useMemo(() => {
- if (userRole === "admin") {
-    return orders.filter((order) => order.status === "en-attente")
-   
-  }
-  else{
+  if (workerName) {
      return orders.filter(order =>
       order.status === "en-attente" && order.confirmatrice === workerName
     );
   }
-}, [orders, userRole, workerName]);
-console.log("worler",userRole);
+   else {
+    return orders.filter((order) => order.status === "en-attente")
+   
+  }
 
+}, [orders, userRole, workerName]);
+console.log("worler", workerName);
+console.log("worler", workerName);
+console.log("orsdrs",ordersWait);
 
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const wilayas = getAllWilayas().sort((a, b) => a.name_ascii.localeCompare(b.name_ascii))
@@ -1011,7 +1014,7 @@ const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c)
                           className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                         />
                       </td>
-                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.id}</td>}
+                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.idd}</td>}
                       {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && (
