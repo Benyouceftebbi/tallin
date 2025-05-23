@@ -194,7 +194,7 @@ exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (e
 
   for (const item of items) {
     const { productId, variantId, quantity, depot } = item;
-const depotId= depot
+    const depotId= depot
     if (!productId || !variantId || !quantity || !depotId) continue;
 
     // References
