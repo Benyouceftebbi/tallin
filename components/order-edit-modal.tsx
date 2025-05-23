@@ -279,13 +279,14 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
             quantity: item.quantity,
             price: Number.parseFloat(item.unit_price),
             stockStatus: "available", // you can adjust logic for status if needed
+            
             ...item,
           })
 
           return acc
         }, {}),
       )
-
+      setOrderReference(order.orderReference || "")
       setSelectedArticles(structuredArticles)
     } else {
       // Valeurs par défaut pour une nouvelle commande
@@ -645,8 +646,7 @@ const generateReference = (depotsObj = selectedDepots) => {
       ...formData,
       wilaya: selectedWilaya,
       totalPrice: totalPrice,
-      orderReference: hasSelectedDepots ? orderReference : undefined,
-      depotAttachments: hasSelectedDepots ? selectedDepots : undefined,
+      orderReference: hasSelectedDepots ? orderReference : orderReference,
       articles: selectedArticles.flatMap((article) =>
         article.variants.map((variant) => {
           const variantKey = `${article.id}-${variant.id}`
@@ -665,8 +665,8 @@ const generateReference = (depotsObj = selectedDepots) => {
               option1: variant.size,
               option2: variant.color,
             },
-            depotId: selectedDepot?.id,
-            depotName: selectedDepot?.name,
+            depotId: selectedDepot?.id ? selectedDepot.id : variant.depot?.id,
+            depotName: selectedDepot?.name ? selectedDepot.name : variant.depot?.name,
           }
         }),
       ),
@@ -680,6 +680,8 @@ const generateReference = (depotsObj = selectedDepots) => {
       })
     } else {
       updateOrder(order!.id, updatedFormData)
+      //console.log(updatedFormData);
+      
       toast({
         title: "Commande mise à jour",
         description: `La commande ${order!.id} a été mise à jour avec succès.`,
@@ -1764,7 +1766,7 @@ const generateReference = (depotsObj = selectedDepots) => {
         )}
 
         {/* Add this before the DialogFooter */}
-        {Object.keys(selectedDepots).length > 0 && (
+        {Object.keys(selectedDepots).length > 0 || orderReference && (
           <div className="mt-6 mb-4">
             <Alert variant="destructive" className="bg-amber-900/20 border-amber-800 text-amber-300">
               <AlertTriangle className="h-4 w-4" />

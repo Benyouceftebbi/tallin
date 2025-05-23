@@ -598,4 +598,47 @@ async function enrichOrderArticlesWithDepot() {
     console.log(`✅ Updated order ${orderRef.id} with depot info in articles.`);
   }
 }
-enrichOrderArticlesWithDepot().catch(console.error);
+//enrichOrderArticlesWithDepot().catch(console.error);
+function generateReferenceFromDepots(depots) {
+  if (!Array.isArray(depots) || depots.length === 0) return "";
+
+  const allSameDepot = depots.every((d) => d.id === depots[0].id);
+  let prefix = allSameDepot
+    ? (depots[0].name || "DEPOT").substring(0, 5).toUpperCase()
+    : "DEPOTD";
+
+  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const timestamp = Date.now().toString().substring(9, 13);
+
+  return `${prefix}-${randomStr}${timestamp}`;
+}
+async function addReferenceToExistingOrders() {
+  const ordersSnap = await db.collection("orders").get();
+
+  for (const doc of ordersSnap.docs) {
+    const order = doc.data();
+
+    // Skip if reference already exists
+    if (order.orderReference) {
+      continue;
+    }
+
+    const depots = (order.articles || [])
+      .map((a) => a.depot)
+      .filter((d) => d && d.id);
+
+    if (depots.length === 0) {
+      console.warn(`🚫 No valid depots for order ${doc.id}`);
+      continue;
+    }
+
+    const reference = generateReferenceFromDepots(depots);
+
+    await doc.ref.update({ orderReference:reference });
+    console.log(`✅ Reference ${reference} added to order ${doc.id}`);
+  }
+
+  console.log("🎉 Finished updating references for all orders.");
+}
+
+addReferenceToExistingOrders().catch(console.error);

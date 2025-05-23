@@ -191,7 +191,7 @@ exports.shopifyOrderCreated = onRequest(async (req, res) => {
       .map((a) => a.depot)
       .filter((d) => d && d.id); // Filter valid depots
 
-    order.reference = generateReferenceFromDepots(depots);
+    order.orderReference = generateReferenceFromDepots(depots);
 
     // Save to Firestore
     await db.collection("Orders").add(orderData); // raw Shopify order
