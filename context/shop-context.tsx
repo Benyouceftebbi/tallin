@@ -642,8 +642,8 @@ useEffect(()=>{
 
 useEffect(() => {
   const ordersQuery = query(
-    collection(db, 'orders')
-    //orderBy('createdAt', 'desc')
+    collection(db, 'orders'),
+    orderBy('id', 'desc')
   );
 
   const unsubscribe = onSnapshot(
