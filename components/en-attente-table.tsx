@@ -1011,7 +1011,7 @@ const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c)
                           className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                         />
                       </td>
-                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.docId}</td>}
+                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.id}</td>}
                       {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && (
