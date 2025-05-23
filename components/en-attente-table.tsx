@@ -114,9 +114,14 @@ const ordersWait = useMemo(() => {
       order.status === "en-attente" || order.confirmatrice === workerName
     );
   }
-  return orders.filter((order) => order.status === "en-attente")
+  else if (userRole === "admin") {
+      return orders.filter((order) => order.status === "en-attente")
+  }
+   return []
+
+
 }, [orders, userRole, workerName]);
-console.log("worler",userRole,workerName);
+console.log("worler",workerName);
 
 
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
