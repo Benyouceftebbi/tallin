@@ -119,6 +119,21 @@ function formatTimestamp(isoString) {
   return date.toISOString().replace('T', ' ').substring(0, 19);
 }
 
+// Utility to generate a reference string
+function generateReferenceFromDepots(depots) {
+  if (!Array.isArray(depots) || depots.length === 0) return "";
+
+  const allSameDepot = depots.every((d) => d.id === depots[0].id);
+  let prefix = allSameDepot
+    ? (depots[0].name || "DEPOT").substring(0, 5).toUpperCase()
+    : "DEPOTD";
+
+  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const timestamp = Date.now().toString().substring(9, 13);
+
+  return `${prefix}-${randomStr}${timestamp}`;
+}
+
 exports.shopifyOrderCreated = onRequest(async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).send("Method Not Allowed");
@@ -143,7 +158,7 @@ exports.shopifyOrderCreated = onRequest(async (req, res) => {
       order.confirmationStatus = "Double";
     }
 
-    // Fetch and enrich each article with depot data
+    // Enrich each article with depot info
     const enrichedArticles = await Promise.all(
       order.articles.map(async (article) => {
         try {
@@ -157,8 +172,8 @@ exports.shopifyOrderCreated = onRequest(async (req, res) => {
 
           if (variantSnap.exists) {
             const variantData = variantSnap.data();
-            if (variantData.depot) {
-              article.depot = variantData.depots[0]; // Add depot info to article
+            if (Array.isArray(variantData.depots) && variantData.depots.length > 0) {
+              article.depot = variantData.depots[0];
             }
           }
         } catch (err) {
@@ -169,12 +184,18 @@ exports.shopifyOrderCreated = onRequest(async (req, res) => {
       })
     );
 
-    // Update order with enriched articles
     order.articles = enrichedArticles;
 
+    // 🧠 Generate order reference based on depot info in articles
+    const depots = enrichedArticles
+      .map((a) => a.depot)
+      .filter((d) => d && d.id); // Filter valid depots
+
+    order.reference = generateReferenceFromDepots(depots);
+
     // Save to Firestore
-    await db.collection("Orders").add(orderData); // raw shopify order
-    await db.collection("orders").add(order);     // enriched order
+    await db.collection("Orders").add(orderData); // raw Shopify order
+    await db.collection("orders").add(order);     // enriched internal order
 
     res.status(200).send("Order stored successfully");
   } catch (error) {

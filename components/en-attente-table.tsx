@@ -880,8 +880,8 @@ const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c)
           </SelectContent>
         </Select>
 
-        <Select value={confirmatriceFilter} onValueChange={setConfirmatriceFilter}>
-          <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700">
+        {userRole === "admin"&&(<Select value={confirmatriceFilter} onValueChange={setConfirmatriceFilter}>
+          <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700" disabled={userRole === "worker"}>
             <SelectValue placeholder="Confirmatrice" />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
@@ -893,7 +893,7 @@ const confirmatrices = workers.filter((w) => w.role === "Confirmatrice").map((c)
             ))}
           </SelectContent>
         </Select>
-
+        )}
         <Select value={articleFilter} onValueChange={setArticleFilter}>
           <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
             <SelectValue placeholder="Article" />

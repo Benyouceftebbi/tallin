@@ -642,7 +642,7 @@ useEffect(()=>{
 
 useEffect(() => {
   const ordersQuery = query(
-    collection(db, 'orders'),limit(150),
+    collection(db, 'orders'),
     orderBy('id', 'desc')
   );
 

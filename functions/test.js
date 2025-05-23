@@ -283,7 +283,7 @@ async function enrichVariantsWithDepot(documentPath) {
   const items = data.items || [];
 
   for (const item of items) {
-    const { productId, variantId, depot: depotId } = item;
+    const { productId, variantId, depot: depotId,quantity } = item;
 
     if (!productId || !variantId || !depotId) continue;
 
@@ -308,29 +308,27 @@ async function enrichVariantsWithDepot(documentPath) {
     }
 
     const depotData = depotSnap.data();
-
     const variantData = variantSnap.data();
-    const updatedDepots = Array.isArray(variantData.depots)
-      ? [...variantData.depots]
-      : [];
 
-    // Prevent duplicate depot entry
-    const alreadyExists = updatedDepots.some(d => d.id === depotId);
-    if (!alreadyExists) {
-      updatedDepots.push({
+    
+
+    // Build new depots array with depot[0] updated
+    const newDepots = [
+      {
         id: depotId,
         ...depotData,
-      });
+        quantity: quantity,
+      },
+    ];
 
-      await variantRef.update({
-        depots: updatedDepots,
-      });
+    await variantRef.update({
+      depots: newDepots,
+    });
 
-      console.log(`Depot added to variant ${variantId} in product ${productId}`);
-    }
+    console.log(`Updated depot[0].quantity to ${quantity} for variant ${variantId} in product ${productId}`);
   }
 }
-
+//enrichVariantsWithDepot("invoices/9fHZxZGaaH4NB8YhSuns").catch(console.error);
 
 /**
  * Parse Excel file to extract product information with each color-size as a separate variant
@@ -544,4 +542,60 @@ async function main1() {
     console.error('❌ Error:', error);
   }
 }
-main1().catch(console.error);
+//ain1().catch(console.error);
+async function enrichOrderArticlesWithDepot() {
+  const ordersSnapshot = await db.collection("orders").get();
+
+  for (const orderDoc of ordersSnapshot.docs) {
+    const orderRef = orderDoc.ref;
+    const orderData = orderDoc.data();
+    const articles = orderData.articles || [];
+
+    const updatedArticles = await Promise.all(
+      articles.map(async (article) => {
+        const {
+          product_id,
+          variant_id,
+        } = article;
+
+        if (!product_id || !variant_id) return article;
+
+        const variantRef = db
+          .collection("Products")
+          .doc(product_id.toString())
+          .collection("variants")
+          .doc(variant_id.toString());
+
+        const variantSnap = await variantRef.get();
+
+        if (!variantSnap.exists) {
+          console.warn(`Variant not found for product ${product_id}, variant ${variant_id}`);
+          return article;
+        }
+
+        const variantData = variantSnap.data();
+        const firstDepot = Array.isArray(variantData.depots) ? variantData.depots[0] : null;
+
+        if (!firstDepot) {
+          console.warn(`No depot info found in variant ${variant_id}`);
+          return article;
+        }
+
+        return {
+          ...article,
+          depot: {
+            id: firstDepot.id || null,
+            name: firstDepot.name || null,
+            type: firstDepot.type || null,
+            quantity: firstDepot.quantity || 0,
+          },
+        };
+      })
+    );
+
+    // Update order with enriched articles
+    await orderRef.update({ articles: updatedArticles });
+    console.log(`✅ Updated order ${orderRef.id} with depot info in articles.`);
+  }
+}
+enrichOrderArticlesWithDepot().catch(console.error);
