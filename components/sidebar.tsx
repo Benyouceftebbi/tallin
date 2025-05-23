@@ -33,6 +33,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSidebar } from "@/context/sidebar-context"
+import { useAuth } from "@/context/auth-context"
 
 const sidebarLinks = [
   {
@@ -137,6 +138,63 @@ const sidebarLinks = [
     href: "/admin/parametres",
   },
 ]
+const workersidebarLinks =  [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    href: "/worker",
+  },
+  {
+    title: "Commandes",
+    icon: Box,
+    href: "/worker/commandes",
+    submenu: [
+      {
+        title: "En attente",
+        icon: Clock,
+        href: "/worker/commandes/en-attente",
+        color: "text-amber-700",
+      },
+      {
+        title: "Confirmés",
+        icon: CheckCircle,
+        href: "/worker/commandes/confirmes",
+        color: "text-emerald-700",
+      },
+      {
+        title: "En préparation",
+        icon: Box,
+        href: "/worker/commandes/en-preparation",
+        color: "text-blue-700",
+      },
+      {
+        title: "Dispatcher",
+        icon: ClipboardCheck,
+        href: "/worker/commandes/dispatcher",
+        color: "text-purple-700",
+      },
+      {
+        title: "En livraison",
+        icon: Truck,
+        href: "/worker/commandes/en-livraison",
+        color: "text-orange-700",
+      },
+      {
+        title: "Livrés",
+        icon: PackageCheck,
+        href: "/worker/commandes/livres",
+        color: "text-cyan-700",
+      },
+      {
+        title: "Retour",
+        icon: PackageX,
+        href: "/worker/commandes/retour",
+        color: "text-rose-700",
+      },
+    ],
+  },
+
+]
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
@@ -193,6 +251,7 @@ export function Sidebar({ className }: SidebarProps) {
     if (!link.submenu) return false
     return link.submenu.some((sublink) => pathname.startsWith(sublink.href))
   }
+  const { userRole } = useAuth()
 
   return (
     <div className={cn("hidden lg:block", className)}>
@@ -218,7 +277,7 @@ export function Sidebar({ className }: SidebarProps) {
           <div className={cn("py-2", isOpen ? "px-3" : "px-2")}>
             <TooltipProvider delayDuration={0}>
               <nav className="flex flex-col gap-1">
-                {sidebarLinks.map((link) => (
+      {(userRole === 'admin' ? sidebarLinks : workersidebarLinks).map((link) => (
                   <div key={link.title}>
                     {link.submenu && isOpen ? (
                       <div className="space-y-1">
@@ -344,7 +403,9 @@ export function Sidebar({ className }: SidebarProps) {
 export function MobileSidebar() {
   const pathname = usePathname()
   const [openSubmenu, setOpenSubmenu] = useState("Commandes")
-
+  const {userRole} = useAuth()
+  console.log("Usersss role:", userRole);
+  
   const toggleSubmenu = (title: string) => {
     setOpenSubmenu(openSubmenu === title ? "" : title)
   }
@@ -373,7 +434,7 @@ export function MobileSidebar() {
         <ScrollArea className="h-[calc(100vh-3.5rem)]">
           <div className="px-3 py-2">
             <nav className="flex flex-col gap-1">
-              {sidebarLinks.map((link) => (
+ {(userRole === 'admin' ? sidebarLinks : workersidebarLinks).map((link) => (
                 <div key={link.title}>
                   {link.submenu ? (
                     <div className="space-y-1">

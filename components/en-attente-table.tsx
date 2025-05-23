@@ -109,19 +109,17 @@ export function EnAttenteTable() {
     additionalInfo: false,
   })
 const ordersWait = useMemo(() => {
-  if (workerName) {
-    return orders.filter(order =>
-      order.status === "en-attente" || order.confirmatrice === workerName
+ if (userRole === "admin") {
+    return orders.filter((order) => order.status === "en-attente")
+   
+  }
+  else{
+     return orders.filter(order =>
+      order.status === "en-attente" && order.confirmatrice === workerName
     );
   }
-  else if (userRole === "admin") {
-      return orders.filter((order) => order.status === "en-attente")
-  }
-   return []
-
-
 }, [orders, userRole, workerName]);
-console.log("worler",workerName);
+console.log("worler",userRole);
 
 
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
