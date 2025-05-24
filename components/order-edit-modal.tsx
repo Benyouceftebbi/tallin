@@ -37,6 +37,7 @@ import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipp
 import { collection, doc, getDoc, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useAuth } from "@/context/auth-context"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -49,7 +50,7 @@ type ArticleVariant = {
   availableStock?: number // Add this to show available stock
   stockStatus?: StockStatus // Add this to track stock status
   expectedDate?: string // Add this for coming soon items
-  depot?: DepotOption
+  depot?: DepotOption[]
 }
 
 // Add these new types after the existing ArticleVariant type
@@ -200,7 +201,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   const [isReferenceValid, setIsReferenceValid] = useState(true)
 
   const [availableDepots, setAvailableDepots] = useState<DepotOption[]>([])
- useEffect(() => {
+  useEffect(() => {
     const fetchDepots = async () => {
       try {
         const depotsCollection = collection(db, "depots")
@@ -279,7 +280,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
             quantity: item.quantity,
             price: Number.parseFloat(item.unit_price),
             stockStatus: "available", // you can adjust logic for status if needed
-            
+
             ...item,
           })
 
@@ -373,102 +374,97 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     setSelectedArticles(selectedArticles.filter((article) => article.id !== articleId))
   }
 
-const updateArticle = (articleId: string, field: keyof Article, value: any) => {
-  if (field === "id") {
-    const inventoryItem = products?.find((product) => product.id === value);
+  const updateArticle = (articleId: string, field: keyof Article, value: any) => {
+    if (field === "id") {
+      const inventoryItem = products?.find((product) => product.id === value)
 
+      setSelectedArticles(
+        selectedArticles.map((article) => {
+          if (article.id === articleId) {
+            if (inventoryItem) {
+              // 🔍 Find matching option sets
+              const sizeOption = inventoryItem.options?.find((opt) =>
+                ["Pointure", "pointure", "Taille"].includes(opt.name),
+              )
+              const otherOption = inventoryItem.options?.find((opt) => opt.name !== sizeOption?.name)
+
+              const defaultSize = sizeOption?.values?.[0] ?? null
+              const defaultColor = otherOption?.values?.[0] ?? null
+
+              const updatedVariants = inventoryItem.variants.map((invVariant) => {
+                const baseVariant = {
+                  id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                  quantity: 1,
+                  price: invVariant.price,
+                  unit_price: invVariant.unit_price,
+                  inventoryVariantId: invVariant.id,
+                  variant_id: invVariant.id,
+                  availableStock: "0",
+                  stockStatus: "available",
+                  expectedDate: "",
+                  size: defaultSize,
+                  color: defaultColor,
+                  depot: invVariant.depots || [],
+                }
+
+                return baseVariant
+              })
+
+              return {
+                ...article,
+                ...inventoryItem,
+                [field]: value,
+                name: inventoryItem.title,
+                sku: inventoryItem.sku,
+                variants: [updatedVariants[0]], // Keep only the first variant
+              }
+            } else {
+              return { ...article, [field]: value }
+            }
+          }
+          return article
+        }),
+      )
+    } else {
+      setSelectedArticles(
+        selectedArticles.map((article) => (article.id === articleId ? { ...article, [field]: value } : article)),
+      )
+    }
+  }
+
+  // Ajouter une variante à un article
+  const addVariant = (articleId: string) => {
     setSelectedArticles(
       selectedArticles.map((article) => {
         if (article.id === articleId) {
-if (inventoryItem) {
-  // 🔍 Find matching option sets
-  const sizeOption = inventoryItem.options?.find(opt =>
-    ["Pointure", "pointure", "Taille"].includes(opt.name)
-  );
-  const otherOption = inventoryItem.options?.find(
-    (opt) => opt.name !== sizeOption?.name
-  );
+          const product = products.find((p) => p.id === article.id)
 
-  const defaultSize = sizeOption?.values?.[0] ?? null;
-  const defaultColor = otherOption?.values?.[0] ?? null;
+          // Find options
+          const sizeOption = product?.options?.find((opt) => ["Pointure", "pointure", "Taille"].includes(opt.name))
+          const otherOption = product?.options?.find((opt) => opt.name !== sizeOption?.name)
 
-  const updatedVariants = inventoryItem.variants.map((invVariant) => {
-    const baseVariant = {
-      id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      quantity: 1,
-      price: invVariant.price,
-      unit_price: invVariant.unit_price,
-      inventoryVariantId: invVariant.id,
-      variant_id: invVariant.id,
-      availableStock: "0",
-      stockStatus: "available",
-      expectedDate: "",
-      size: defaultSize,
-      color: defaultColor,
-    };
+          const defaultSize = sizeOption?.values?.[0] ?? null
+          const defaultColor = otherOption?.values?.[0] ?? null
 
-    return baseVariant;
-  });
+          const newVariant = {
+            id: `variant-${articleId}-${article.variants.length}`,
+            size: defaultSize,
+            color: defaultColor,
+            quantity: 1,
+            price: product?.variants?.[0]?.price || 0,
+            stockStatus: "available",
+            depot: product?.variants?.[0]?.depots || [],
+          }
 
-  return {
-    ...article,
-    ...inventoryItem,
-    [field]: value,
-    name: inventoryItem.title,
-    sku: inventoryItem.sku,
-    variants: [updatedVariants[0]], // Keep only the first variant
-  };
-} else {
-            return { ...article, [field]: value };
+          return {
+            ...article,
+            variants: [...article.variants, newVariant],
           }
         }
-        return article;
-      })
-    );
-  } else {
-    setSelectedArticles(
-      selectedArticles.map((article) =>
-        article.id === articleId ? { ...article, [field]: value } : article
-      )
-    );
+        return article
+      }),
+    )
   }
-};
-
-  // Ajouter une variante à un article
-const addVariant = (articleId: string) => {
-  setSelectedArticles(
-    selectedArticles.map((article) => {
-      if (article.id === articleId) {
-        const product = products.find((p) => p.id === article.id);
-
-        // Find options
-        const sizeOption = product?.options?.find(opt =>
-          ["Pointure", "pointure", "Taille"].includes(opt.name)
-        );
-        const otherOption = product?.options?.find(opt => opt.name !== sizeOption?.name);
-
-        const defaultSize = sizeOption?.values?.[0] ?? null;
-        const defaultColor = otherOption?.values?.[0] ?? null;
-
-        const newVariant = {
-          id: `variant-${articleId}-${article.variants.length}`,
-          size: defaultSize,
-          color: defaultColor,
-          quantity: 1,
-          price: product?.variants?.[0]?.price || 0,
-          stockStatus: "available",
-   
-        };
-
-        return {
-          ...article,
-          variants: [...article.variants, newVariant],
-        };
-      }
-      return article;
-    })
-  );
-};
 
   // Supprimer une variante
   const removeVariant = (articleId: string, variantId: string) => {
@@ -486,54 +482,47 @@ const addVariant = (articleId: string) => {
   }
 
   // Mettre à jour une variante
-const updateVariant = (
-  articleId: string,
-  variantId: string,
-  field: keyof ArticleVariant,
-  value: any
-) => {
-  setSelectedArticles((prevArticles) =>
-    prevArticles.map((article) => {
-      if (article.id !== articleId) return article;
+  const updateVariant = (articleId: string, variantId: string, field: keyof ArticleVariant, value: any) => {
+    setSelectedArticles((prevArticles) =>
+      prevArticles.map((article) => {
+        if (article.id !== articleId) return article
 
-      const updatedVariants = article.variants.map((variant) => {
-        if (variant.id !== variantId) return variant;
+        const updatedVariants = article.variants.map((variant) => {
+          if (variant.id !== variantId) return variant
 
-        const updatedVariant = { ...variant, [field]: value };
+          const updatedVariant = { ...variant, [field]: value }
 
-        // If size or color changed, try to find matching inventory variant
-        if (field === "size" || field === "color") {
-          const product = products?.find((p) => p.id === article.id);
-          if (product) {
-            const matchingInventoryVariant = product.variants.find(
-              (invVariant) =>
-                (invVariant.option1 === updatedVariant.size &&
-                  invVariant.option2 === updatedVariant.color) ||
-                (invVariant.option2 === updatedVariant.size &&
-                  invVariant.option1 === updatedVariant.color)
-            );
+          // If size or color changed, try to find matching inventory variant
+          if (field === "size" || field === "color") {
+            const product = products?.find((p) => p.id === article.id)
+            if (product) {
+              const matchingInventoryVariant = product.variants.find(
+                (invVariant) =>
+                  (invVariant.option1 === updatedVariant.size && invVariant.option2 === updatedVariant.color) ||
+                  (invVariant.option2 === updatedVariant.size && invVariant.option1 === updatedVariant.color),
+              )
 
-            if (matchingInventoryVariant) {
-              updatedVariant.variant_id= matchingInventoryVariant.id;
-             
+              if (matchingInventoryVariant) {
+                updatedVariant.variant_id = matchingInventoryVariant.id
+                updatedVariant.depot = matchingInventoryVariant.depots[0] || []
+              }
             }
           }
-        }
 
-        // Keep price/unit_price in sync
-        if (field === "price") {
-          updatedVariant.unit_price = value;
-        } else if (field === "unit_price") {
-          updatedVariant.price = value;
-        }
+          // Keep price/unit_price in sync
+          if (field === "price") {
+            updatedVariant.unit_price = value
+          } else if (field === "unit_price") {
+            updatedVariant.price = value
+          }
 
-        return updatedVariant;
-      });
+          return updatedVariant
+        })
 
-      return { ...article, variants: updatedVariants };
-    })
-  );
-};
+        return { ...article, variants: updatedVariants }
+      }),
+    )
+  }
   // Charger les articles d'une commande précédente
   const loadPreviousOrderArticles = () => {
     if (!selectedPreviousOrder) return
@@ -554,6 +543,7 @@ const updateVariant = (
           quantity: 1,
           price: Math.floor(500 + Math.random() * 1500),
           stockStatus: "available",
+          depot: [],
         },
       ],
     }))
@@ -578,78 +568,78 @@ const updateVariant = (
     setShowDepotDialog(true)
   }
 
-const selectDepotForVariant = (depotId: string) => {
-  if (!currentVariantForDepot) return
+  const selectDepotForVariant = (depotId: string) => {
+    if (!currentVariantForDepot) return
 
-  const selectedDepot = availableDepots.find((d) => d.id === depotId)
-  if (!selectedDepot) return
+    const selectedDepot = availableDepots.find((d) => d.id === depotId)
+    if (!selectedDepot) return
 
-  const variantKey = `${currentVariantForDepot.articleId}-${currentVariantForDepot.variantId}`
+    const variantKey = `${currentVariantForDepot.articleId}-${currentVariantForDepot.variantId}`
 
-  // Update the selectedDepots state
-  setSelectedDepots((prev) => {
-    const updated = {
-      ...prev,
-      [variantKey]: selectedDepot,
+    // Update the selectedDepots state
+    setSelectedDepots((prev) => {
+      const updated = {
+        ...prev,
+        [variantKey]: selectedDepot,
+      }
+
+      // Call generateReference with the updated depots
+      generateReference(updated)
+
+      return updated
+    })
+
+    // Update the variant with the depot information directly
+    setSelectedArticles(
+      selectedArticles.map((article) => {
+        if (article.id === currentVariantForDepot.articleId) {
+          return {
+            ...article,
+            variants: article.variants.map((variant) => {
+              if (variant.variant_id === currentVariantForDepot.variantId) {
+                return {
+                  ...variant,
+                  depot: [selectedDepot],
+                }
+              }
+              return variant
+            }),
+          }
+        }
+        return article
+      }),
+    )
+
+    setShowDepotDialog(false)
+  }
+
+  const generateReference = (depotsObj = selectedDepots) => {
+    const depots = Object.values(depotsObj)
+
+    console.log("depots", depots)
+
+    if (depots.length === 0) {
+      setOrderReference("")
+      return
     }
 
-    // Call generateReference with the updated depots
-    generateReference(updated)
+    const allSameDepot = depots.every((d) => d.id === depots[0].id)
 
-    return updated
-  })
+    let prefix = ""
+    if (allSameDepot) {
+      prefix = depots[0].name.substring(0, 5).toUpperCase()
+    } else {
+      prefix = "DEPOTD"
+    }
 
-  // Update the variant with the depot information directlyisNe
-  setSelectedArticles(
-    selectedArticles.map((article) => {
-      if (article.id === currentVariantForDepot.articleId) {
-        return {
-          ...article,
-          variants: article.variants.map((variant) => {
-            if (variant.variant_id=== currentVariantForDepot.variantId) {
-              return {
-                ...variant,
-                depot: selectedDepot,
-              }
-            }
-            return variant
-          }),
-        }
-      }
-      return article
-    }),
-  )
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const timestamp = Date.now().toString().substring(9, 13)
 
-  setShowDepotDialog(false)
-}
-
-const generateReference = (depotsObj = selectedDepots) => {
-  const depots = Object.values(depotsObj)
-
-  console.log("depots", depots)
-
-  if (depots.length === 0) {
-    setOrderReference("")
-    return
+    const newReference = `${prefix}-${randomStr}${timestamp}`
+    setOrderReference(newReference)
+    setIsReferenceValid(newReference.length >= 10)
   }
-
-  const allSameDepot = depots.every((d) => d.id === depots[0].id)
-
-  let prefix = ""
-  if (allSameDepot) {
-    prefix = depots[0].name.substring(0, 5).toUpperCase()
-  } else {
-    prefix = "DEPOTD"
-  }
-
-  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
-  const timestamp = Date.now().toString().substring(9, 13)
-
-  const newReference = `${prefix}-${randomStr}${timestamp}`
-  setOrderReference(newReference)
-  setIsReferenceValid(newReference.length >= 10)
-}
-
+const {workerName}=useAuth()
   // Gérer la soumission du formulaire
   const handleSubmit = () => {
     // Vérifier les champs obligatoires
@@ -713,17 +703,17 @@ const generateReference = (depotsObj = selectedDepots) => {
               option1: variant.size,
               option2: variant.color,
             },
-            depotId: selectedDepot?.id ? selectedDepot.id : variant.depot?.id,
-            depotName: selectedDepot?.name ? selectedDepot.name : variant.depot?.name,
+            depotId: selectedDepot?.id ? selectedDepot.id : variant.depot?.[0]?.id,
+            depotName: selectedDepot?.name ? selectedDepot.name : variant.depot?.[0]?.name,
           }
         }),
       ),
     }
 
     if (isNew) {
-      addOrder(updatedFormData as Order)
-      console.log(updatedFormData);
-      
+      addOrder({...updatedFormData,confirmatrice:workerName!=""?workerName:""} as Order)
+
+
       toast({
         title: "Commande ajoutée",
         description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
@@ -731,7 +721,7 @@ const generateReference = (depotsObj = selectedDepots) => {
     } else {
       updateOrder(order!.id, updatedFormData)
       //console.log(updatedFormData);
-      
+
       toast({
         title: "Commande mise à jour",
         description: `La commande ${order!.id} a été mise à jour avec succès.`,
@@ -741,12 +731,10 @@ const generateReference = (depotsObj = selectedDepots) => {
     onOpenChange(false)
   }
 
-  // Add this function to check if a variant needs a depot
+  // Modified function to check if a variant needs a depot
   const variantNeedsDepot = (variant: ArticleVariant) => {
-    return (
-      variant.stockStatus === "out_of_stock" ||
-      (variant.availableStock !== undefined && Number(variant.availableStock) === 0)
-    )
+    // Check if depot array exists and first depot has quantity 0
+    return variant.depot && variant.depot.length > 0 && variant.depot[0].quantity === 0
   }
 
   // Add this function to get the depot name for a variant
@@ -839,6 +827,7 @@ const generateReference = (depotsObj = selectedDepots) => {
                 availableStock: invVariant.stock,
                 stockStatus: invVariant.stockStatus,
                 expectedDate: invVariant.expectedDate,
+                depot: invVariant.depots || [],
               }))
 
               return {
@@ -966,8 +955,8 @@ const generateReference = (depotsObj = selectedDepots) => {
       }
     }
   }
-  console.log("selectedArticles", selectedArticles);
-  
+  console.log("selectedArticles", selectedArticles)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1113,100 +1102,90 @@ const generateReference = (depotsObj = selectedDepots) => {
                           key={variant.id}
                           className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
                         >
-{variant.size !== null && (
-  <div className="space-y-1">
-    <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
-      Taille
-    </Label>
-    <Select
-      value={variant.size}
-      onValueChange={(value) =>
-        updateVariant(article.id, variant.id, "size", value)
-      }
-    >
-      <SelectTrigger
-        id={`variant-size-${variant.id}`}
-        className="h-8 text-xs bg-slate-800/50 border-slate-700"
-      >
-        <SelectValue placeholder="Taille" />
-      </SelectTrigger>
+                          {variant.size !== null && (
+                            <div className="space-y-1">
+                              <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
+                                Taille
+                              </Label>
+                              <Select
+                                value={variant.size}
+                                onValueChange={(value) => updateVariant(article.id, variant.id, "size", value)}
+                              >
+                                <SelectTrigger
+                                  id={`variant-size-${variant.id}`}
+                                  className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                                >
+                                  <SelectValue placeholder="Taille" />
+                                </SelectTrigger>
 
-      <SelectContent className="bg-slate-900 border-slate-800">
-        {(() => {
-          const product = products?.find((p) => p.id === article.id);
-          if (!product) return null;
+                                <SelectContent className="bg-slate-900 border-slate-800">
+                                  {(() => {
+                                    const product = products?.find((p) => p.id === article.id)
+                                    if (!product) return null
 
-          const sizeOption = product.options.find((opt) =>
-            ["Pointure", "pointure", "Taille"].includes(opt.name)
-          );
-          const colorOption = product.options.find(
-            (opt) => opt.name === "Couleur"
-          );
+                                    const sizeOption = product.options.find((opt) =>
+                                      ["Pointure", "pointure", "Taille"].includes(opt.name),
+                                    )
+                                    const colorOption = product.options.find((opt) => opt.name === "Couleur")
 
-          const useSizeValues = sizeOption?.values.includes(variant.size);
+                                    const useSizeValues = sizeOption?.values.includes(variant.size)
 
-          const valuesToShow = useSizeValues
-            ? sizeOption?.values
-            : colorOption?.values;
+                                    const valuesToShow = useSizeValues ? sizeOption?.values : colorOption?.values
 
-          return valuesToShow?.map((value: string) => (
-            <SelectItem key={value} value={value}>
-              {value}
-            </SelectItem>
-          ));
-        })()}
-      </SelectContent>
-    </Select>
-  </div>
-)}
+                                    return valuesToShow?.map((value: string) => (
+                                      <SelectItem key={value} value={value}>
+                                        {value}
+                                      </SelectItem>
+                                    ))
+                                  })()}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
 
-{/* Couleur Select */}
-{variant.color !== null && (
-  <div className="space-y-1">
-    <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
-      Couleur
-    </Label>
-    <Select
-      value={variant.color}
-      onValueChange={(value) =>
-        updateVariant(article.id, variant.id, "color", value)
-      }
-    >
-      <SelectTrigger
-        id={`variant-color-${variant.id}`}
-        className="h-8 text-xs bg-slate-800/50 border-slate-700"
-      >
-        <SelectValue placeholder="Couleur" />
-      </SelectTrigger>
+                          {/* Couleur Select */}
+                          {variant.color !== null && (
+                            <div className="space-y-1">
+                              <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
+                                Couleur
+                              </Label>
+                              <Select
+                                value={variant.color}
+                                onValueChange={(value) => updateVariant(article.id, variant.id, "color", value)}
+                              >
+                                <SelectTrigger
+                                  id={`variant-color-${variant.id}`}
+                                  className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                                >
+                                  <SelectValue placeholder="Couleur" />
+                                </SelectTrigger>
 
-      <SelectContent className="bg-slate-900 border-slate-800">
-        {(() => {
-          const product = products?.find((p) => p.id === article.id);
-          if (!product) return null;
+                                <SelectContent className="bg-slate-900 border-slate-800">
+                                  {(() => {
+                                    const product = products?.find((p) => p.id === article.id)
+                                    if (!product) return null
 
-          const colorOption = product.options.find((opt) =>
-            ["Couleur", "couleur"].includes(opt.name)
-          );
-          const sizeOption = product.options.find((opt) =>
-            ["Pointure", "pointure", "Taille"].includes(opt.name)
-          );
+                                    const colorOption = product.options.find((opt) =>
+                                      ["Couleur", "couleur"].includes(opt.name),
+                                    )
+                                    const sizeOption = product.options.find((opt) =>
+                                      ["Pointure", "pointure", "Taille"].includes(opt.name),
+                                    )
 
-          const useColorValues = colorOption?.values.includes(variant.color);
+                                    const useColorValues = colorOption?.values.includes(variant.color)
 
-          const valuesToShow = useColorValues
-            ? colorOption?.values
-            : sizeOption?.values;
+                                    const valuesToShow = useColorValues ? colorOption?.values : sizeOption?.values
 
-          return valuesToShow?.map((value: string) => (
-            <SelectItem key={value} value={value}>
-              {value}
-            </SelectItem>
-          ));
-        })()}
-      </SelectContent>
-    </Select>
-  </div>
-)}
+                                    return valuesToShow?.map((value: string) => (
+                                      <SelectItem key={value} value={value}>
+                                        {value}
+                                      </SelectItem>
+                                    ))
+                                  })()}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-quantity-${variant.id}`} className="text-xs">
@@ -1226,18 +1205,14 @@ const generateReference = (depotsObj = selectedDepots) => {
                             />
                           </div>
 
-           <div className="space-y-1">
-  <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
-    Stock disponible
-  </Label>
-  <p className="text-sm text-muted-foreground">
-    {products
-      ?.find((product) => product.id === article.id)
-      ?.variants.find((v) => v.id === variant.variant_id
-)
-      ?.depots?.find((depot) => depot.type === "principale")?.quantity ?? 0}
-  </p>
-</div>
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
+                              Stock disponible
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              {variant.depot && variant.depot.length > 0 ? variant.depot[0].quantity : 0}
+                            </p>
+                          </div>
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-price-${variant.id}`} className="text-xs">
@@ -1257,27 +1232,32 @@ const generateReference = (depotsObj = selectedDepots) => {
                             />
                           </div>
 
-                          {/* Add this after the price column and before the actions column */}
+                          {/* Modified depot column to check for zero quantity */}
                           <div className="space-y-1">
                             <Label htmlFor={`variant-depot-${variant.id}`} className="text-xs">
                               Dépôt
                             </Label>
                             <div>
-                              {variant.depot ? (
-                                <div className="flex items-center h-8 text-xs">
-                                  <Warehouse className="h-3 w-3 mr-1 text-amber-300" />
-                                  <span className="text-amber-300">{variant.depot.name}</span>
-                                </div>
-                              ) : (
+                              {variantNeedsDepot(variant) ? (
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => openDepotSelection(article.id, variant.variant_id)}
-                                  className="h-8 text-xs bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+                                  className="h-8 text-xs bg-red-900/20 border-red-700 text-red-400 hover:bg-red-800/30"
                                 >
-                                  <Warehouse className="h-3 w-3 mr-1" />
-                                  Sélectionner
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                  Stock épuisé
                                 </Button>
+                              ) : variant.depot && variant.depot.length > 0 ? (
+                                <div className="flex items-center h-8 text-xs">
+                                  <Warehouse className="h-3 w-3 mr-1 text-green-400" />
+                                  <span className="text-green-400">{variant.depot[0].name}</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center h-8 text-xs text-slate-400">
+                                  <Warehouse className="h-3 w-3 mr-1" />
+                                  Aucun dépôt
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1794,7 +1774,7 @@ const generateReference = (depotsObj = selectedDepots) => {
           </div>
         </div>
 
-        {/* Add this right before the DialogFooter component (around line 1000) */}
+        {/* Modified depot selection dialog to show available depots */}
         {showDepotDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-slate-900 p-6 rounded-lg w-full max-w-md">
@@ -1803,7 +1783,7 @@ const generateReference = (depotsObj = selectedDepots) => {
                 Ce produit est en rupture de stock. Veuillez sélectionner un dépôt pour cette commande.
               </p>
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                { products?.find((a) => a.id === currentVariantForDepot?.articleId)?.variants.find((v) => v.id === currentVariantForDepot?.variantId)?.depots?.map((depot) => (
+                {availableDepots.map((depot) => (
                   <div
                     key={depot.id}
                     className="p-3 border border-slate-700 rounded-md hover:bg-slate-800 cursor-pointer"
@@ -1811,6 +1791,7 @@ const generateReference = (depotsObj = selectedDepots) => {
                   >
                     <div className="flex justify-between">
                       <span className="font-medium">{depot.name}</span>
+                      <span className="text-sm text-slate-400">Qté: {depot.quantity}</span>
                     </div>
                     <div className="text-xs text-slate-400">Priorité: {depot.priority}</div>
                   </div>
@@ -1826,60 +1807,61 @@ const generateReference = (depotsObj = selectedDepots) => {
         )}
 
         {/* Add this before the DialogFooter */}
-        {Object.keys(selectedDepots).length > 0 || orderReference && (
-          <div className="mt-6 mb-4">
-            <Alert variant="destructive" className="bg-amber-900/20 border-amber-800 text-amber-300">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Articles en rupture de stock</AlertTitle>
-              <AlertDescription>
-                Certains articles sont en rupture de stock et nécessitent une référence de dépôt.
-              </AlertDescription>
-            </Alert>
+        {Object.keys(selectedDepots).length > 0 ||
+          (orderReference && (
+            <div className="mt-6 mb-4">
+              <Alert variant="destructive" className="bg-amber-900/20 border-amber-800 text-amber-300">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Articles en rupture de stock</AlertTitle>
+                <AlertDescription>
+                  Certains articles sont en rupture de stock et nécessitent une référence de dépôt.
+                </AlertDescription>
+              </Alert>
 
-            <div className="mt-4 p-4 border border-slate-700 rounded-md bg-slate-800/30">
-              <h3 className="text-lg font-medium mb-3">Référence de commande</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="orderReference">Référence (min. 10 caractères) *</Label>
-                  <Input
-                    id="orderReference"
-                    value={orderReference}
-                    onChange={(e) => {
-                      setOrderReference(e.target.value)
-                      setIsReferenceValid(e.target.value.length >= 10)
-                    }}
-                    className={`bg-slate-800/50 border-${isReferenceValid ? "green" : "red"}-500`}
-                  />
-                  {!isReferenceValid && (
-                    <p className="text-xs text-red-400">La référence doit contenir au moins 10 caractères</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Dépôts sélectionnés</Label>
-                  <div className="text-sm text-slate-300 space-y-1">
-                    {Object.entries(selectedDepots).map(([key, depot]) => {
-                      const [articleId, variantId] = key.split("-")
-                      const article = selectedArticles.find((a) => a.id === articleId)
-                      const variant = article?.variants.find((v) => v.id === variantId)
+              <div className="mt-4 p-4 border border-slate-700 rounded-md bg-slate-800/30">
+                <h3 className="text-lg font-medium mb-3">Référence de commande</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="orderReference">Référence (min. 10 caractères) *</Label>
+                    <Input
+                      id="orderReference"
+                      value={orderReference}
+                      onChange={(e) => {
+                        setOrderReference(e.target.value)
+                        setIsReferenceValid(e.target.value.length >= 10)
+                      }}
+                      className={`bg-slate-800/50 border-${isReferenceValid ? "green" : "red"}-500`}
+                    />
+                    {!isReferenceValid && (
+                      <p className="text-xs text-red-400">La référence doit contenir au moins 10 caractères</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Dépôts sélectionnés</Label>
+                    <div className="text-sm text-slate-300 space-y-1">
+                      {Object.entries(selectedDepots).map(([key, depot]) => {
+                        const [articleId, variantId] = key.split("-")
+                        const article = selectedArticles.find((a) => a.id === articleId)
+                        const variant = article?.variants.find((v) => v.id === variantId)
 
-                      return (
-                        <div key={key} className="flex justify-between">
-                          <span>
-                            {article?.name} ({variant?.size}, {variant?.color})
-                          </span>
-                          <span className="text-amber-300">
-                            <Warehouse className="h-3 w-3 inline mr-1" />
-                            {depot.name}
-                          </span>
-                        </div>
-                      )
-                    })}
+                        return (
+                          <div key={key} className="flex justify-between">
+                            <span>
+                              {article?.name} ({variant?.size}, {variant?.color})
+                            </span>
+                            <span className="text-amber-300">
+                              <Warehouse className="h-3 w-3 inline mr-1" />
+                              {depot.name}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          ))}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

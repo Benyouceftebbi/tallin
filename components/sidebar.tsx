@@ -504,7 +504,8 @@ export function MobileSidebar() {
 
 export function SidebarToggle() {
   const { isOpen, toggle } = useSidebar();
-const { logout} = useAuth();
+const { logout,user} = useAuth();
+
 
   return (
     <div className="hidden lg:flex items-center justify-between w-full px-4">
@@ -522,6 +523,10 @@ const { logout} = useAuth();
         )}
       </Button>
 
+  <div className="flex items-center gap-3">
+      {/* User email display */}
+      <span className="text-xs text-muted-foreground">{user?.email}</span>
+
       {/* Logout button */}
       <Button
         variant="ghost"
@@ -531,6 +536,7 @@ const { logout} = useAuth();
       >
         <LogOut className="h-5 w-5 text-red-500" />
       </Button>
+    </div>
     </div>
   );
 }

@@ -57,6 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth)
+       setWorkerName("");
+       setUserRole(null)
       router.push("/sign-in")
     } catch (error) {
       console.error("Error signing out:", error)
