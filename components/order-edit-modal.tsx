@@ -373,78 +373,102 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
     setSelectedArticles(selectedArticles.filter((article) => article.id !== articleId))
   }
 
-  // Mettre à jour un article
-  const updateArticle = (articleId: string, field: keyof Article, value: any) => {
-    if (field === "id") {
-      // When article name changes, fetch inventory data
-      const inventoryItem = products?.find((product) => product.id === value)
+const updateArticle = (articleId: string, field: keyof Article, value: any) => {
+  if (field === "id") {
+    const inventoryItem = products?.find((product) => product.id === value);
 
-      setSelectedArticles(
-        selectedArticles.map((article) => {
-          if (article.id === articleId) {
-            // If inventory item exists, update variants with stock info
-            if (inventoryItem) {
-              const updatedVariants = inventoryItem.variants.map((invVariant) => ({
-                id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                size: invVariant.size || "Unique",
-                color: invVariant.color || "Noir",
-                quantity: 1,
-                price: invVariant.price,
-                unit_price: invVariant.unit_price,
-                inventoryVariantId: invVariant.id,
-                availableStock: "0",
-                stockStatus: "available",
-                expectedDate: "",
-              }))
-
-              return {
-                ...article,
-                ...inventoryItem,
-                [field]: value,
-                name: inventoryItem.title,
-                sku: inventoryItem.sku,
-                variants: [updatedVariants[0]], // Keep only the first variant for now
-              }
-            } else {
-              // If no inventory item, just update the name
-              return { ...article, [field]: value }
-            }
-          }
-          return article
-        }),
-      )
-    } else {
-      // For other fields, just update normally
-      setSelectedArticles(
-        selectedArticles.map((article) => (article.id === articleId ? { ...article, [field]: value } : article)),
-      )
-    }
-  }
-
-  // Ajouter une variante à un article
-  const addVariant = (articleId: string) => {
     setSelectedArticles(
       selectedArticles.map((article) => {
         if (article.id === articleId) {
-          return {
-            ...article,
-            variants: [
-              ...article.variants,
-              {
-                id: `variant-${articleId}-${article.variants.length}`,
-                size: "Unique",
-                color: "Noir",
-                quantity: 1,
-                price: products.find((product) => product.id)?.variants[0].price || 0,
-                stockStatus: "available",
-              },
-            ],
+if (inventoryItem) {
+  // 🔍 Find matching option sets
+  const sizeOption = inventoryItem.options?.find(opt =>
+    ["Pointure", "pointure", "Taille"].includes(opt.name)
+  );
+  const otherOption = inventoryItem.options?.find(
+    (opt) => opt.name !== sizeOption?.name
+  );
+
+  const defaultSize = sizeOption?.values?.[0] ?? null;
+  const defaultColor = otherOption?.values?.[0] ?? null;
+
+  const updatedVariants = inventoryItem.variants.map((invVariant) => {
+    const baseVariant = {
+      id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      quantity: 1,
+      price: invVariant.price,
+      unit_price: invVariant.unit_price,
+      inventoryVariantId: invVariant.id,
+      variant_id: invVariant.id,
+      availableStock: "0",
+      stockStatus: "available",
+      expectedDate: "",
+      size: defaultSize,
+      color: defaultColor,
+    };
+
+    return baseVariant;
+  });
+
+  return {
+    ...article,
+    ...inventoryItem,
+    [field]: value,
+    name: inventoryItem.title,
+    sku: inventoryItem.sku,
+    variants: [updatedVariants[0]], // Keep only the first variant
+  };
+} else {
+            return { ...article, [field]: value };
           }
         }
-        return article
-      }),
-    )
+        return article;
+      })
+    );
+  } else {
+    setSelectedArticles(
+      selectedArticles.map((article) =>
+        article.id === articleId ? { ...article, [field]: value } : article
+      )
+    );
   }
+};
+
+  // Ajouter une variante à un article
+const addVariant = (articleId: string) => {
+  setSelectedArticles(
+    selectedArticles.map((article) => {
+      if (article.id === articleId) {
+        const product = products.find((p) => p.id === article.id);
+
+        // Find options
+        const sizeOption = product?.options?.find(opt =>
+          ["Pointure", "pointure", "Taille"].includes(opt.name)
+        );
+        const otherOption = product?.options?.find(opt => opt.name !== sizeOption?.name);
+
+        const defaultSize = sizeOption?.values?.[0] ?? null;
+        const defaultColor = otherOption?.values?.[0] ?? null;
+
+        const newVariant = {
+          id: `variant-${articleId}-${article.variants.length}`,
+          size: defaultSize,
+          color: defaultColor,
+          quantity: 1,
+          price: product?.variants?.[0]?.price || 0,
+          stockStatus: "available",
+   
+        };
+
+        return {
+          ...article,
+          variants: [...article.variants, newVariant],
+        };
+      }
+      return article;
+    })
+  );
+};
 
   // Supprimer une variante
   const removeVariant = (articleId: string, variantId: string) => {
@@ -462,30 +486,54 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   }
 
   // Mettre à jour une variante
-  const updateVariant = (articleId: string, variantId: string, field: keyof ArticleVariant, value: any) => {
-    setSelectedArticles(
-      selectedArticles.map((article) => {
-        if (article.id === articleId) {
-          return {
-            ...article,
-            variants: article.variants.map((variant) => {
-              if (variant.id === variantId) {
-                // If updating price, also update unit_price and vice versa
-                if (field === "price") {
-                  return { ...variant, price: value, unit_price: value }
-                } else if (field === "unit_price") {
-                  return { ...variant, unit_price: value, price: value }
-                }
-                return { ...variant, [field]: value }
-              }
-              return variant
-            }),
+const updateVariant = (
+  articleId: string,
+  variantId: string,
+  field: keyof ArticleVariant,
+  value: any
+) => {
+  setSelectedArticles((prevArticles) =>
+    prevArticles.map((article) => {
+      if (article.id !== articleId) return article;
+
+      const updatedVariants = article.variants.map((variant) => {
+        if (variant.id !== variantId) return variant;
+
+        const updatedVariant = { ...variant, [field]: value };
+
+        // If size or color changed, try to find matching inventory variant
+        if (field === "size" || field === "color") {
+          const product = products?.find((p) => p.id === article.id);
+          if (product) {
+            const matchingInventoryVariant = product.variants.find(
+              (invVariant) =>
+                (invVariant.option1 === updatedVariant.size &&
+                  invVariant.option2 === updatedVariant.color) ||
+                (invVariant.option2 === updatedVariant.size &&
+                  invVariant.option1 === updatedVariant.color)
+            );
+
+            if (matchingInventoryVariant) {
+              updatedVariant.variant_id= matchingInventoryVariant.id;
+             
+            }
           }
         }
-        return article
-      }),
-    )
-  }
+
+        // Keep price/unit_price in sync
+        if (field === "price") {
+          updatedVariant.unit_price = value;
+        } else if (field === "unit_price") {
+          updatedVariant.price = value;
+        }
+
+        return updatedVariant;
+      });
+
+      return { ...article, variants: updatedVariants };
+    })
+  );
+};
   // Charger les articles d'une commande précédente
   const loadPreviousOrderArticles = () => {
     if (!selectedPreviousOrder) return
@@ -551,14 +599,14 @@ const selectDepotForVariant = (depotId: string) => {
     return updated
   })
 
-  // Update the variant with the depot information directly
+  // Update the variant with the depot information directlyisNe
   setSelectedArticles(
     selectedArticles.map((article) => {
       if (article.id === currentVariantForDepot.articleId) {
         return {
           ...article,
           variants: article.variants.map((variant) => {
-            if (variant.id === currentVariantForDepot.variantId) {
+            if (variant.variant_id=== currentVariantForDepot.variantId) {
               return {
                 ...variant,
                 depot: selectedDepot,
@@ -1065,90 +1113,100 @@ const generateReference = (depotsObj = selectedDepots) => {
                           key={variant.id}
                           className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
                         >
-                          <div className="space-y-1">
-                            <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
-                              Taille
-                            </Label>
-<div className="space-y-1">
-  <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
-    Taille
-  </Label>
-  <Select
-    value={variant.size }
-    onValueChange={(value) => updateVariant(article.id, variant.id, "size", value)}
-  >
-    <SelectTrigger
-      id={`variant-size-${variant.id}`}
-      className="h-8 text-xs bg-slate-800/50 border-slate-700"
+{variant.size !== null && (
+  <div className="space-y-1">
+    <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
+      Taille
+    </Label>
+    <Select
+      value={variant.size}
+      onValueChange={(value) =>
+        updateVariant(article.id, variant.id, "size", value)
+      }
     >
-      <SelectValue placeholder="Taille" />
-    </SelectTrigger>
+      <SelectTrigger
+        id={`variant-size-${variant.id}`}
+        className="h-8 text-xs bg-slate-800/50 border-slate-700"
+      >
+        <SelectValue placeholder="Taille" />
+      </SelectTrigger>
 
-    <SelectContent className="bg-slate-900 border-slate-800">
-      {(() => {
-        const product = products?.find((p) => p.id === article.id);
-        if (!product) return null;
+      <SelectContent className="bg-slate-900 border-slate-800">
+        {(() => {
+          const product = products?.find((p) => p.id === article.id);
+          if (!product) return null;
 
-        const sizeOption = product.options.find(opt =>
-          ["Pointure", "pointure", "Taille"].includes(opt.name)
-        );
-        const colorOption = product.options.find(opt => opt.name === "Couleur");
+          const sizeOption = product.options.find((opt) =>
+            ["Pointure", "pointure", "Taille"].includes(opt.name)
+          );
+          const colorOption = product.options.find(
+            (opt) => opt.name === "Couleur"
+          );
 
-        const useSizeValues = sizeOption?.values.includes(variant.size);
+          const useSizeValues = sizeOption?.values.includes(variant.size);
 
-        const valuesToShow = useSizeValues
-          ? sizeOption?.values
-          : colorOption?.values;
+          const valuesToShow = useSizeValues
+            ? sizeOption?.values
+            : colorOption?.values;
 
-        return valuesToShow?.map((value: string) => (
-          <SelectItem key={value} value={value}>
-            {value}
-          </SelectItem>
-        ));
-      })()}
-    </SelectContent>
-  </Select>
-</div>
-                          </div>
-                          <div className="space-y-1">
-                            <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
-                              Couleur
-                            </Label>
-                            <Select
-                              value={variant.color}
-                              onValueChange={(value) => updateVariant(article.id, variant.id, "color", value)}
-                            >
-                              <SelectTrigger
-                                id={`variant-color-${variant.id}`}
-                                className="h-8 text-xs bg-slate-800/50 border-slate-700"
-                              >
-                                <SelectValue placeholder="Couleur" />
-                              </SelectTrigger>
-   <SelectContent className="bg-slate-900 border-slate-800">
-      {(() => {
-        const product = products?.find((p) => p.id === article.id);
-        if (!product) return null;
+          return valuesToShow?.map((value: string) => (
+            <SelectItem key={value} value={value}>
+              {value}
+            </SelectItem>
+          ));
+        })()}
+      </SelectContent>
+    </Select>
+  </div>
+)}
 
-        const colorOption = product.options.find(opt => opt.name === "Couleur");
-        const sizeOption = product.options.find(opt =>
-          ["Pointure", "pointure", "Taille"].includes(opt.name)
-        );
+{/* Couleur Select */}
+{variant.color !== null && (
+  <div className="space-y-1">
+    <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
+      Couleur
+    </Label>
+    <Select
+      value={variant.color}
+      onValueChange={(value) =>
+        updateVariant(article.id, variant.id, "color", value)
+      }
+    >
+      <SelectTrigger
+        id={`variant-color-${variant.id}`}
+        className="h-8 text-xs bg-slate-800/50 border-slate-700"
+      >
+        <SelectValue placeholder="Couleur" />
+      </SelectTrigger>
 
-        const useColorValues = colorOption?.values.includes(variant.color);
+      <SelectContent className="bg-slate-900 border-slate-800">
+        {(() => {
+          const product = products?.find((p) => p.id === article.id);
+          if (!product) return null;
 
-        const valuesToShow = useColorValues
-          ? colorOption?.values
-          : sizeOption?.values;
+          const colorOption = product.options.find((opt) =>
+            ["Couleur", "couleur"].includes(opt.name)
+          );
+          const sizeOption = product.options.find((opt) =>
+            ["Pointure", "pointure", "Taille"].includes(opt.name)
+          );
 
-        return valuesToShow?.map((value: string) => (
-          <SelectItem key={value} value={value}>
-            {value}
-          </SelectItem>
-        ));
-      })()}
-    </SelectContent>
-                            </Select>
-                          </div>
+          const useColorValues = colorOption?.values.includes(variant.color);
+
+          const valuesToShow = useColorValues
+            ? colorOption?.values
+            : sizeOption?.values;
+
+          return valuesToShow?.map((value: string) => (
+            <SelectItem key={value} value={value}>
+              {value}
+            </SelectItem>
+          ));
+        })()}
+      </SelectContent>
+    </Select>
+  </div>
+)}
 
                           <div className="space-y-1">
                             <Label htmlFor={`variant-quantity-${variant.id}`} className="text-xs">
@@ -1214,7 +1272,7 @@ const generateReference = (depotsObj = selectedDepots) => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => openDepotSelection(article.id, variant.id)}
+                                  onClick={() => openDepotSelection(article.id, variant.variant_id)}
                                   className="h-8 text-xs bg-slate-800/50 border-slate-700 hover:bg-slate-700"
                                 >
                                   <Warehouse className="h-3 w-3 mr-1" />
@@ -1745,7 +1803,7 @@ const generateReference = (depotsObj = selectedDepots) => {
                 Ce produit est en rupture de stock. Veuillez sélectionner un dépôt pour cette commande.
               </p>
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {availableDepots.map((depot) => (
+                { products?.find((a) => a.id === currentVariantForDepot?.articleId)?.variants.find((v) => v.id === currentVariantForDepot?.variantId)?.depots?.map((depot) => (
                   <div
                     key={depot.id}
                     className="p-3 border border-slate-700 rounded-md hover:bg-slate-800 cursor-pointer"

@@ -24,6 +24,8 @@ import {
 } from "@/context/app-context"
 import { useDebounce } from "@/hooks/use-debounce"
 import { type Depot, DepotsManagement } from "../invoices/depots-management"
+import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 type VariantCombination = {
   id: string
@@ -210,9 +212,10 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
           status: product.status,
           tags: product.tags,
           depots: product.depots || [],
+          ...product
         })
         setOptions(product.options)
-        setVariantCombinations(convertToVariantCombinations())
+        setVariantCombinations(product.variants || [])
         setProductDepots(product.depots || [])
       }
     }
@@ -405,17 +408,32 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
   const removeVariantCombination = useCallback((id: string) => {
     setVariantCombinations((prev) => prev.filter((combo) => combo.id !== id))
   }, [])
-
-  const updateVariantCombination = useCallback((id: string, field: keyof VariantCombination, value: any) => {
+const updateVariantCombination = useCallback(
+  (id: string, field: keyof VariantCombination | "depot_quantity", value: any) => {
     setVariantCombinations((prev) =>
       prev.map((combo) => {
-        if (combo.id === id) {
-          return { ...combo, [field]: value }
+        if (combo.id !== id) return combo;
+
+        if (field === "depot_quantity") {
+          const updatedDepots = [...(combo.depots || [])];
+          if (!updatedDepots[0]) {
+            updatedDepots[0] = { id: "default", quantity: value }; // fallback if depot missing
+          } else {
+            updatedDepots[0] = {
+              ...updatedDepots[0],
+              quantity: value,
+            };
+          }
+
+          return { ...combo, depots: updatedDepots };
         }
-        return combo
-      }),
-    )
-  }, [])
+
+        return { ...combo, [field]: value };
+      })
+    );
+  },
+  []
+);
 
   const handleUploadImage = useCallback(
     (comboId: string) => {
@@ -552,25 +570,7 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
     setIsSaving(true)
 
     try {
-      // Convert variant combinations back to product variants and images
-      const updatedVariants: ProductVariant[] = variantCombinations.map((combo) => {
-        // Create variant title from options
-        const title = [combo.option1, combo.option2, combo.option3].filter(Boolean).join(" / ")
 
-        return {
-          id: combo.id,
-          title,
-          price: combo.price,
-          sku: combo.sku,
-          option1: combo.option1,
-          option2: combo.option2,
-          option3: combo.option3,
-          inventory_quantity: combo.inventory_quantity,
-          inventory_management: "shopify",
-          inventory_policy: "deny",
-          image_id: `img-${combo.id}`,
-        }
-      })
 
       // Create images for each variant
       const updatedImages: ProductImage[] = variantCombinations.map((combo, index) => {
@@ -592,17 +592,42 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
         product_type: product.product_type,
         status: product.status,
         tags: product.tags,
-        variants: updatedVariants,
+        variants: variantCombinations,
         options: options,
         images: updatedImages,
         image: updatedImages[0],
         depots: productDepots,
       }
-
-      // Update products in context
+      //console.log("upd",updatedVariants);
+      
+      //  Update products in context
       if (productId) {
         // Update existing product
-        setProducts(products.map((p) => (p.id === productId ? updatedProduct : p)))
+    
+         for (const combo of variantCombinations) {
+      const variantRef = doc(
+        db,
+        "Products",
+        updatedProduct.id.toString(),
+        "variants",
+        combo.id.toString()
+      );
+
+      const variantSnap = await getDoc(variantRef);
+      if (!variantSnap.exists()) continue;
+
+      const variantData = variantSnap.data();
+      const depots = Array.isArray(variantData.depots) ? [...variantData.depots] : [];
+
+      if (depots.length > 0) {
+        depots[0].quantity = combo.depots?.[0]?.quantity ?? 0;
+
+        await updateDoc(variantRef, {
+          depots,
+        });
+      }
+    }
+   setProducts(products.map((p) => (p.id === productId ? updatedProduct : p)))
       } else {
         // Add new product
         setProducts([...products, updatedProduct])
@@ -949,18 +974,14 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
                                     />
                                   </TableCell>
                                   <TableCell>
-                                    <Input
-                                      type="number"
-                                      value={combo.inventory_quantity}
-                                      onChange={(e) =>
-                                        updateVariantCombination(
-                                          combo.id,
-                                          "inventory_quantity",
-                                          Number.parseInt(e.target.value),
-                                        )
-                                      }
-                                      className="w-16"
-                                    />
+                                   <Input
+  type="number"
+  value={combo?.depots?.[0]?.quantity ?? 0}
+  onChange={(e) =>
+    updateVariantCombination(combo.id, "depot_quantity", Number.parseInt(e.target.value))
+  }
+  className="w-16"
+/>
                                   </TableCell>
                                   <TableCell>
                                     <Input
@@ -1088,17 +1109,14 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
 
                             <div className="space-y-2">
                               <Label>Inventory Quantity</Label>
-                              <Input
-                                type="number"
-                                value={combo.inventory_quantity}
-                                onChange={(e) =>
-                                  updateVariantCombination(
-                                    combo.id,
-                                    "inventory_quantity",
-                                    Number.parseInt(e.target.value),
-                                  )
-                                }
-                              />
+                 <Input
+  type="number"
+  value={combo?.depots?.[0]?.quantity ?? 0}
+  onChange={(e) =>
+    updateVariantCombination(combo.id, "depot_quantity", Number.parseInt(e.target.value))
+  }
+  className="w-16"
+/>
                             </div>
 
                             <div className="space-y-2">

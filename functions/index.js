@@ -933,3 +933,170 @@ exports.statusUpdate  = onRequest(async (req, res) => {
     throw new HttpsError("internal", error.message);
   }
 });
+exports.onOrderStatusConfirmed =onDocumentUpdated("orders/{orderId}", async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+console.log(before,after);
+
+    if (!before || !after) return;
+
+    const wasEnAttente = before.status === "en-attente";
+    const isConfirmed = after.status === "Confirmé";
+
+    if (!wasEnAttente || !isConfirmed) {
+      return;
+    }
+
+    const articles = after.articles || [];
+
+    const batch = db.batch();
+
+    for (const article of articles) {
+      const { product_id, variant_id, quantity } = article;
+
+      if (!product_id || !variant_id || !quantity) continue;
+
+      const variantRef = db
+        .collection("Products")
+        .doc(product_id.toString())
+        .collection("variants")
+        .doc(variant_id.toString());
+
+      const variantSnap = await variantRef.get();
+
+      if (!variantSnap.exists) {
+        console.warn(`Variant not found: ${product_id}/${variant_id}`);
+        continue;
+      }
+
+      const variantData = variantSnap.data();
+      const depots = variantData.depots || [];
+
+      if (!Array.isArray(depots) || depots.length === 0) {
+        console.warn(`No depot data for variant: ${product_id}/${variant_id}`);
+        continue;
+      }
+
+      const updatedDepot = {
+        ...depots[0],
+      quantity: (depots[0].quantity || 0) - quantity,
+      };
+
+      const updatedDepots = [...depots];
+      updatedDepots[0] = updatedDepot;
+
+      batch.update(variantRef, { depots: updatedDepots });
+    }
+
+    await batch.commit();
+    console.log("✅ Depots updated after confirmation");
+  });
+  exports.onOrderCreatedConfirmed = onDocumentCreated("orders/{orderId}", async (event) => {
+  const order = event.data?.data();
+  if (!order) return;
+
+  // ✅ Only proceed if the order status is "Confirmé"
+  if (order.status !== "Confirmé") {
+    return;
+  }
+
+  const articles = order.articles || [];
+
+  const batch = db.batch();
+
+  for (const article of articles) {
+    const { product_id, variant_id, quantity } = article;
+
+    if (!product_id || !variant_id || !quantity) continue;
+
+    const variantRef = db
+      .collection("Products")
+      .doc(product_id.toString())
+      .collection("variants")
+      .doc(variant_id.toString());
+
+    const variantSnap = await variantRef.get();
+
+    if (!variantSnap.exists) {
+      console.warn(`Variant not found: ${product_id}/${variant_id}`);
+      continue;
+    }
+
+    const variantData = variantSnap.data();
+    const depots = variantData.depots || [];
+
+    if (!Array.isArray(depots) || depots.length === 0) {
+      console.warn(`No depot data for variant: ${product_id}/${variant_id}`);
+      continue;
+    }
+
+    const updatedDepot = {
+      ...depots[0],
+      quantity: (depots[0].quantity || 0) - quantity, // allow going below 0
+    };
+
+    const updatedDepots = [...depots];
+    updatedDepots[0] = updatedDepot;
+
+    batch.update(variantRef, { depots: updatedDepots });
+  }
+
+  await batch.commit();
+  console.log("✅ Depots updated for new confirmed order");
+});
+exports.onOrderStatusUnconfirmed =onDocumentUpdated("orders/{orderId}", async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+
+    if (!before || !after) return;
+
+    const wasConfirmed = before.status === "Confirmé";
+    const isNowEnAttente = after.status === "en-attente";
+
+    if (!wasConfirmed || !isNowEnAttente) {
+      return;
+    }
+
+    const articles = after.articles || [];
+    const batch = db.batch();
+
+    for (const article of articles) {
+      const { product_id, variant_id, quantity } = article;
+
+      if (!product_id || !variant_id || !quantity) continue;
+
+      const variantRef = db
+        .collection("Products")
+        .doc(product_id.toString())
+        .collection("variants")
+        .doc(variant_id.toString());
+
+      const variantSnap = await variantRef.get();
+
+      if (!variantSnap.exists) {
+        console.warn(`Variant not found: ${product_id}/${variant_id}`);
+        continue;
+      }
+
+      const variantData = variantSnap.data();
+      const depots = variantData.depots || [];
+
+      if (!Array.isArray(depots) || depots.length === 0) {
+        console.warn(`No depot data for variant: ${product_id}/${variant_id}`);
+        continue;
+      }
+
+      const updatedDepot = {
+        ...depots[0],
+        quantity: (depots[0].quantity || 0) + quantity, // ➕ Add back quantity
+      };
+
+      const updatedDepots = [...depots];
+      updatedDepots[0] = updatedDepot;
+
+      batch.update(variantRef, { depots: updatedDepots });
+    }
+
+    await batch.commit();
+    console.log("✅ Depot quantities restored due to status reverting to en-attente");
+  });

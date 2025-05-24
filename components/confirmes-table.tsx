@@ -37,6 +37,7 @@ import { algeriaRegions } from "@/app/admin/commandes/en-attente/data/algeria-re
 import { httpsCallable } from "firebase/functions"
 import { auth, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
+import { useAuth } from "@/context/auth-context"
 
 export function ConfirmesTable() {
   const {
@@ -49,6 +50,7 @@ export function ConfirmesTable() {
     deliveryCompanies, // Assuming this comes from the shop context
     deliveryCenters,workers,orders // Assuming this comes from the shop context
   } = useShop()
+    const { userRole,workerName } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
@@ -92,8 +94,16 @@ export function ConfirmesTable() {
 
   // Filtrer pour n'avoir que les commandes confirmées
   const ordersConfirme = useMemo(() => {
+   if (workerName) {
+     return orders.filter(order =>
+      order.status === "Confirmé"&& order.confirmatrice === workerName
+    );
+  }
+   else {
     return orders.filter((order) => order.status === "Confirmé")
-  }, [orders])
+   
+  }
+}, [orders, userRole, workerName]);
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const wilayas = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.wilaya))), [ordersConfirme])
   const communes = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.commune))), [ordersConfirme])

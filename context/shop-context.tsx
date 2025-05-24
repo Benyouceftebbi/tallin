@@ -301,7 +301,7 @@ async function deleteDepot(id: string): Promise<void> {
       }
 
       // Update local state
-      setOrders((prev) => [...prev, newOrder])
+      //setOrders((prev) => [...prev, newOrder])
 
       console.log(`Order added with ID: ${newOrder.id}`)
       return newOrder.id
