@@ -477,9 +477,10 @@ async function retryUnfoundVariantsFromFile(filePath) {
 
   for (const variant of unfoundVariants) {
     const productSnap = await db.collection('Products')
-      .where('handle', '==', variant.code)
+      .where('title', '==', variant.code)
       .limit(1)
       .get();
+
 
     if (productSnap.empty) {
       console.log(`❌ Product with handle not found: ${variant.code}`);
@@ -489,17 +490,20 @@ async function retryUnfoundVariantsFromFile(filePath) {
 
     const productDoc = productSnap.docs[0];
     const variantsRef = db.collection('Products').doc(productDoc.id).collection('variants');
-
-    const query = await variantsRef
+ const query = await variantsRef
       .where('option1', 'in', [variant.color, variant.size])
       .where('option2', 'in', [variant.color, variant.size])
       .get();
 
     let matched = false;
     query.forEach(doc => {
+     
       const data = doc.data();
+      console.log(data);
+      
       const match1 = data.option1 === variant.color && data.option2 === variant.size;
       const match2 = data.option1 === variant.size && data.option2 === variant.color;
+console.log(data.option1,data.option2,variant.color,variant.size);
 
         if (match1 || match2) {
           matched = true;
@@ -544,7 +548,7 @@ async function main1() {
     console.error('❌ Error:', error);
   }
 }
-//main1().catch(console.error);
+main1().catch(console.error);
 async function enrichOrderArticlesWithDepot() {
   const ordersSnapshot = await db.collection("orders").get();
 

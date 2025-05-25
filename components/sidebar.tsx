@@ -252,7 +252,7 @@ export function Sidebar({ className }: SidebarProps) {
     if (!link.submenu) return false
     return link.submenu.some((sublink) => pathname.startsWith(sublink.href))
   }
-  const { userRole } = useAuth()
+  const { workerName } = useAuth()
 
   return (
     <div className={cn("hidden lg:block", className)}>
@@ -278,7 +278,7 @@ export function Sidebar({ className }: SidebarProps) {
           <div className={cn("py-2", isOpen ? "px-3" : "px-2")}>
             <TooltipProvider delayDuration={0}>
               <nav className="flex flex-col gap-1">
-      {(userRole === 'admin' ? sidebarLinks : workersidebarLinks).map((link) => (
+      {(workerName==="" ? sidebarLinks : workersidebarLinks).map((link) => (
                   <div key={link.title}>
                     {link.submenu && isOpen ? (
                       <div className="space-y-1">
@@ -404,8 +404,8 @@ export function Sidebar({ className }: SidebarProps) {
 export function MobileSidebar() {
   const pathname = usePathname()
   const [openSubmenu, setOpenSubmenu] = useState("Commandes")
-  const {userRole} = useAuth()
-  console.log("Usersss role:", userRole);
+  const {workerName} = useAuth()
+
   
   const toggleSubmenu = (title: string) => {
     setOpenSubmenu(openSubmenu === title ? "" : title)
@@ -435,7 +435,7 @@ export function MobileSidebar() {
         <ScrollArea className="h-[calc(100vh-3.5rem)]">
           <div className="px-3 py-2">
             <nav className="flex flex-col gap-1">
- {(userRole === 'admin' ? sidebarLinks : workersidebarLinks).map((link) => (
+ {(workerName==="" ? sidebarLinks : workersidebarLinks).map((link) => (
                 <div key={link.title}>
                   {link.submenu ? (
                     <div className="space-y-1">
