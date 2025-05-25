@@ -20,7 +20,7 @@ export function SignInForm() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { getUserRole } = useAuth()
+  const { getUserRole,workerName} = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,13 +31,11 @@ export function SignInForm() {
       // Sign in with Firebase
       await signInWithEmailAndPassword(auth, email, password)
 
-      // Get user role and redirect accordingly
-      const role = await getUserRole()
-      console.log("test",role);
+
       
-      if (role === "worker") {
+      if (workerName) {
         router.push("/worker")
-      } else if (role === "admin" || role === undefined) {
+      } else{
         router.push("/admin")
       }
     } catch (err) {

@@ -1,7 +1,9 @@
 const admin = require("firebase-admin");
-const { getFirestore } = require("firebase-admin/firestore");
+const { getFirestore,Timestamp } = require("firebase-admin/firestore");
 const xlsx = require('xlsx');
 const fs = require('fs');
+
+
 // Initialize Firebase Admin
 const firebaseConfig = {
  apiKey: "AIzaSyDf8fWEqcsW4MW5xUj-jXIUiSRKib06GpQ",
@@ -542,7 +544,7 @@ async function main1() {
     console.error('❌ Error:', error);
   }
 }
-main1().catch(console.error);
+//main1().catch(console.error);
 async function enrichOrderArticlesWithDepot() {
   const ordersSnapshot = await db.collection("orders").get();
 
@@ -642,3 +644,42 @@ async function addReferenceToExistingOrders() {
 }
 
 //addReferenceToExistingOrders().catch(console.error);
+async function deleteOldOrders() {
+  const cutoffDate = new Date('2025-05-24T12:40:00Z'); // UTC time
+
+  const snapshot = await db
+    .collection('orders')
+    .where('createdAt', '<', Timestamp.fromDate(cutoffDate))
+    .get();
+
+  if (snapshot.empty) {
+    console.log('No orders to delete before cutoff.');
+    return;
+  }
+
+  const batchSize = 500;
+  let batchCount = 0;
+  let deletedCount = 0;
+
+  while (!snapshot.empty) {
+    const batch = db.batch();
+    let counter = 0;
+
+    for (const doc of snapshot.docs) {
+      if (counter >= batchSize) break;
+
+      batch.delete(doc.ref);
+      counter++;
+      deletedCount++;
+    }
+
+    await batch.commit();
+    batchCount++;
+
+    console.log(`Batch ${batchCount}: Deleted ${counter} documents`);
+    break; // Remove this break if snapshot is dynamically refreshed for more than 500 docs
+  }
+
+  console.log(`Finished deleting. Total orders deleted: ${deletedCount}`);
+}
+deleteOldOrders().catch(console.error);

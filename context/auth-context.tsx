@@ -72,9 +72,12 @@ const [workerName, setWorkerName] = useState<string | null>(null);
 
       if (currentUser) {
           const role = await getUserRole(); // should set userRole internally
+          console.log("User rolssse:", role);
       setUserRole(role);
           if (role != "admin") {
         const workerSnap = await getDoc(doc(db, "Workers", currentUser.uid));
+        console.log("workerSnap",workerSnap.data(),currentUser.uid);
+        
         if (workerSnap.exists()) {
           const workerData = workerSnap.data();
           console.log("Worker data:", workerData);
@@ -96,7 +99,7 @@ const [workerName, setWorkerName] = useState<string | null>(null);
 
     return () => unsubscribe()
   }, [])
-console.log("User rolssse:", userRole,workerName);
+
 
   return (
     <AuthContext.Provider value={{ user, userRole, isLoading, getUserRole, logout,workerName }}>{children}</AuthContext.Provider>

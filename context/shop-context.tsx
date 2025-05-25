@@ -22,6 +22,7 @@ import { useEffect } from 'react'
 import { auth, db, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { httpsCallable } from "firebase/functions"
+import { useAuth } from "./auth-context"
 
 // Types
 export type OrderStatus =
@@ -412,8 +413,9 @@ async function deleteDepot(id: string): Promise<void> {
   const getOrderById = (id: string) => {
     return orders.find((order) => order.id === id)
   }
-
-  const getStatusCounts = () => {
+  const {userRole, workerName} = useAuth()
+  console.log("role",workerName);
+   const getStatusCounts = () => {
     const counts: Record<string, number> = {
       "en-attente": 0,
       "Confirmé": 0,
@@ -423,15 +425,18 @@ async function deleteDepot(id: string): Promise<void> {
       livres: 0,
       retour: 0,
     }
-
+  
     orders.forEach((order) => {
+      // Workers only see counts for orders they confirmed
+      if (workerName && order.confirmatrice !== workerName) return
+  
+      // Count the order by its status
       counts[order.status] = (counts[order.status] || 0) + 1
     })
-console.log(counts);
-
+  
+    console.log(counts)
     return counts
   }
-
   const sendSmsReminder = (id: string) => {
     // Simulate SMS sending
     setLoading(true)
@@ -643,7 +648,7 @@ useEffect(()=>{
 useEffect(() => {
   const ordersQuery = query(
     collection(db, 'orders'),
-    orderBy('id', 'desc')
+    orderBy('createdAt', 'desc')
   );
 
   const unsubscribe = onSnapshot(
