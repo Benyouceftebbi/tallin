@@ -682,4 +682,4 @@ async function deleteOldOrders() {
 
   console.log(`Finished deleting. Total orders deleted: ${deletedCount}`);
 }
-deleteOldOrders().catch(console.error);
+//deleteOldOrders().catch(console.error);
