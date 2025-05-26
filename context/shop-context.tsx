@@ -299,10 +299,11 @@ async function deleteDepot(id: string): Promise<void> {
       const newOrder = {
         ...orderWithTimestamp,
         id: order.id || docRef.id,
+        idd: order.id || docRef.id, // Ensure id and idd are the same
       }
 
       // Update local state
-      setOrders((prev) => [...prev, newOrder])
+      //setOrders((prev) => [...prev, newOrder])
 
       console.log(`Order added with ID: ${newOrder.id}`)
       return newOrder.id
