@@ -302,7 +302,7 @@ async function deleteDepot(id: string): Promise<void> {
       }
 
       // Update local state
-      //setOrders((prev) => [...prev, newOrder])
+      setOrders((prev) => [...prev, newOrder])
 
       console.log(`Order added with ID: ${newOrder.id}`)
       return newOrder.id
@@ -647,7 +647,7 @@ useEffect(()=>{
 
 useEffect(() => {
   const ordersQuery = query(
-    collection(db, 'orders'),limit(10),
+    collection(db, 'orders'),
     orderBy('createdAt', 'desc')
   );
 

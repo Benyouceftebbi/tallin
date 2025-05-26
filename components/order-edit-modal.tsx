@@ -296,7 +296,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
 
       setFormData({
         id: newOrderId,
-        status: "Confirmés",
+        status: "en-attente",
         confirmationStatus: "En attente",
         date: today,
         lastUpdated: new Date().toLocaleString("fr-FR"),
@@ -410,6 +410,19 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
                 return baseVariant
               })
 
+
+    const variantKey = `${articleId}-${updatedVariants[0]?.variantId}`
+           setSelectedDepots((prev) => {
+      const updated = {
+        ...prev,
+        [variantKey]: updatedVariants[0]?.depot[0] ,
+      }
+
+      // Call generateReference with the updated depots
+      generateReference(updated)
+
+      return updated
+    })
               return {
                 ...article,
                 ...inventoryItem,
@@ -438,7 +451,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
       selectedArticles.map((article) => {
         if (article.id === articleId) {
           const product = products.find((p) => p.id === article.id)
-
+        
           // Find options
           const sizeOption = product?.options?.find((opt) => ["Pointure", "pointure", "Taille"].includes(opt.name))
           const otherOption = product?.options?.find((opt) => opt.name !== sizeOption?.name)
@@ -455,7 +468,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
             stockStatus: "available",
             depot: product?.variants?.[0]?.depots || [],
           }
-
+         
           return {
             ...article,
             variants: [...article.variants, newVariant],
@@ -682,6 +695,7 @@ const {workerName}=useAuth()
     // Update the articles and total price
     const updatedFormData = {
       ...formData,
+      sku: formData.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       wilaya: selectedWilaya,
       totalPrice: totalPrice,
       orderReference: hasSelectedDepots ? orderReference : orderReference,
@@ -711,7 +725,11 @@ const {workerName}=useAuth()
     }
 
     if (isNew) {
-      addOrder({...updatedFormData,confirmatrice:workerName!=""?workerName:""} as Order)
+addOrder({
+  ...updatedFormData,
+  confirmatrice: workerName ? workerName : "",
+  createdAt: new Date()
+});
 
 
       toast({
