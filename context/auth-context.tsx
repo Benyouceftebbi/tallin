@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signOut(auth)
        setWorkerName("");
        setUserRole(null)
+       setUser(null)
       router.push("/sign-in")
     } catch (error) {
       console.error("Error signing out:", error)
@@ -72,7 +73,7 @@ const [workerName, setWorkerName] = useState<string | null>(null);
 
       if (currentUser) {
           const role = await getUserRole(); // should set userRole internally
-          console.log("User rolssse:", role);
+          console.log("User rolssse:", role,currentUser.uid);
       setUserRole(role);
           if (role != "admin") {
         const workerSnap = await getDoc(doc(db, "Workers", currentUser.uid));
