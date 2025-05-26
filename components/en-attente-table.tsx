@@ -566,10 +566,7 @@ export function EnAttenteTable() {
     })
 
     // Sort by numeric value of ID in descending order
-    return filtered.sort((a, b) => {
-      const getIdNumber = (id: string) => Number.parseInt(id.replace(/\D/g, ""), 10)
-      return getIdNumber(b.id) - getIdNumber(a.id)
-    })
+    return filtered
   }, [
     ordersWait,
     searchTerm,
