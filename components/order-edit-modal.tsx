@@ -599,7 +599,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
               if (variant.variant_id === currentVariantForDepot.variantId) {
                 return {
                   ...variant,
-                  depot: [selectedDepot],
+                  depot: selectedDepot,
                 }
               }
               return variant
@@ -732,10 +732,16 @@ const {workerName}=useAuth()
   }
 
   // Modified function to check if a variant needs a depot
-  const variantNeedsDepot = (variant: ArticleVariant) => {
-    // Check if depot array exists and first depot has quantity 0
-    return variant.depot && variant.depot.length > 0 && variant.depot[0].quantity === 0
+const variantNeedsDepot = (variant: ArticleVariant) => {
+  if (!variant.depot) return false;
+console.log("var ",variant.depot);
+
+  if (Array.isArray(variant.depot)) {
+    return variant.depot.length > 0 && variant.depot[0]?.quantity === 0;
   }
+
+  return variant.depot.quantity === 0;
+};
 
   // Add this function to get the depot name for a variant
   const getDepotForVariant = (articleId: string, variantId: string) => {
@@ -1209,9 +1215,11 @@ const {workerName}=useAuth()
                             <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
                               Stock disponible
                             </Label>
-                            <p className="text-sm text-muted-foreground">
-                              {variant.depot && variant.depot.length > 0 ? variant.depot[0].quantity : 0}
-                            </p>
+<p className="text-sm text-muted-foreground">
+  {Array.isArray(variant.depot)
+    ? variant.depot[0]?.quantity ?? 0
+    : variant.depot?.quantity ?? 0}
+</p>
                           </div>
 
                           <div className="space-y-1">
@@ -1233,34 +1241,38 @@ const {workerName}=useAuth()
                           </div>
 
                           {/* Modified depot column to check for zero quantity */}
-                          <div className="space-y-1">
-                            <Label htmlFor={`variant-depot-${variant.id}`} className="text-xs">
-                              Dépôt
-                            </Label>
-                            <div>
-                              {variantNeedsDepot(variant) ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openDepotSelection(article.id, variant.variant_id)}
-                                  className="h-8 text-xs bg-red-900/20 border-red-700 text-red-400 hover:bg-red-800/30"
-                                >
-                                  <AlertTriangle className="h-3 w-3 mr-1" />
-                                  Stock épuisé
-                                </Button>
-                              ) : variant.depot && variant.depot.length > 0 ? (
-                                <div className="flex items-center h-8 text-xs">
-                                  <Warehouse className="h-3 w-3 mr-1 text-green-400" />
-                                  <span className="text-green-400">{variant.depot[0].name}</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center h-8 text-xs text-slate-400">
-                                  <Warehouse className="h-3 w-3 mr-1" />
-                                  Aucun dépôt
-                                </div>
-                              )}
-                            </div>
-                          </div>
+<div className="space-y-1">
+  <Label htmlFor={`variant-depot-${variant.id}`} className="text-xs">
+    Dépôt
+  </Label>
+  <div>
+    {variantNeedsDepot(variant) ? (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => openDepotSelection(article.id, variant.variant_id)}
+        className="h-8 text-xs bg-red-900/20 border-red-700 text-red-400 hover:bg-red-800/30"
+      >
+        <AlertTriangle className="h-3 w-3 mr-1" />
+        Stock épuisé
+      </Button>
+    ) : variant.depot ? (
+      <div className="flex items-center h-8 text-xs">
+        <Warehouse className="h-3 w-3 mr-1 text-green-400" />
+        <span className="text-sm text-muted-foreground text-green-400">
+          {Array.isArray(variant.depot)
+            ? variant.depot[0]?.name ?? ""
+            : variant.depot?.name ?? ""}
+        </span>
+      </div>
+    ) : (
+      <div className="flex items-center h-8 text-xs text-slate-400">
+        <Warehouse className="h-3 w-3 mr-1" />
+        Aucun dépôt
+      </div>
+    )}
+  </div>
+</div>
 
                           <div className="flex justify-end">
                             {article.variants.length > 1 && (
