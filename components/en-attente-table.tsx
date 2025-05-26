@@ -552,6 +552,8 @@ export function EnAttenteTable() {
 
       return (
         matchesSearch &&
+
+        
         matchesWilaya &&
         matchesCommune &&
         matchesDeliveryCompany &&
