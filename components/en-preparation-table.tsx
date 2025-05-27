@@ -52,6 +52,7 @@ import { isWithinInterval, parseISO } from "date-fns"
 import { httpsCallable } from "firebase/functions"
 import { functions } from "@/lib/firebase"
 import { generateParcelLabel } from "@/app/admin/commandes/confirmes/print"
+import { PDFDocument } from 'pdf-lib';
 
 // Liste des livreurs disponibles - définie en dehors du composant car elle ne change pas
 const deliverymen = [
@@ -498,14 +499,14 @@ export default function EnPreparationTable() {
       }
 
       // Rechercher la commande par ID
-      const order = orders.find((o) => o.id === barcode.trim())
+      const order = orders.find((o) => o.trackingId === barcode.trim())
 
       if (order) {
         // Vérifier si la commande a déjà été scannée
-        if (scannedOrders.some((o) => o.id === order.id)) {
+        if (scannedOrders.some((o) => o.id === order.trackingId)) {
           toast({
             title: "Commande déjà scannée",
-            description: `La commande ${order.id} a déjà été scannée dans cette session.`,
+            description: `La commande ${order.trackingId} a déjà été scannée dans cette session.`,
             variant: "destructive",
           })
           playAlertSound()
@@ -546,7 +547,7 @@ export default function EnPreparationTable() {
           hasMultipleArticles = true
           toast({
             title: "Attention: Commande volumineuse",
-            description: `La commande ${order.id} contient ${order.articles.length} articles.`,
+            description: `La commande ${order.trackingId} contient ${order.articles.length} articles.`,
             variant: "warning",
           })
           playWarningSound()
@@ -562,7 +563,7 @@ export default function EnPreparationTable() {
 
         toast({
           title: "Commande scannée",
-          description: `La commande ${order.id} a été ajoutée à la session de scan.`,
+          description: `La commande ${order.trackingId} a été ajoutée à la session de scan.`,
         })
       } else {
         toast({
@@ -612,53 +613,69 @@ export default function EnPreparationTable() {
     [processBarcode, isProcessingBarcode],
   )
 
-  // Print selected order labels
-  const printSelectedLabels = useCallback(async () => {
-    if (selectedRows.length === 0) {
-      toast({
-        title: "Aucune commande sélectionnée",
-        description: "Veuillez sélectionner au moins une commande pour imprimer les étiquettes.",
-        variant: "destructive",
-      });
-      return;
-    }
-  
-    // Get selected orders
-    const ordersToPrint = filteredOrders.filter(order => selectedRows.includes(order.id));
-  
-    // Separate orders based on deliveryCompany
-    const deliverymanOrders = ordersToPrint.filter(o => o.deliveryCompany === "deliveryMen");
-    const externalOrders = ordersToPrint.filter(o => o.deliveryCompany !== "deliveryMen");
-  
-    // Generate and print labels for deliveryman orders
-    for (const order of deliverymanOrders) {
-      await generateParcelLabel(order); // opens and prints
-    }
-  
-    // Open external label URLs
-    if (externalOrders.length > 0) {
-      const labelUrls = externalOrders.map(o => o.label); // assume label is a URL
-      const labelWindow = window.open();
-      if (labelWindow) {
-        labelWindow.document.write("<html><body>");
-        labelUrls.forEach(url => {
-          labelWindow.document.write(`<iframe src="${url}" style="width:100%;height:1000px;"></iframe><hr/>`);
-        });
-        labelWindow.document.write("</body></html>");
-        labelWindow.document.close();
-      }
-    }
-  
-    // Mark all selected orders as printed
-    await Promise.all(
-      selectedRows.map(id => updateOrder(id, { isPrinted: true }))
-    );
-  
+const printSelectedLabels = useCallback(async () => {
+  if (selectedRows.length === 0) {
     toast({
-      title: "Impression en cours",
-      description: `Impression de ${selectedRows.length} étiquette(s) de commande.`,
+      title: "Aucune commande sélectionnée",
+      description: "Veuillez sélectionner au moins une commande pour imprimer les étiquettes.",
+      variant: "destructive",
     });
-  }, [selectedRows, filteredOrders, toast]);
+    return;
+  }
+
+  const ordersToPrint = filteredOrders.filter(order => selectedRows.includes(order.id));
+  const deliverymanOrders = ordersToPrint.filter(o => o.deliveryCompany === "deliveryMen");
+  const externalOrders = ordersToPrint.filter(o => o.deliveryCompany !== "deliveryMen");
+
+  // 🔄 Create a single merged PDF document
+  const mergedPdf = await PDFDocument.create();
+
+  // 🧷 Merge deliveryMan-generated labels
+  for (const order of deliverymanOrders) {
+    try {
+      const pdfBuffer = await generateParcelLabel(order, { returnPdfBuffer: true });
+      const singlePdf = await PDFDocument.load(pdfBuffer);
+      const pages = await mergedPdf.copyPages(singlePdf, singlePdf.getPageIndices());
+      pages.forEach((page) => mergedPdf.addPage(page));
+    } catch (error) {
+      console.error(`Erreur lors de la génération de l’étiquette pour la commande ${order.id}:`, error);
+    }
+  }
+
+  // 🌐 Merge external order label PDFs from URLs
+  for (const order of externalOrders) {
+    try {
+const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.label)}`);
+      const pdfBuffer = await response.arrayBuffer();
+      const externalPdf = await PDFDocument.load(pdfBuffer);
+      const pages = await mergedPdf.copyPages(externalPdf, externalPdf.getPageIndices());
+      pages.forEach((page) => mergedPdf.addPage(page));
+    } catch (error) {
+      console.error(`Erreur lors du chargement de l’étiquette externe pour ${order.id}:`, error);
+    }
+  }
+
+  // 🧾 Save and open merged PDF
+  const mergedPdfBytes = await mergedPdf.save();
+  const blob = new Blob([mergedPdfBytes], { type: "application/pdf" });
+  const blobUrl = URL.createObjectURL(blob);
+
+  const printWindow = window.open(blobUrl, "_blank");
+  if (printWindow) {
+    printWindow.focus();
+  }
+
+  // ✅ Mark all selected orders as printed
+  await Promise.all(
+    selectedRows.map(id => updateOrder(id, { isPrinted: true }))
+  );
+
+  toast({
+    title: "Impression prête",
+    description: `Les ${selectedRows.length} étiquettes ont été combinées en un seul fichier PDF.`,
+  });
+
+}, [selectedRows, filteredOrders, toast]);
   if (loading) {
     return (
       <div className="space-y-4">
@@ -1175,6 +1192,7 @@ export default function EnPreparationTable() {
                       className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
                     />
                   </th>
+                    {visibleColumns.id && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Tracking</th>}
                   {visibleColumns.id && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">ID</th>}
                   {visibleColumns.date && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Date</th>
@@ -1242,7 +1260,8 @@ export default function EnPreparationTable() {
                           className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
                         />
                       </td>
-                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.id}</td>}
+                        {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order?.trackingId}</td>}
+                      {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order?.orderReference}</td>}
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}

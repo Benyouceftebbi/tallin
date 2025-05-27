@@ -67,8 +67,8 @@ function convertShopifyOrderToCustomFormat(shopifyOrder) {
         variant_id: item.variant_id,
         variant_title: item.variant_title,
         variant_options: {
-          option1: variantParts[0] || undefined,
-          option2: variantParts[1] || undefined
+    option1: variantParts[0] ?? null,
+  option2: variantParts[1] ?? null,
         },
         quantity: item.quantity,
         unit_price: item.price,

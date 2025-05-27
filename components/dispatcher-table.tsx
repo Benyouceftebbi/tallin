@@ -515,10 +515,10 @@ export function DispatcherTable() {
                       <TableCell className="text-slate-300">{order.deliveryCompany || "N/A"}</TableCell>
                     )}
                     {visibleColumns.confirmatrice && (
-                      <TableCell className="text-slate-300">{order.confirmer || "N/A"}</TableCell>
+                      <TableCell className="text-slate-300">{order.confirmatrice || "N/A"}</TableCell>
                     )}
                     {visibleColumns.preparateur && (
-                      <TableCell className="text-slate-300">{order.preparer || "N/A"}</TableCell>
+                      <TableCell className="text-slate-300">{order.confirmatrice || "N/A"}</TableCell>
                     )}
                     {visibleColumns.note && (
                       <TableCell className="text-slate-300">

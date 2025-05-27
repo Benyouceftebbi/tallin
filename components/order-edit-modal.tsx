@@ -38,6 +38,7 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/context/auth-context"
+import { log } from "console"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -430,32 +431,34 @@ useEffect(() => {
                   expectedDate: "",
                   size: defaultSize,
                   color: defaultColor,
-                  depot: invVariant.depots || [],
+               depot: invVariant.depots ?? [],
                 }
-
+           
+                
                 return baseVariant
               })
 
+const validVariant = updatedVariants.find(v => v?.depot?.[0]);
+const variantKey = `${articleId}-${validVariant?.variantId}`;
 
-    const variantKey = `${articleId}-${updatedVariants[0]?.variantId}`
-           setSelectedDepots((prev) => {
-      const updated = {
-        ...prev,
-        [variantKey]: updatedVariants[0]?.depot[0] ,
-      }
+setSelectedDepots((prev) => {
+  const updated = {
+    ...prev,
+    [variantKey]: validVariant?.depot?.[0] ?? null,
+  };
 
-      // Call generateReference with the updated depots
-      generateReference(updated)
+  // Call generateReference with the updated depots
+  generateReference(updated);
 
-      return updated
-    })
+  return updated;
+});
               return {
                 ...article,
                 ...inventoryItem,
                 [field]: value,
                 name: inventoryItem.title,
                 sku: inventoryItem.sku,
-                variants: [updatedVariants[0]], // Keep only the first variant
+ variants: validVariant ? [validVariant] : [], // Use the found variant or empty array
               }
             } else {
               return { ...article, [field]: value }
@@ -651,33 +654,39 @@ useEffect(() => {
 
     setShowDepotDialog(false)
   }
-
-  const generateReference = (depotsObj = selectedDepots) => {
-    const depots = Object.values(depotsObj)
-
-    console.log("depots", depots)
-
-    if (depots.length === 0) {
-      setOrderReference("")
-      return
-    }
-
-    const allSameDepot = depots.every((d) => d.id === depots[0].id)
-
-    let prefix = ""
-    if (allSameDepot) {
-      prefix = depots[0].name.substring(0, 5).toUpperCase()
-    } else {
-      prefix = "DEPOTD"
-    }
-
-    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
-    const timestamp = Date.now().toString().substring(9, 13)
-
-    const newReference = `${prefix}-${randomStr}${timestamp}`
-    setOrderReference(newReference)
-    setIsReferenceValid(newReference.length >= 10)
+const generateReference = (depotsObj = selectedDepots) => {
+  if (!depotsObj || typeof depotsObj !== 'object') {
+    setOrderReference("");
+    setIsReferenceValid(false);
+    return;
   }
+
+  const depots = Object.values(depotsObj);
+
+  console.log("depots", depots);
+
+  if (depots.length === 0) {
+    setOrderReference("");
+    setIsReferenceValid(false);
+    return;
+  }
+
+  const allSameDepot = depots.every((d) => d?.id === depots[0]?.id);
+
+  let prefix = "";
+  if (allSameDepot) {
+    prefix = depots[0]?.name?.substring(0, 5)?.toUpperCase() || "DEPOT";
+  } else {
+    prefix = "DEPOTD";
+  }
+
+  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const timestamp = Date.now().toString().substring(9, 13);
+
+  const newReference = `${prefix}-${randomStr}${timestamp}`;
+  setOrderReference(newReference);
+  setIsReferenceValid(newReference.length >= 10);
+};
 const {workerName}=useAuth()
   // Gérer la soumission du formulaire
   const handleSubmit = () => {

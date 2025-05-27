@@ -272,65 +272,88 @@ async function processTodayOrders() {
 }
 
 //processTodayOrders().catch(console.error);
-async function enrichVariantsWithDepot(documentPath) {
-  const docRef = db.doc(documentPath);
-  const docSnap = await docRef.get();
+async function enrichVariantsWithDepotForInvoices(invoiceIds) {
+  console.log("Starting depot enrichment...");
 
-  if (!docSnap.exists) {
-    console.error("Document not found at:", documentPath);
-    return;
-  }
+  for (const invoiceId of invoiceIds) {
+    const docRef = db.collection("invoices").doc(invoiceId);
+    const docSnap = await docRef.get();
 
-  const data = docSnap.data();
-  const items = data.items || [];
-
-  for (const item of items) {
-    const { productId, variantId, depot: depotId,quantity } = item;
-
-    if (!productId || !variantId || !depotId) continue;
-
-    const variantRef = db
-      .collection("Products")
-      .doc(productId.toString())
-      .collection("variants")
-      .doc(variantId.toString());
-
-    const variantSnap = await variantRef.get();
-    if (!variantSnap.exists) {
-      console.warn(`Variant not found: product ${productId}, variant ${variantId}`);
+    if (!docSnap.exists) {
+      console.warn(`Invoice not found: ${invoiceId}`);
       continue;
     }
 
-    const depotRef = db.collection("depots").doc(depotId);
-    const depotSnap = await depotRef.get();
+    const data = docSnap.data();
+    const items = data.items || [];
 
-    if (!depotSnap.exists) {
-      console.warn(`Depot not found: ${depotId}`);
-      continue;
+    for (const item of items) {
+      const { productId, variantId, depot, quantity } = item;
+
+      // ✅ Only process this product ID
+      if (productId !== "9895182237974") continue;
+
+      const depotId = depot;
+      console.log("Processing:", { depotId, productId, variantId });
+
+      const variantRef = db
+        .collection("Products")
+        .doc(productId.toString())
+        .collection("variants")
+        .doc(variantId.toString());
+
+      const variantSnap = await variantRef.get();
+
+      if (!variantSnap.exists) {
+        console.warn(`Variant not found: product ${productId}, variant ${variantId}`);
+        continue;
+      }
+
+      const variantData = variantSnap.data();
+
+      // Skip if depot info already exists
+      if (Array.isArray(variantData?.depots) && variantData.depots.length > 0) {
+        console.log(`Skipping variant ${variantId} (already has depots)`);
+        continue;
+      }
+
+      const depotRef = db.collection("depots").doc(depotId);
+      const depotSnap = await depotRef.get();
+
+      if (!depotSnap.exists) {
+        console.warn(`Depot not found: ${depotId}`);
+        continue;
+      }
+
+      const depotData = depotSnap.data();
+
+      const newDepots = [
+        {
+          id: depotId,
+          ...depotData,
+          quantity: quantity,
+        },
+      ];
+
+      await variantRef.update({
+        depots: newDepots,
+      });
+
+      console.log(`✅ Updated depot[0].quantity to ${quantity} for variant ${variantId} in product ${productId}`);
     }
-
-    const depotData = depotSnap.data();
-    const variantData = variantSnap.data();
-
-    
-
-    // Build new depots array with depot[0] updated
-    const newDepots = [
-      {
-        id: depotId,
-        ...depotData,
-        quantity: quantity,
-      },
-    ];
-
-    await variantRef.update({
-      depots: newDepots,
-    });
-
-    console.log(`Updated depot[0].quantity to ${quantity} for variant ${variantId} in product ${productId}`);
   }
+
+  console.log("Depot enrichment completed.");
 }
-//enrichVariantsWithDepot("invoices/9fHZxZGaaH4NB8YhSuns").catch(console.error);
+// Run the function for all invoice IDs
+const invoiceIds = [
+  "3kdXkopTMKqnWpy0jcJg",
+  "9fHZxZGaaH4NB8YhSuns",
+  "a6FkdHvUNkQ8OFFagY4B",
+  "hT5EK4XErRCf52UtBBLx",
+];
+
+enrichVariantsWithDepotForInvoices(invoiceIds).catch(console.error);
 
 /**
  * Parse Excel file to extract product information with each color-size as a separate variant
@@ -548,7 +571,7 @@ async function main1() {
     console.error('❌ Error:', error);
   }
 }
-main1().catch(console.error);
+//main1().catch(console.error);
 async function enrichOrderArticlesWithDepot() {
   const ordersSnapshot = await db.collection("orders").get();
 
