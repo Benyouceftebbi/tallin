@@ -275,7 +275,9 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
               variants: [],
             }
           }
-
+const matchedDepot = availableDepots.find(
+          (d) => d.id === item.depotId
+        );
           acc[articleId].variants.push({
             id: `variant-${item.variant_id}`,
             size: item.variant_options.option1,
@@ -285,6 +287,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
             stockStatus: "available", // you can adjust logic for status if needed
 
             ...item,
+            depot:item.depot?item.depot:matchedDepot 
           })
 
           return acc
@@ -720,7 +723,8 @@ const {workerName}=useAuth()
               option1: variant.size,
               option2: variant.color,
             },
-          depotId: selectedDepot?.id 
+           
+          depotId: selectedDepot?.id
   ?? (Array.isArray(variant.depot) ? variant.depot[0]?.id : variant.depot?.id),
 
 depotName: selectedDepot?.name 
