@@ -717,8 +717,11 @@ const {workerName}=useAuth()
               option1: variant.size,
               option2: variant.color,
             },
-            depotId: selectedDepot?.id ? selectedDepot.id : variant.depot?.[0]?.id,
-            depotName: selectedDepot?.name ? selectedDepot.name : variant.depot?.[0]?.name,
+          depotId: selectedDepot?.id 
+  ?? (Array.isArray(variant.depot) ? variant.depot[0]?.id : variant.depot?.id),
+
+depotName: selectedDepot?.name 
+  ?? (Array.isArray(variant.depot) ? variant.depot[0]?.name : variant.depot?.name),
           }
         }),
       ),
@@ -738,7 +741,6 @@ addOrder({
       })
     } else {
       updateOrder(order!.id, updatedFormData)
-      //console.log(updatedFormData);
 
       toast({
         title: "Commande mise à jour",
