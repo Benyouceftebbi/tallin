@@ -53,6 +53,7 @@ import { httpsCallable } from "firebase/functions"
 import { functions } from "@/lib/firebase"
 import { generateParcelLabel } from "@/app/admin/commandes/confirmes/print"
 import { PDFDocument } from 'pdf-lib';
+import { useAuth } from "@/context/auth-context"
 
 // Liste des livreurs disponibles - définie en dehors du composant car elle ne change pas
 const deliverymen = [
@@ -185,9 +186,16 @@ export default function EnPreparationTable() {
 
   // Filtres
   const [deliveryCompanyFilter, setDeliveryCompanyFilter] = useState<string>("all")
-
+const {workerName}=useAuth()
   // Obtenir les commandes en préparation - mémorisé pour éviter des appels inutiles
-  const orders = useMemo(() => getOrdersByStatus("En préparation"), [getOrdersByStatus])
+  const order1 = useMemo(() => getOrdersByStatus("En préparation"), [getOrdersByStatus])
+    const orders = useMemo(() => {
+      if (workerName) {
+        return order1.filter((order) =>order.confirmatrice === workerName)
+      } else {
+        return order1
+      }
+    }, [order1, workerName])
   const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const uniqueDeliveryCompanies = deliveryCompanies
