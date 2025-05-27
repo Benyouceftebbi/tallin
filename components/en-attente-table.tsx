@@ -416,7 +416,8 @@ export function EnAttenteTable() {
     workers,
     orders,
   } = useShop()
-  const { userRole, workerName } = useAuth()
+  const { userRole, workerName,user } = useAuth()
+console.log("use",user);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -1281,7 +1282,7 @@ export function EnAttenteTable() {
           </SelectContent>
         </Select>
 
-        {userRole === "admin" && (
+        {user?.email === "admin@admin.com" && (
           <Select value={confirmatriceFilter} onValueChange={setConfirmatriceFilter}>
             <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700" disabled={userRole === "worker"}>
               <SelectValue placeholder="Confirmatrice" />
