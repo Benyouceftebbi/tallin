@@ -440,7 +440,7 @@ export function ConfirmesTable() {
 
 
 
-
+  <OrderEditModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} order={editingOrder} confirm={true} />
       {/* Barre d'outils */}
       <div className="flex justify-end mb-4">
         <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />

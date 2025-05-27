@@ -172,7 +172,7 @@ type OrderEditModalProps = {
   isNew?: boolean
 }
 
-export function OrderEditModal({ open, onOpenChange, order, isNew = false }: OrderEditModalProps) {
+export function OrderEditModal({ open, onOpenChange, order, isNew = false,confirm=false }: OrderEditModalProps) {
   const {
     updateOrder,
     addOrder,
@@ -1937,6 +1937,7 @@ console.log("var ",variant.depot);
           </Button>
           <Button
             onClick={handleSubmit}
+            disabled={confirm}
             className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
           >
             {isNew ? "Ajouter" : "Enregistrer"}

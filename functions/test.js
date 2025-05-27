@@ -353,7 +353,7 @@ const invoiceIds = [
   "hT5EK4XErRCf52UtBBLx",
 ];
 
-enrichVariantsWithDepotForInvoices(invoiceIds).catch(console.error);
+//enrichVariantsWithDepotForInvoices(invoiceIds).catch(console.error);
 
 /**
  * Parse Excel file to extract product information with each color-size as a separate variant
@@ -710,3 +710,32 @@ async function deleteOldOrders() {
   console.log(`Finished deleting. Total orders deleted: ${deletedCount}`);
 }
 //deleteOldOrders().catch(console.error);
+function generateRandomReference() {
+  const randomStr = Math.random().toString(36).substring(2, 12).toUpperCase();
+  return `ATELI-${randomStr}`;
+}
+async function updateMissingOrderReferences() {
+  const snapshot = await db
+    .collection("orders")
+    .where("status", "==", "Confirmé")
+    .where("orderReference", "==", "")
+    .get();
+
+  if (snapshot.empty) {
+    console.log("No orders found with status 'Confirme' and empty orderReference.");
+    return;
+  }
+
+  const batch = db.batch();
+
+  snapshot.forEach((doc) => {
+    const newRef = generateRandomReference();
+    console.log(`Updating order ${doc.id} -> ${newRef}`);
+    batch.update(doc.ref, { orderReference: newRef });
+  });
+
+  await batch.commit();
+  console.log("✅ Order references updated successfully.");
+}
+
+updateMissingOrderReferences().catch(console.error);
