@@ -247,58 +247,74 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   }, [])
   const { products } = useAppContext()
   // Initialiser le formulaire avec les données de la commande
-  useEffect(() => {
+useEffect(() => {
+  const initializeOrderForm = async () => {
     if (order) {
-    const cleanedDeliveryPrice =
-  typeof order.deliveryPrice === "string"
-    ? order.deliveryPrice.replace(/\s?DZD$/, "")
-    : order.deliveryPrice?.toString() || "0";
+      const cleanedDeliveryPrice =
+        typeof order.deliveryPrice === "string"
+          ? order.deliveryPrice.replace(/\s?DZD$/, "")
+          : order.deliveryPrice?.toString() || "0";
 
       setFormData({
         ...order,
         deliveryPrice: cleanedDeliveryPrice,
-      })
-      //setFormData(order)
-      setSelectedWilaya(order.wilaya)
-      setCommunes(getCommunesByWilayaName(order.wilaya) || [])
+      });
 
-      // Convertir les articles de la commande en format structuré
-      const articleNames = order.articles
-      const structuredArticles: Article[] = Object.values(
-        articleNames.reduce<Record<string, Article>>((acc, item, index) => {
-          const articleId = String(item.product_id)
-          if (!acc[articleId]) {
-            acc[articleId] = {
-              id: `${articleId}`,
-              name: item.product_name,
-              sku: item.product_sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-              variants: [],
-            }
+      setSelectedWilaya(order.wilaya);
+      setCommunes(getCommunesByWilayaName(order.wilaya) || []);
+      setOrderReference(order.orderReference || "");
+
+      const acc: Record<string, Article> = {};
+
+      for (const item of order.articles) {
+        const articleId = String(item.product_id);
+
+        if (!acc[articleId]) {
+          acc[articleId] = {
+            id: articleId,
+            name: item.product_name,
+            sku:
+              item.product_sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+            variants: [],
+          };
+        }
+
+        // Get variant data from Firestore
+        let depot = null;
+        try {
+          const variantRef = doc(
+            db,
+            "Products",
+            articleId,
+            "variants",
+            item.variant_id.toString()
+          );
+          const variantSnap = await getDoc(variantRef);
+          if (variantSnap.exists()) {
+            const variantData = variantSnap.data();
+            depot = variantData?.depots?.[0] || null;
           }
-const matchedDepot = availableDepots.find(
-          (d) => d.id === item.depotId
-        );
-          acc[articleId].variants.push({
-            id: `variant-${item.variant_id}`,
-            size: item.variant_options.option1,
-            color: item.variant_options.option2,
-            quantity: item.quantity,
-            price: Number.parseFloat(item.unit_price),
-            stockStatus: "available", // you can adjust logic for status if needed
+        } catch (err) {
+          console.error(`Error fetching depot for variant ${item.variant_id}`, err);
+        }
 
-            ...item,
-            depot:item.depot?item.depot:matchedDepot 
-          })
+        acc[articleId].variants.push({
+          id: `variant-${item.variant_id}`,
+          size: item.variant_options.option1,
+          color: item.variant_options.option2,
+          quantity: item.quantity,
+          price: Number.parseFloat(item.unit_price),
+          stockStatus: "available",
+          ...item,
+          depot: item.depot || depot,
+        });
+      }
 
-          return acc
-        }, {}),
-      )
-      setOrderReference(order.orderReference || "")
-      setSelectedArticles(structuredArticles)
+      setSelectedArticles(Object.values(acc));
     } else {
-      // Valeurs par défaut pour une nouvelle commande
-      const newOrderId = `CMD-${Math.floor(1000 + Math.random() * 9000)}`
-      const today = new Date().toLocaleDateString("fr-FR")
+      // Defaults for new order
+      const newOrderId = `CMD-${Math.floor(1000 + Math.random() * 9000)}`;
+      const today = new Date().toLocaleDateString("fr-FR");
 
       setFormData({
         id: newOrderId,
@@ -310,16 +326,20 @@ const matchedDepot = availableDepots.find(
         trackingId: `TRK-${Math.floor(Math.random() * 100000)
           .toString()
           .padStart(6, "0")}`,
-      })
-      setSelectedArticles([])
-      setSelectedWilaya("")
-      setCommunes([])
+      });
+
+      setSelectedArticles([]);
+      setSelectedWilaya("");
+      setCommunes([]);
     }
 
-    // Charger les commandes précédentes pour l'échange
-    const deliveredOrders = getOrdersByStatus("Livrés")
-    setPreviousOrders(deliveredOrders)
-  }, [order, getOrdersByStatus])
+    // Fetch previous orders for exchange
+    const deliveredOrders = getOrdersByStatus("Livrés");
+    setPreviousOrders(deliveredOrders);
+  };
+
+  initializeOrderForm();
+}, [order, getOrdersByStatus]);
 
   // Mettre à jour les communes lorsque la wilaya change
   useEffect(() => {
