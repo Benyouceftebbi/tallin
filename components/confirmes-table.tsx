@@ -222,7 +222,7 @@ export function ConfirmesTable() {
         `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''}`.trim()
       );
   
-      const wilayaCode = order.wilaya;
+      const wilayaCode = order.wilayaCode;
       const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
       const wilayaName = region?.wilaya_name_ascii || "Unknown";
   
