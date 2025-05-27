@@ -249,7 +249,10 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false }: Ord
   // Initialiser le formulaire avec les données de la commande
   useEffect(() => {
     if (order) {
-      const cleanedDeliveryPrice = order.deliveryPrice?.replace(/\s?DZD$/, "") || "0"
+    const cleanedDeliveryPrice =
+  typeof order.deliveryPrice === "string"
+    ? order.deliveryPrice.replace(/\s?DZD$/, "")
+    : order.deliveryPrice?.toString() || "0";
 
       setFormData({
         ...order,
