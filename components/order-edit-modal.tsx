@@ -762,27 +762,34 @@ depotName: selectedDepot?.name
         }),
       ),
     }
-
-    if (isNew) {
-addOrder({
+const cleanedExchangeArticles = (exchangeArticles || []).map(article => {
+  const cleaned = {};
+  for (const key in article) {
+    cleaned[key] = article[key] === undefined ? null : article[key];
+  }
+  return cleaned;
+});
+    const enrichedFormData = {
   ...updatedFormData,
   confirmatrice: workerName ? workerName : "",
-  createdAt: new Date()
-});
+  createdAt: isNew ? new Date() : updatedFormData.createdAt,
+};
 
+if (isNew) {
+  addOrder(enrichedFormData);
 
-      toast({
-        title: "Commande ajoutée",
-        description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
-      })
-    } else {
-      updateOrder(order!.id, updatedFormData)
+  toast({
+    title: "Commande ajoutée",
+    description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
+  });
+} else {
+  updateOrder(order!.id, enrichedFormData);
 
-      toast({
-        title: "Commande mise à jour",
-        description: `La commande ${order!.id} a été mise à jour avec succès.`,
-      })
-    }
+  toast({
+    title: "Commande mise à jour",
+    description: `La commande ${order!.id} a été mise à jour avec succès.`,
+  });
+}
 
     onOpenChange(false)
   }
