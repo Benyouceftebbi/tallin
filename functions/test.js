@@ -286,6 +286,50 @@ async function processTodayOrders() {
 }
 
 //processTodayOrders().catch(console.error);
+async function deleteDuplicateOrdersByIdField() {
+  const snapshot = await db.collection("orders").get();
+
+  if (snapshot.empty) {
+    console.log("No orders found.");
+    return;
+  }
+
+  const seenIds = new Map();
+  const duplicates = [];
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const orderId = data.id;
+
+    if (!orderId) return;
+
+    if (seenIds.has(orderId)) {
+      // Mark this doc for deletion
+      duplicates.push(doc.ref);
+    } else {
+      seenIds.set(orderId, doc.id); // Track the first occurrence
+    }
+  });
+
+  if (duplicates.length === 0) {
+    console.log("✅ No duplicates found.");
+    return;
+  }
+
+  console.log(`🗑️ Found ${duplicates.length} duplicates. Deleting...`);
+
+  // Firestore allows max 500 writes per batch
+  while (duplicates.length > 0) {
+    const batch = db.batch();
+    const batchRefs = duplicates.splice(0, 500);
+    batchRefs.forEach(ref => batch.delete(ref));
+    await batch.commit();
+  }
+
+  console.log("✅ Duplicate orders deleted.");
+}
+
+deleteDuplicateOrdersByIdField().catch(console.error);
 async function deleteOrdersWithProduct(productIdToDelete) {
   const snapshot = await db.collection("orders").get();
 

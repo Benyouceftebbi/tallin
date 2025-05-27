@@ -534,7 +534,10 @@ console.log("use",user);
       const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter
       const matchesStatus = statusFilter === "all" || order.confirmationStatus === statusFilter
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
-      const matchesConfirmatrice = confirmatriceFilter === "all" || order.confirmatrice === confirmatriceFilter
+     const matchesConfirmatrice =
+  confirmatriceFilter === "all" ||
+  (confirmatriceFilter === "non attribué" && order.confirmatrice === "") ||
+  order.confirmatrice === confirmatriceFilter;
       const matchesArticle =
         articleFilter === "all" || order.articles.some((article) => article.product_name === articleFilter)
 
@@ -1289,7 +1292,7 @@ console.log("use",user);
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-800">
               <SelectItem value="all">Confirmatrice</SelectItem>
-              {confirmatrices.map((confirmatrice) => (
+              {["non attribué",...confirmatrices].map((confirmatrice) => (
                 <SelectItem key={confirmatrice} value={confirmatrice}>
                   {confirmatrice === "" ? "non assigné" : confirmatrice}
                 </SelectItem>

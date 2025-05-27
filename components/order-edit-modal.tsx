@@ -870,36 +870,55 @@ console.log("var ",variant.depot);
 
   // Update an exchange article
   const updateExchangeArticle = (articleId: string, field: keyof Article, value: any) => {
-    if (field === "name") {
-      // When article name changes, fetch inventory data
-      const inventoryItem = getInventoryItem(value)
+    if (field === "id") {
+      const inventoryItem = products?.find((product) => product.id === value)
 
       setExchangeArticles(
         exchangeArticles.map((article) => {
           if (article.id === articleId) {
-            // If inventory item exists, update variants with stock info
             if (inventoryItem) {
-              const updatedVariants = inventoryItem.variants.map((invVariant) => ({
-                id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                size: invVariant.size || "Unique",
-                color: invVariant.color || "Noir",
-                quantity: invVariant.price,
-                price: invVariant.price,
-                inventoryVariantId: invVariant.id,
-                availableStock: invVariant.stock,
-                stockStatus: invVariant.stockStatus,
-                expectedDate: invVariant.expectedDate,
-                depot: invVariant.depots || [],
-              }))
+              // 🔍 Find matching option sets
+              const sizeOption = inventoryItem.options?.find((opt) =>
+                ["Pointure", "pointure", "Taille"].includes(opt.name),
+              )
+              const otherOption = inventoryItem.options?.find((opt) => opt.name !== sizeOption?.name)
+
+              const defaultSize = sizeOption?.values?.[0] ?? null
+              const defaultColor = otherOption?.values?.[0] ?? null
+
+              const updatedVariants = inventoryItem.variants.map((invVariant) => {
+                const baseVariant = {
+                  id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                  quantity: 1,
+                  price: invVariant.price,
+                  unit_price: invVariant.unit_price,
+                  inventoryVariantId: invVariant.id,
+                  variant_id: invVariant.id,
+                  availableStock: "0",
+                  stockStatus: "available",
+                  expectedDate: "",
+                  size: defaultSize,
+                  color: defaultColor,
+
+                }
+           
+                
+                return baseVariant
+              })
+
+
+
+
 
               return {
                 ...article,
+                ...inventoryItem,
                 [field]: value,
+                name: inventoryItem.title,
                 sku: inventoryItem.sku,
-                variants: updatedVariants.length > 0 ? updatedVariants : article.variants,
+                variants: [updatedVariants[0]], // Use the found variant or empty array
               }
             } else {
-              // If no inventory item, just update the name
               return { ...article, [field]: value }
             }
           }
@@ -907,7 +926,6 @@ console.log("var ",variant.depot);
         }),
       )
     } else {
-      // For other fields, just update normally
       setExchangeArticles(
         exchangeArticles.map((article) => (article.id === articleId ? { ...article, [field]: value } : article)),
       )
@@ -919,9 +937,27 @@ console.log("var ",variant.depot);
     setExchangeArticles(
       exchangeArticles.map((article) => {
         if (article.id === articleId) {
+          const product = products.find((p) => p.id === article.id)
+        
+          // Find options
+          const sizeOption = product?.options?.find((opt) => ["Pointure", "pointure", "Taille"].includes(opt.name))
+          const otherOption = product?.options?.find((opt) => opt.name !== sizeOption?.name)
+
+          const defaultSize = sizeOption?.values?.[0] ?? null
+          const defaultColor = otherOption?.values?.[0] ?? null
+
+          const newVariant = {
+            id: `variant-${articleId}-${article.variants.length}`,
+            size: defaultSize,
+            color: defaultColor,
+            quantity: 1,
+            price: product?.variants?.[0]?.price || 0,
+            stockStatus: "available",
+          }
+         
           return {
             ...article,
-            variants: [...article.variants],
+            variants: [...article.variants, newVariant],
           }
         }
         return article
@@ -946,78 +982,47 @@ console.log("var ",variant.depot);
 
   // Update a variant in an exchange article
   const updateExchangeVariant = (articleId: string, variantId: string, field: keyof ArticleVariant, value: any) => {
-    setExchangeArticles(
-      exchangeArticles.map((article) => {
-        if (article.id === articleId) {
-          return {
-            ...article,
-            variants: article.variants.map((variant) =>
-              variant.id === variantId ? { ...variant, [field]: value } : variant,
-            ),
+  setExchangeArticles((prevArticles) =>
+      prevArticles.map((article) => {
+        if (article.id !== articleId) return article
+
+        const updatedVariants = article.variants.map((variant) => {
+          if (variant.id !== variantId) return variant
+
+          const updatedVariant = { ...variant, [field]: value }
+
+          // If size or color changed, try to find matching inventory variant
+          if (field === "size" || field === "color") {
+            const product = products?.find((p) => p.id === article.id)
+            if (product) {
+              const matchingInventoryVariant = product.variants.find(
+                (invVariant) =>
+                  (invVariant.option1 === updatedVariant.size && invVariant.option2 === updatedVariant.color) ||
+                  (invVariant.option2 === updatedVariant.size && invVariant.option1 === updatedVariant.color),
+              )
+
+              if (matchingInventoryVariant) {
+                updatedVariant.variant_id = matchingInventoryVariant.id
+               
+              }
+            }
           }
-        }
-        return article
+
+          // Keep price/unit_price in sync
+          if (field === "price") {
+            updatedVariant.unit_price = value
+          } else if (field === "unit_price") {
+            updatedVariant.price = value
+          }
+
+          return updatedVariant
+        })
+
+        return { ...article, variants: updatedVariants }
       }),
     )
   }
-  // Add this function to check stock when a variant is selected
-  // Add this after the updateVariant function
-  const handleStockCheck = (articleId: string, variantId: string) => {
-    const article = selectedArticles.find((a) => a.id === articleId)
-    const variant = article?.variants.find((v) => v.id === variantId)
 
-    if (article && variant) {
-      const inventoryItem = products?.find((product) => product.id === article.id)
-      const inventoryVariant = inventoryItem?.variants.find(
-        (iv) => iv.size === variant.size && iv.color === variant.color,
-      )
-
-      if (inventoryVariant) {
-        setSelectedArticles(
-          selectedArticles.map((a) => {
-            if (a.id === articleId) {
-              return {
-                ...a,
-                variants: a.variants.map((v) => {
-                  if (v.id === variantId) {
-                    return {
-                      ...v,
-                      availableStock: inventoryVariant.inventory_quantity,
-                      stockStatus: inventoryVariant.inventory_quantity > 0 ? "available" : "out_of_stock",
-                    }
-                  }
-                  return v
-                }),
-              }
-            }
-            return a
-          }),
-        )
-      } else {
-        setSelectedArticles(
-          selectedArticles.map((a) => {
-            if (a.id === articleId) {
-              return {
-                ...a,
-                variants: a.variants.map((v) => {
-                  if (v.id === variantId) {
-                    return {
-                      ...v,
-                      availableStock: 0,
-                      stockStatus: "out_of_stock",
-                    }
-                  }
-                  return v
-                }),
-              }
-            }
-            return a
-          }),
-        )
-      }
-    }
-  }
-  console.log("selectedArticles", selectedArticles)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1452,62 +1457,90 @@ console.log("var ",variant.depot);
                             key={variant.id}
                             className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
                           >
+                          {variant.size !== null && (
                             <div className="space-y-1">
-                              <Label htmlFor={`exchange-variant-size-${variant.id}`} className="text-xs">
+                              <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
                                 Taille
                               </Label>
                               <Select
-                                value={variant.size || "Unique"}
+                                value={variant.size}
                                 onValueChange={(value) => updateExchangeVariant(article.id, variant.id, "size", value)}
                               >
                                 <SelectTrigger
-                                  id={`exchange-variant-size-${variant.id}`}
+                                  id={`variant-size-${variant.id}`}
                                   className="h-8 text-xs bg-slate-800/50 border-slate-700"
                                 >
                                   <SelectValue placeholder="Taille" />
                                 </SelectTrigger>
+
                                 <SelectContent className="bg-slate-900 border-slate-800">
-                                  {products
-                                    ?.find((product) => product.id === article.id)
-                                    ?.options.find(
-                                      (opt) =>
-                                        opt.name === "Pointure" || opt.name === "pointure" || opt.name === "Taille",
+                                  {(() => {
+                                    const product = products?.find((p) => p.id === article.id)
+                                    if (!product) return null
+
+                                    const sizeOption = product.options.find((opt) =>
+                                      ["Pointure", "pointure", "Taille"].includes(opt.name),
                                     )
-                                    ?.values.map((size) => (
-                                      <SelectItem key={size} value={size}>
-                                        {size}
+                                    const colorOption = product.options.find((opt) => opt.name === "Couleur")
+
+                                    const useSizeValues = sizeOption?.values.includes(variant.size)
+
+                                    const valuesToShow = useSizeValues ? sizeOption?.values : colorOption?.values
+
+                                    return valuesToShow?.map((value: string) => (
+                                      <SelectItem key={value} value={value}>
+                                        {value}
                                       </SelectItem>
-                                    ))}
+                                    ))
+                                  })()}
                                 </SelectContent>
                               </Select>
                             </div>
+                          )}
 
+                          {/* Couleur Select */}
+                          {variant.color !== null && (
                             <div className="space-y-1">
-                              <Label htmlFor={`exchange-variant-color-${variant.id}`} className="text-xs">
+                              <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
                                 Couleur
                               </Label>
                               <Select
-                                value={variant.color || "Noir"}
+                                value={variant.color}
                                 onValueChange={(value) => updateExchangeVariant(article.id, variant.id, "color", value)}
                               >
                                 <SelectTrigger
-                                  id={`exchange-variant-color-${variant.id}`}
+                                  id={`variant-color-${variant.id}`}
                                   className="h-8 text-xs bg-slate-800/50 border-slate-700"
                                 >
                                   <SelectValue placeholder="Couleur" />
                                 </SelectTrigger>
+
                                 <SelectContent className="bg-slate-900 border-slate-800">
-                                  {products
-                                    ?.find((product) => product.id === article.id)
-                                    ?.options.find((opt) => opt.name === "Couleur")
-                                    ?.values.map((size) => (
-                                      <SelectItem key={size} value={size}>
-                                        {size}
+                                  {(() => {
+                                    const product = products?.find((p) => p.id === article.id)
+                                    if (!product) return null
+
+                                    const colorOption = product.options.find((opt) =>
+                                      ["Couleur", "couleur"].includes(opt.name),
+                                    )
+                                    const sizeOption = product.options.find((opt) =>
+                                      ["Pointure", "pointure", "Taille"].includes(opt.name),
+                                    )
+
+                                    const useColorValues = colorOption?.values.includes(variant.color)
+
+                                    const valuesToShow = useColorValues ? colorOption?.values : sizeOption?.values
+
+                                    return valuesToShow?.map((value: string) => (
+                                      <SelectItem key={value} value={value}>
+                                        {value}
                                       </SelectItem>
-                                    ))}
+                                    ))
+                                  })()}
                                 </SelectContent>
                               </Select>
                             </div>
+                          )}
 
                             <div className="space-y-1">
                               <Label htmlFor={`exchange-variant-quantity-${variant.id}`} className="text-xs">
@@ -1528,20 +1561,10 @@ console.log("var ",variant.depot);
                                   )
                                 }
                                 className="h-8 text-xs bg-slate-800/50 border-slate-700"
-                                disabled={variant.stockStatus !== "available"}
+              
                               />
                             </div>
 
-                            <div className="space-y-1">
-                              <Label htmlFor={`exchange-variant-stock-${variant.id}`} className="text-xs">
-                                Stock actuel
-                              </Label>
-                              <p className="text-sm text-muted-foreground">
-                                {products
-                                  ?.find((product) => product.id === article.id)
-                                  ?.variants.find((v) => v.id === variant.id)?.inventory_quantity ?? 0}
-                              </p>
-                            </div>
 
                             <div className="space-y-1">
                               <Label htmlFor={`exchange-variant-price-${variant.id}`} className="text-xs">
@@ -1551,23 +1574,12 @@ console.log("var ",variant.depot);
                                 id={`exchange-variant-price-${variant.id}`}
                                 type="number"
                                 min="0"
-                                value={
-                                  products
-                                    ?.find((product) => product.id === article.id)
-                                    ?.variants.find(
-                                      (v) =>
-                                        [variant.size, variant.color]?.includes(v.option1) &&
-                                        [variant.size, variant.color]?.includes(v.option2),
-                                    )?.price
-                                }
-                                onChange={(e) =>
-                                  updateExchangeVariant(
-                                    article.id,
-                                    variant.id,
-                                    "price",
-                                    Number.parseInt(e.target.value) || 0,
-                                  )
-                                }
+                             value={variant.unit_price || variant.price}
+                                onChange={(e) => {
+                                const newPrice = Number.parseInt(e.target.value) || 0
+                                updateExchangeVariant(article.id, variant.id, "unit_price", newPrice)
+                                updateExchangeVariant(article.id, variant.id, "price", newPrice)
+                              }}
                                 className="h-8 text-xs bg-slate-800/50 border-slate-700"
                               />
                             </div>
