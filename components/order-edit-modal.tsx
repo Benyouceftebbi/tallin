@@ -622,7 +622,7 @@ setSelectedDepots((prev) => {
     setSelectedDepots((prev) => {
       const updated = {
         ...prev,
-        [variantKey]: selectedDepot,
+        [variantKey]: {...selectedDepot,quantity:1},
       }
 
       // Call generateReference with the updated depots
@@ -641,7 +641,7 @@ setSelectedDepots((prev) => {
               if (variant.variant_id === currentVariantForDepot.variantId) {
                 return {
                   ...variant,
-                  depot: selectedDepot,
+                  depot: {...selectedDepot,quantity:1},
                 }
               }
               return variant
@@ -1859,7 +1859,7 @@ console.log("var ",variant.depot);
                   >
                     <div className="flex justify-between">
                       <span className="font-medium">{depot.name}</span>
-                      <span className="text-sm text-slate-400">Qté: {depot.quantity}</span>
+              
                     </div>
                     <div className="text-xs text-slate-400">Priorité: {depot.priority}</div>
                   </div>

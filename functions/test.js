@@ -229,8 +229,8 @@ function convertShopifyOrderToCustomFormat(shopifyOrder) {
         variant_id: item.variant_id,
         variant_title: item.variant_title,
         variant_options: {
-          option1: variantParts[0] || undefined,
-          option2: variantParts[1] || undefined
+          option1: variantParts[0] || null,
+          option2: variantParts[1] || null
         },
         quantity: item.quantity,
         unit_price: item.price,
@@ -245,30 +245,35 @@ function convertShopifyOrderToCustomFormat(shopifyOrder) {
 
 // --- Main function ---
 async function processTodayOrders() {
-  const now = new Date();
-  const todayAt3PM = new Date();
-  todayAt3PM.setHours(15, 0, 0, 0);
+  const afterDate = new Date("2025-05-24T00:00:00.000Z"); // Adjust if needed
 
   const ordersSnapshot = await db.collection('Orders')
-    .where('processed_at', '>', todayAt3PM.toISOString())
+    .where('processed_at', '>', afterDate.toISOString())
     .get();
 
-  if (ordersSnapshot.empty) {
-    console.log('No orders found after 15:00 today.');
-    return;
-  }
 
   const batch = db.batch();
+  let processedCount = 0;
 
   ordersSnapshot.forEach(doc => {
     const shopifyOrder = doc.data();
+
+    const firstItem = shopifyOrder.line_items?.[0];
+    if (!firstItem || firstItem.product_id !== 9900868993302) {
+      return; // Skip orders not matching the product ID
+    }
+
     const transformedOrder = convertShopifyOrderToCustomFormat(shopifyOrder);
     const newOrderRef = db.collection('orders').doc();
     batch.set(newOrderRef, transformedOrder);
+    processedCount++;
   });
 
-  await batch.commit();
-  console.log(`Processed and stored ${ordersSnapshot.size} orders.`);
+  if (processedCount > 0) {
+    await batch.commit();
+  }
+
+  console.log(`✅ Processed and stored ${processedCount} orders with product_id 9900868993302 after Jan 1, 2024.`);
 }
 
 //processTodayOrders().catch(console.error);
@@ -738,4 +743,4 @@ async function updateMissingOrderReferences() {
   console.log("✅ Order references updated successfully.");
 }
 
-updateMissingOrderReferences().catch(console.error);
+//updateMissingOrderReferences().catch(console.error);
