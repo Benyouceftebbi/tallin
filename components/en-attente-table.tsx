@@ -619,6 +619,7 @@ export function EnAttenteTable() {
   }, [ordersWait])
 
   // Filtrer les commandes en fonction des critères - mémorisé pour éviter des recalculs
+  // Filtrer les commandes en fonction des critères - mémorisé pour éviter des recalculs
   const filteredOrders = useMemo(() => {
     const filtered = ordersWait.filter((order) => {
       const matchesSearch =
@@ -635,6 +636,10 @@ export function EnAttenteTable() {
       const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter
       const matchesStatus = statusFilter === "all" || order.confirmationStatus === statusFilter
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
+     const matchesConfirmatrice =
+  confirmatriceFilter === "all" ||
+  (confirmatriceFilter === "non attribué" && order.confirmatrice === "") ||
+  order.confirmatrice === confirmatriceFilter;
       const matchesArticle =
         articleFilter === "all" || order.articles.some((article) => article.product_name === articleFilter)
 
@@ -653,12 +658,16 @@ export function EnAttenteTable() {
 
       return (
         matchesSearch &&
+
+        
         matchesWilaya &&
         matchesCommune &&
         matchesDeliveryCompany &&
+        matchesDeliveryCenter &&
         matchesDeliveryType &&
         matchesStatus &&
         matchesSource &&
+        matchesConfirmatrice &&
         matchesArticle &&
         matchesDateRange
       )
@@ -672,12 +681,15 @@ export function EnAttenteTable() {
     wilayaFilter,
     communeFilter,
     deliveryCompanyFilter,
+    deliveryCenterFilter,
     deliveryTypeFilter,
     statusFilter,
     sourceFilter,
+    confirmatriceFilter,
     articleFilter,
     dateRange,
   ])
+
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
