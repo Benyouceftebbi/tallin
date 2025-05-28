@@ -603,7 +603,16 @@ setSelectedDepots((prev) => {
     })
     return total
   }
-
+  // Calculer le prix total
+  const calculateTotalExchangePrice = () => {
+    let total = 0
+    exchangeArticles.forEach((article) => {
+      article.variants.forEach((variant) => {
+        total += variant.price * variant.quantity
+      })
+    })
+    return total
+  }
   // Add this function after the handleStockCheck function
   const openDepotSelection = (articleId: string, variantId: string) => {
     setCurrentVariantForDepot({ articleId, variantId })
@@ -725,7 +734,7 @@ const {workerName}=useAuth()
     })
 
     // Calculate the total price
-    const totalPrice = calculateTotalPrice() + (Number(formData.deliveryPrice) || 0)
+    const totalPrice = calculateTotalPrice() + Number(formData.deliveryPrice)-calculateTotalExchangePrice()  || 0
 
     // Update the articles and total price
     const updatedFormData = {
@@ -765,18 +774,21 @@ depotName: selectedDepot?.name
 const cleanedExchangeArticles = (exchangeArticles || []).map(article => {
   const cleaned = {};
   for (const key in article) {
-    cleaned[key] = article[key] === undefined ? null : article[key];
+    cleaned[key] = article[key] === undefined ? "" : article[key];
   }
   return cleaned;
 });
     const enrichedFormData = {
   ...updatedFormData,
+  ...(isExchange && cleanedExchangeArticles.length > 0 && {   exchangeArticles: cleanedExchangeArticles,
+    isExchange: true, }),
   confirmatrice: workerName ? workerName : "",
   createdAt: isNew ? new Date() : updatedFormData.createdAt,
 };
 
 if (isNew) {
   addOrder(enrichedFormData);
+console.log(enrichedFormData);
 
   toast({
     title: "Commande ajoutée",
@@ -898,7 +910,7 @@ console.log("var ",variant.depot);
                   id: `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                   quantity: 1,
                   price: invVariant.price,
-                  unit_price: invVariant.unit_price,
+                  unit_price: invVariant.unit_price || invVariant.price,
                   inventoryVariantId: invVariant.id,
                   variant_id: invVariant.id,
                   availableStock: "0",
@@ -1806,7 +1818,7 @@ console.log("var ",variant.depot);
                 <Input
                   id="calculatedTotalPrice"
                   type="number"
-                  value={calculateTotalPrice() + (Number(formData.deliveryPrice) || 0)}
+                  value={calculateTotalPrice() + (Number(formData.deliveryPrice))-calculateTotalExchangePrice() || 0}
                   disabled
                   className="bg-slate-800/50 border-slate-700 opacity-70"
                 />

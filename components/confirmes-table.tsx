@@ -219,7 +219,7 @@ export function ConfirmesTable() {
     const rawOrders = selectedRows.map((selectedId) => {
       const order = ordersConfirme.find(o => o.id === selectedId);
       const productTitles = order.articles.map((a) =>
-        `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''}`.trim()
+        `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''} (${a.quantity || ''})`.trim()
       );
   
       const wilayaCode = order.wilayaCode;

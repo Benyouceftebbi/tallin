@@ -15,6 +15,7 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  Calendar,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,7 +45,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { DateRangePicker, type DateRange } from "@/components/date-range-picker"
+import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import {
@@ -79,6 +80,8 @@ const TableRow = memo(
     deliveryTypes,
     confirmationStatuses,
     wilayas,
+    workerName,
+    updateOrder,
   }: {
     order: Order
     isSelected: boolean
@@ -100,7 +103,14 @@ const TableRow = memo(
     deliveryTypes: string[]
     confirmationStatuses: string[]
     wilayas: any[]
+    workerName?: string
+    updateOrder: (id: string, data: any) => void
   }) => {
+    const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+    const [noteStatus, setNoteStatus] = useState<string>("")
+    const [noteOrderId, setNoteOrderId] = useState<string>("")
+    const [noteText, setNoteText] = useState<string>("")
+
     return (
       <tr
         className={cn(
@@ -140,24 +150,32 @@ const TableRow = memo(
                         <div
                           key={index}
                           className={cn(
-                            "p-3 flex justify-between items-center",
+                            "p-3 flex flex-col",
                             index !== order.statusHistory!.length - 1 && "border-b border-slate-800",
                           )}
                         >
-                          <div>
-                            <Badge
-                              className={
-                                typeof entry.status === "string" && confirmationStatuses.includes(entry.status as any)
-                                  ? getConfirmationStatusColor(entry.status as ConfirmationStatus)
-                                  : "bg-slate-950/50 text-slate-400 border-slate-700"
-                              }
-                              variant="outline"
-                            >
-                              {entry.status}
-                            </Badge>
-                            <p className="text-xs text-slate-400 mt-1">Par: {entry.changedBy || "Système"}</p>
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <Badge
+                                className={
+                                  typeof entry.status === "string" && confirmationStatuses.includes(entry.status as any)
+                                    ? getConfirmationStatusColor(entry.status as ConfirmationStatus)
+                                    : "bg-slate-950/50 text-slate-400 border-slate-700"
+                                }
+                                variant="outline"
+                              >
+                                {entry.status}
+                              </Badge>
+                              <p className="text-xs text-slate-400 mt-1">Par: {entry.changedBy || "Système"}</p>
+                            </div>
+                            <p className="text-xs text-slate-400">{entry.timestamp}</p>
                           </div>
-                          <p className="text-xs text-slate-400">{entry.timestamp}</p>
+                          {entry.note && (
+                            <div className="mt-2 text-sm text-slate-300 bg-slate-800/50 p-2 rounded-md">
+                              <p className="text-xs text-slate-400 mb-1">Note:</p>
+                              {entry.note}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -172,32 +190,47 @@ const TableRow = memo(
         {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
         {visibleColumns.status && (
           <td className="p-3 text-slate-300">
-            <Select
-              value={order?.confirmationStatus}
-              onValueChange={(value) => {
-                updateConfirmationStatus(order.id, value as ConfirmationStatus)
-                toast({
-                  title: "Statut mis à jour",
-                  description: `Le statut a été changé en "${value}".`,
-                })
-              }}
-            >
-              <SelectTrigger
-                className={cn(
-                  "h-8 w-full border",
-                  getConfirmationStatusColor(order.confirmationStatus as ConfirmationStatus),
-                )}
+            <div className="flex items-center gap-2">
+              <Select
+                value={order?.confirmationStatus}
+                onValueChange={(value) => {
+                  updateConfirmationStatus(order.id, value as ConfirmationStatus)
+                  toast({
+                    title: "Statut mis à jour",
+                    description: `Le statut a été changé en "${value}".`,
+                  })
+                }}
               >
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800">
-                {confirmationStatuses.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={cn(
+                    "h-8 w-full border",
+                    getConfirmationStatusColor(order.confirmationStatus as ConfirmationStatus),
+                  )}
+                >
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  {confirmationStatuses.map((status) => (
+                    <SelectItem key={status} value={status} className="flex items-center justify-between p-0">
+                      <div className="flex items-center justify-between w-full py-2 px-3">
+                        <span>{status}</span>
+                        <MessageCircle
+                          className="h-4 w-4 ml-2 text-slate-400 hover:text-cyan-400 cursor-pointer transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setNoteDialogOpen(true)
+                            setNoteStatus(status)
+                            setNoteOrderId(order.id)
+                            setNoteText("")
+                          }}
+                        />
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </td>
         )}
         {visibleColumns.deliveryCompany && (
@@ -397,6 +430,74 @@ const TableRow = memo(
             </DropdownMenu>
           </div>
         </td>
+        {/* Note Dialog */}
+        <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+          <DialogContent className="bg-slate-900 border-slate-800">
+            <DialogHeader>
+              <DialogTitle>Ajouter une note</DialogTitle>
+              <DialogDescription>Ajouter une note pour le statut "{noteStatus}"</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <textarea
+                className="w-full h-24 p-2 bg-slate-800 border border-slate-700 rounded-md text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                placeholder="Entrez votre note ici..."
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setNoteDialogOpen(false)
+                  setNoteText("")
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={() => {
+                  if (noteText.trim()) {
+                    // Add note to status history
+                    const newStatusEntry = {
+                      status: noteStatus,
+                      note: noteText.trim(),
+                      timestamp: new Date().toLocaleString(),
+                      changedBy: workerName || "Système",
+                    }
+
+                    const updatedHistory = order.statusHistory
+                      ? [...order.statusHistory, newStatusEntry]
+                      : [newStatusEntry]
+
+                    // Update both the status and the history
+                    updateOrder(noteOrderId, {
+                      confirmationStatus: noteStatus as ConfirmationStatus,
+                      statusHistory: updatedHistory,
+                    })
+
+                    toast({
+                      title: "Statut mis à jour avec note",
+                      description: `Le statut a été changé en "${noteStatus}" avec une note.`,
+                    })
+                  } else {
+                    // If no note, just update the status
+                    updateConfirmationStatus(noteOrderId, noteStatus as ConfirmationStatus)
+                    toast({
+                      title: "Statut mis à jour",
+                      description: `Le statut a été changé en "${noteStatus}".`,
+                    })
+                  }
+                  setNoteDialogOpen(false)
+                  setNoteText("")
+                }}
+                className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
+              >
+                Ajouter
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </tr>
     )
   },
@@ -416,8 +517,8 @@ export function EnAttenteTable() {
     workers,
     orders,
   } = useShop()
-  const { userRole, workerName,user } = useAuth()
-console.log("use",user);
+  const { userRole, workerName, user } = useAuth()
+  console.log("use", user)
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -534,10 +635,6 @@ console.log("use",user);
       const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter
       const matchesStatus = statusFilter === "all" || order.confirmationStatus === statusFilter
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
-     const matchesConfirmatrice =
-  confirmatriceFilter === "all" ||
-  (confirmatriceFilter === "non attribué" && order.confirmatrice === "") ||
-  order.confirmatrice === confirmatriceFilter;
       const matchesArticle =
         articleFilter === "all" || order.articles.some((article) => article.product_name === articleFilter)
 
@@ -556,16 +653,12 @@ console.log("use",user);
 
       return (
         matchesSearch &&
-
-        
         matchesWilaya &&
         matchesCommune &&
         matchesDeliveryCompany &&
-        matchesDeliveryCenter &&
         matchesDeliveryType &&
         matchesStatus &&
         matchesSource &&
-        matchesConfirmatrice &&
         matchesArticle &&
         matchesDateRange
       )
@@ -579,11 +672,9 @@ console.log("use",user);
     wilayaFilter,
     communeFilter,
     deliveryCompanyFilter,
-    deliveryCenterFilter,
     deliveryTypeFilter,
     statusFilter,
     sourceFilter,
-    confirmatriceFilter,
     articleFilter,
     dateRange,
   ])
@@ -611,11 +702,9 @@ console.log("use",user);
     wilayaFilter,
     communeFilter,
     deliveryCompanyFilter,
-    deliveryCenterFilter,
     deliveryTypeFilter,
     statusFilter,
     sourceFilter,
-    confirmatriceFilter,
     articleFilter,
     dateRange,
     resetToFirstPage,
@@ -986,7 +1075,15 @@ console.log("use",user);
 
       {/* Barre d'outils */}
       <div className="flex justify-end mb-4">
-        <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
+          onClick={() => setDateRange(undefined)}
+        >
+          <Calendar className="h-4 w-4 mr-2" />
+          <span>Filtrer par date</span>
+        </Button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
@@ -1292,7 +1389,7 @@ console.log("use",user);
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-800">
               <SelectItem value="all">Confirmatrice</SelectItem>
-              {["non attribué",...confirmatrices].map((confirmatrice) => (
+              {["non attribué", ...confirmatrices].map((confirmatrice) => (
                 <SelectItem key={confirmatrice} value={confirmatrice}>
                   {confirmatrice === "" ? "non assigné" : confirmatrice}
                 </SelectItem>
@@ -1441,6 +1538,8 @@ console.log("use",user);
                       deliveryTypes={deliveryTypes}
                       confirmationStatuses={confirmationStatuses}
                       wilayas={wilayas}
+                      workerName={workerName}
+                      updateOrder={updateOrder}
                     />
                   ))
                 )}
