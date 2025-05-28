@@ -38,7 +38,6 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/context/auth-context"
-import { log } from "console"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -47,14 +46,13 @@ type ArticleVariant = {
   color?: string
   quantity: number
   price: number
-  inventoryVariantId?: string // Add this to track the original inventory variant
-  availableStock?: number // Add this to show available stock
-  stockStatus?: StockStatus // Add this to track stock status
-  expectedDate?: string // Add this for coming soon items
+  inventoryVariantId?: string
+  availableStock?: number
+  stockStatus?: StockStatus
+  expectedDate?: string
   depot?: DepotOption[]
 }
 
-// Add these new types after the existing ArticleVariant type
 type DepotOption = {
   id: string
   name: string
@@ -128,7 +126,6 @@ const communesByWilaya: Record<string, string[]> = {
   ],
   Oran: ["Centre Ville", "Bir El Djir", "Es Senia", "Arzew", "Aïn El Turk", "Mers El Kébir"],
   Constantine: ["Centre Ville", "Sidi Mabrouk", "Zouaghi", "Ali Mendjeli", "El Khroub", "Hamma Bouziane"],
-  // Ajouter d'autres wilayas et communes au besoin
 }
 
 // Liste des entreprises de livraison
@@ -170,9 +167,10 @@ type OrderEditModalProps = {
   onOpenChange: (open: boolean) => void
   order?: Order
   isNew?: boolean
+  confirm?: boolean
 }
 
-export function OrderEditModal({ open, onOpenChange, order, isNew = false,confirm=false }: OrderEditModalProps) {
+export function OrderEditModal({ open, onOpenChange, order, isNew = false, confirm = false }: OrderEditModalProps) {
   const {
     updateOrder,
     addOrder,
@@ -192,7 +190,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false,confir
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
   const [selectedPreviousOrder, setSelectedPreviousOrder] = useState<string>("")
 
-  // Add these new state variables after the existing state declarations (around line 150)
+  // Add these new state variables after the existing state declarations
   const [selectedDepots, setSelectedDepots] = useState<Record<string, DepotOption>>({})
   const [showDepotDialog, setShowDepotDialog] = useState(false)
   const [currentVariantForDepot, setCurrentVariantForDepot] = useState<{ articleId: string; variantId: string } | null>(
@@ -200,8 +198,10 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false,confir
   )
   const [orderReference, setOrderReference] = useState("")
   const [isReferenceValid, setIsReferenceValid] = useState(true)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   const [availableDepots, setAvailableDepots] = useState<DepotOption[]>([])
+
   useEffect(() => {
     const fetchDepots = async () => {
       try {
@@ -246,101 +246,202 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false,confir
 
     fetchDepots()
   }, [])
+
   const { products } = useAppContext()
-  // Initialiser le formulaire avec les données de la commande
-useEffect(() => {
-  const initializeOrderForm = async () => {
-    if (order) {
-      const cleanedDeliveryPrice =
-        typeof order.deliveryPrice === "string"
-          ? order.deliveryPrice.replace(/\s?DZD$/, "")
-          : order.deliveryPrice?.toString() || "0";
 
-      setFormData({
-        ...order,
-        deliveryPrice: cleanedDeliveryPrice,
-      });
+  // Validation function
+  const validateForm = (): string[] => {
+    const errors: string[] = []
 
-      setSelectedWilaya(order.wilaya);
-      setCommunes(getCommunesByWilayaName(order.wilaya) || []);
-      setOrderReference(order.orderReference || "");
-
-      const acc: Record<string, Article> = {};
-
-      for (const item of order.articles) {
-        const articleId = String(item.product_id);
-
-        if (!acc[articleId]) {
-          acc[articleId] = {
-            id: articleId,
-            name: item.product_name,
-            sku:
-              item.product_sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-            variants: [],
-          };
-        }
-
-        // Get variant data from Firestore
-        let depot = null;
-        try {
-          const variantRef = doc(
-            db,
-            "Products",
-            articleId,
-            "variants",
-            item.variant_id.toString()
-          );
-          const variantSnap = await getDoc(variantRef);
-          if (variantSnap.exists()) {
-            const variantData = variantSnap.data();
-            depot = variantData?.depots?.[0] || null;
-          }
-        } catch (err) {
-          console.error(`Error fetching depot for variant ${item.variant_id}`, err);
-        }
-
-        acc[articleId].variants.push({
-          id: `variant-${item.variant_id}`,
-          size: item.variant_options.option1,
-          color: item.variant_options.option2,
-          quantity: item.quantity,
-          price: Number.parseFloat(item.unit_price),
-          stockStatus: "available",
-          ...item,
-          depot: item.depot || depot,
-        });
-      }
-
-      setSelectedArticles(Object.values(acc));
-    } else {
-      // Defaults for new order
-      const newOrderId = `CMD-${Math.floor(1000 + Math.random() * 9000)}`;
-      const today = new Date().toLocaleDateString("fr-FR");
-
-      setFormData({
-        id: newOrderId,
-        status: "en-attente",
-        confirmationStatus: "En attente",
-        date: today,
-        lastUpdated: new Date().toLocaleString("fr-FR"),
-        smsStatus: "Non envoyé",
-        trackingId: `TRK-${Math.floor(Math.random() * 100000)
-          .toString()
-          .padStart(6, "0")}`,
-      });
-
-      setSelectedArticles([]);
-      setSelectedWilaya("");
-      setCommunes([]);
+    // Required fields validation
+    if (!formData.name?.trim()) {
+      errors.push("Le nom du client est obligatoire")
     }
 
-    // Fetch previous orders for exchange
-    const deliveredOrders = getOrdersByStatus("Livrés");
-    setPreviousOrders(deliveredOrders);
-  };
+    if (!formData.phone?.trim()) {
+      errors.push("Le téléphone principal est obligatoire")
+    }
 
-  initializeOrderForm();
-}, [order, getOrdersByStatus]);
+    if (!selectedWilaya) {
+      errors.push("La wilaya est obligatoire")
+    }
+
+    if (!formData.commune?.trim()) {
+      errors.push("La commune est obligatoire")
+    }
+
+    if (!formData.address?.trim()) {
+      errors.push("L'adresse est obligatoire")
+    }
+
+    if (!formData.deliveryType) {
+      errors.push("Le type de livraison est obligatoire")
+    }
+
+    if (!formData.deliveryCompany) {
+      errors.push("L'entreprise de livraison est obligatoire")
+    }
+
+    if (!formData.confirmationStatus) {
+      errors.push("Le statut de confirmation est obligatoire")
+    }
+
+    if (isNew && !formData.source) {
+      errors.push("La source est obligatoire pour une nouvelle commande")
+    }
+
+    // Articles validation
+    if (selectedArticles.length === 0) {
+      errors.push("Au moins un article doit être sélectionné")
+    }
+
+    // Validate each article
+    selectedArticles.forEach((article, articleIndex) => {
+      if (!article.name?.trim()) {
+        errors.push(`L'article ${articleIndex + 1} doit avoir un nom`)
+      }
+
+      if (article.variants.length === 0) {
+        errors.push(`L'article ${articleIndex + 1} doit avoir au moins une variante`)
+      }
+
+      article.variants.forEach((variant: ArticleVariant, variantIndex: number) => {
+        if (variant.quantity <= 0) {
+          errors.push(
+            `La quantité de la variante ${variantIndex + 1} de l'article ${articleIndex + 1} doit être supérieure à 0`,
+          )
+        }
+
+        if (variant.price <= 0) {
+          errors.push(
+            `Le prix de la variante ${variantIndex + 1} de l'article ${articleIndex + 1} doit être supérieur à 0`,
+          )
+        }
+
+        // Check stock availability
+        const availableStock = Array.isArray(variant.depot)
+          ? (variant.depot[0]?.quantity ?? 0)
+          : (variant.depot?.quantity ?? 0)
+
+        if (variant.quantity > availableStock && availableStock > 0) {
+          errors.push(
+            `Stock insuffisant pour ${article.name} (${variant.size}, ${variant.color}). Disponible: ${availableStock}, Demandé: ${variant.quantity}`,
+          )
+        }
+      })
+    })
+
+    // Delivery validation
+    if (formData.deliveryType === "stopdesk" && !formData.deliveryCenter) {
+      errors.push("Un point de relais doit être sélectionné pour la livraison en point de relais")
+    }
+
+    // Check if stopdesk is available for selected commune
+    if (formData.deliveryType === "stopdesk" && formData.commune && !isStopDeskAvailable(formData.commune)) {
+      errors.push(`Le service point de relais n'est pas disponible pour ${formData.commune}`)
+    }
+
+    // Depot and reference validation
+    const hasSelectedDepots = Object.keys(selectedDepots).length > 0
+    if (hasSelectedDepots && !isReferenceValid) {
+      errors.push("Une référence d'au moins 10 caractères est requise lorsque des dépôts sont sélectionnés")
+    }
+
+    // Exchange articles validation
+    if (isExchange && exchangeArticles.length === 0) {
+      errors.push("Au moins un article d'échange doit être sélectionné pour une commande d'échange")
+    }
+
+    return errors
+  }
+
+  // Initialiser le formulaire avec les données de la commande
+  useEffect(() => {
+    const initializeOrderForm = async () => {
+      if (order) {
+        const cleanedDeliveryPrice =
+          typeof order.deliveryPrice === "string"
+            ? order.deliveryPrice.replace(/\s?DZD$/, "")
+            : order.deliveryPrice?.toString() || "0"
+
+        setFormData({
+          ...order,
+          deliveryPrice: cleanedDeliveryPrice,
+        })
+
+        setSelectedWilaya(order.wilaya)
+        setCommunes(getCommunesByWilayaName(order.wilaya) || [])
+        setOrderReference(order.orderReference || "")
+
+        const acc: Record<string, Article> = {}
+
+        for (const item of order.articles) {
+          const articleId = String(item.product_id)
+
+          if (!acc[articleId]) {
+            acc[articleId] = {
+              id: articleId,
+              name: item.product_name,
+              sku: item.product_sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+              variants: [],
+            }
+          }
+
+          // Get variant data from Firestore
+          let depot = null
+          try {
+            const variantRef = doc(db, "Products", articleId, "variants", item.variant_id.toString())
+            const variantSnap = await getDoc(variantRef)
+            if (variantSnap.exists()) {
+              const variantData = variantSnap.data()
+              depot = variantData?.depots?.[0] || null
+            }
+          } catch (err) {
+            console.error(`Error fetching depot for variant ${item.variant_id}`, err)
+          }
+
+          acc[articleId].variants.push({
+            id: `variant-${item.variant_id}`,
+            size: item.variant_options.option1,
+            color: item.variant_options.option2,
+            quantity: item.quantity,
+            price: Number.parseFloat(item.unit_price),
+            stockStatus: "available",
+            ...item,
+            depot: item.depot || depot,
+          })
+        }
+
+        setSelectedArticles(Object.values(acc))
+      } else {
+        // Defaults for new order
+        const newOrderId = `CMD-${Math.floor(1000 + Math.random() * 9000)}`
+        const today = new Date().toLocaleDateString("fr-FR")
+
+        setFormData({
+          id: newOrderId,
+          status: "en-attente",
+          confirmationStatus: "En attente",
+          date: today,
+          lastUpdated: new Date().toLocaleString("fr-FR"),
+          smsStatus: "Non envoyé",
+          trackingId: `TRK-${Math.floor(Math.random() * 100000)
+            .toString()
+            .padStart(6, "0")}`,
+        })
+
+        setSelectedArticles([])
+        setSelectedWilaya("")
+        setCommunes([])
+      }
+
+      // Fetch previous orders for exchange
+      const deliveredOrders = getOrdersByStatus("Livrés")
+      setPreviousOrders(deliveredOrders)
+    }
+
+    initializeOrderForm()
+  }, [order, getOrdersByStatus])
 
   // Mettre à jour les communes lorsque la wilaya change
   useEffect(() => {
@@ -383,6 +484,9 @@ useEffect(() => {
         setFormData((prev) => ({ ...prev, deliveryPrice: 0 }))
       }
     }
+
+    // Clear validation errors when user makes changes
+    setValidationErrors([])
   }
 
   // Ajouter un nouvel article
@@ -431,34 +535,34 @@ useEffect(() => {
                   expectedDate: "",
                   size: defaultSize,
                   color: defaultColor,
-               depot: invVariant.depots ?? [],
+                  depot: invVariant.depots ?? [],
                 }
-           
-                
+
                 return baseVariant
               })
 
-const validVariant = updatedVariants.find(v => v?.depot?.[0]);
-const variantKey = `${articleId}-${validVariant?.variantId}`;
+              const validVariant = updatedVariants.find((v) => v?.depot?.[0])
+              const variantKey = `${articleId}-${validVariant?.variantId}`
 
-setSelectedDepots((prev) => {
-  const updated = {
-    ...prev,
-    [variantKey]: validVariant?.depot?.[0] ?? null,
-  };
+              setSelectedDepots((prev) => {
+                const updated = {
+                  ...prev,
+                  [variantKey]: validVariant?.depot?.[0] ?? null,
+                }
 
-  // Call generateReference with the updated depots
-  generateReference(updated);
+                // Call generateReference with the updated depots
+                generateReference(updated)
 
-  return updated;
-});
+                return updated
+              })
+
               return {
                 ...article,
                 ...inventoryItem,
                 [field]: value,
                 name: inventoryItem.title,
                 sku: inventoryItem.sku,
- variants: validVariant ? [validVariant] : [], // Use the found variant or empty array
+                variants: validVariant ? [validVariant] : [], // Use the found variant or empty array
               }
             } else {
               return { ...article, [field]: value }
@@ -480,7 +584,7 @@ setSelectedDepots((prev) => {
       selectedArticles.map((article) => {
         if (article.id === articleId) {
           const product = products.find((p) => p.id === article.id)
-        
+
           // Find options
           const sizeOption = product?.options?.find((opt) => ["Pointure", "pointure", "Taille"].includes(opt.name))
           const otherOption = product?.options?.find((opt) => opt.name !== sizeOption?.name)
@@ -497,7 +601,7 @@ setSelectedDepots((prev) => {
             stockStatus: "available",
             depot: product?.variants?.[0]?.depots || [],
           }
-         
+
           return {
             ...article,
             variants: [...article.variants, newVariant],
@@ -565,6 +669,7 @@ setSelectedDepots((prev) => {
       }),
     )
   }
+
   // Charger les articles d'une commande précédente
   const loadPreviousOrderArticles = () => {
     if (!selectedPreviousOrder) return
@@ -603,6 +708,7 @@ setSelectedDepots((prev) => {
     })
     return total
   }
+
   // Calculer le prix total
   const calculateTotalExchangePrice = () => {
     let total = 0
@@ -613,6 +719,7 @@ setSelectedDepots((prev) => {
     })
     return total
   }
+
   // Add this function after the handleStockCheck function
   const openDepotSelection = (articleId: string, variantId: string) => {
     setCurrentVariantForDepot({ articleId, variantId })
@@ -631,7 +738,7 @@ setSelectedDepots((prev) => {
     setSelectedDepots((prev) => {
       const updated = {
         ...prev,
-        [variantKey]: {...selectedDepot,quantity:1},
+        [variantKey]: { ...selectedDepot, quantity: 1 },
       }
 
       // Call generateReference with the updated depots
@@ -650,7 +757,7 @@ setSelectedDepots((prev) => {
               if (variant.variant_id === currentVariantForDepot.variantId) {
                 return {
                   ...variant,
-                  depot: {...selectedDepot,quantity:1},
+                  depot: { ...selectedDepot, quantity: 1 },
                 }
               }
               return variant
@@ -663,59 +770,53 @@ setSelectedDepots((prev) => {
 
     setShowDepotDialog(false)
   }
-const generateReference = (depotsObj = selectedDepots) => {
-  if (!depotsObj || typeof depotsObj !== 'object') {
-    setOrderReference("");
-    setIsReferenceValid(false);
-    return;
-  }
 
-  const depots = Object.values(depotsObj);
-
-  console.log("depots", depots);
-
-  if (depots.length === 0) {
-    setOrderReference("");
-    setIsReferenceValid(false);
-    return;
-  }
-
-  const allSameDepot = depots.every((d) => d?.id === depots[0]?.id);
-
-  let prefix = "";
-  if (allSameDepot) {
-    prefix = depots[0]?.name?.substring(0, 5)?.toUpperCase() || "DEPOT";
-  } else {
-    prefix = "DEPOTD";
-  }
-
-  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-  const timestamp = Date.now().toString().substring(9, 13);
-
-  const newReference = `${prefix}-${randomStr}${timestamp}`;
-  setOrderReference(newReference);
-  setIsReferenceValid(newReference.length >= 10);
-};
-const {workerName}=useAuth()
-  // Gérer la soumission du formulaire
-  const handleSubmit = () => {
-    // Vérifier les champs obligatoires
-    if (!formData.name || !formData.phone || selectedArticles.length === 0 || !selectedWilaya || !formData.commune) {
-      toast({
-        title: "Champs obligatoires manquants",
-        description: "Veuillez remplir tous les champs obligatoires.",
-        variant: "destructive",
-      })
+  const generateReference = (depotsObj = selectedDepots) => {
+    if (!depotsObj || typeof depotsObj !== "object") {
+      setOrderReference("")
+      setIsReferenceValid(false)
       return
     }
 
-    // Check if we need a reference (if any depots are selected)
-    const hasSelectedDepots = Object.keys(selectedDepots).length > 0
+    const depots = Object.values(depotsObj)
 
-    if (hasSelectedDepots && !isReferenceValid) {
+    console.log("depots", depots)
+
+    if (depots.length === 0) {
+      setOrderReference("")
+      setIsReferenceValid(false)
+      return
+    }
+
+    const allSameDepot = depots.every((d) => d?.id === depots[0]?.id)
+
+    let prefix = ""
+    if (allSameDepot) {
+      prefix = depots[0]?.name?.substring(0, 5)?.toUpperCase() || "DEPOT"
+    } else {
+      prefix = "DEPOTD"
+    }
+
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const timestamp = Date.now().toString().substring(9, 13)
+
+    const newReference = `${prefix}-${randomStr}${timestamp}`
+    setOrderReference(newReference)
+    setIsReferenceValid(newReference.length >= 10)
+  }
+
+  const { workerName } = useAuth()
+
+  // Gérer la soumission du formulaire
+  const handleSubmit = () => {
+    // Validate form
+    const errors = validateForm()
+
+    if (errors.length > 0) {
+      setValidationErrors(errors)
       toast({
-        title: "Référence invalide",
-        description: "Une référence d'au moins 10 caractères est requise lorsque des dépôts sont sélectionnés.",
+        title: "Erreurs de validation",
+        description: `${errors.length} erreur(s) détectée(s). Veuillez corriger les champs manquants.`,
         variant: "destructive",
       })
       return
@@ -734,7 +835,7 @@ const {workerName}=useAuth()
     })
 
     // Calculate the total price
-    const totalPrice = calculateTotalPrice() + Number(formData.deliveryPrice)-calculateTotalExchangePrice()  || 0
+    const totalPrice = calculateTotalPrice() + Number(formData.deliveryPrice) - calculateTotalExchangePrice() || 0
 
     // Update the articles and total price
     const updatedFormData = {
@@ -742,7 +843,7 @@ const {workerName}=useAuth()
       sku: formData.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       wilaya: selectedWilaya,
       totalPrice: totalPrice,
-      orderReference: hasSelectedDepots ? orderReference : orderReference,
+      orderReference: orderReference,
       articles: selectedArticles.flatMap((article) =>
         article.variants.map((variant) => {
           const variantKey = `${article.id}-${variant.id}`
@@ -761,62 +862,66 @@ const {workerName}=useAuth()
               option1: variant.size,
               option2: variant.color,
             },
-           
-          depotId: selectedDepot?.id
-  ?? (Array.isArray(variant.depot) ? variant.depot[0]?.id : variant.depot?.id),
-
-depotName: selectedDepot?.name 
-  ?? (Array.isArray(variant.depot) ? variant.depot[0]?.name : variant.depot?.name),
+            depotId: selectedDepot?.id ?? (Array.isArray(variant.depot) ? variant.depot[0]?.id : variant.depot?.id),
+            depotName:
+              selectedDepot?.name ?? (Array.isArray(variant.depot) ? variant.depot[0]?.name : variant.depot?.name),
           }
         }),
       ),
     }
-const cleanedExchangeArticles = (exchangeArticles || []).map(article => {
-  const cleaned = {};
-  for (const key in article) {
-    cleaned[key] = article[key] === undefined ? "" : article[key];
-  }
-  return cleaned;
-});
+
+    const cleanedExchangeArticles = (exchangeArticles || []).map((article) => {
+      const cleaned = {}
+      for (const key in article) {
+        cleaned[key] = article[key] === undefined ? "" : article[key]
+      }
+      return cleaned
+    })
+
     const enrichedFormData = {
-  ...updatedFormData,
-  ...(isExchange && cleanedExchangeArticles.length > 0 && {   exchangeArticles: cleanedExchangeArticles,
-    isExchange: true, }),
-  confirmatrice: workerName ? workerName : "",
-  createdAt: isNew ? new Date() : updatedFormData.createdAt,
-};
+      ...updatedFormData,
+      ...(isExchange &&
+        cleanedExchangeArticles.length > 0 && {
+          exchangeArticles: cleanedExchangeArticles,
+          isExchange: true,
+        }),
+      confirmatrice: workerName ? workerName : "",
+      createdAt: isNew ? new Date() : updatedFormData.createdAt,
+    }
 
-if (isNew) {
-  addOrder(enrichedFormData);
-console.log(enrichedFormData);
+    if (isNew) {
+      addOrder(enrichedFormData)
+      console.log(enrichedFormData)
 
-  toast({
-    title: "Commande ajoutée",
-    description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
-  });
-} else {
-  updateOrder(order!.id, enrichedFormData);
+      toast({
+        title: "Commande ajoutée",
+        description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
+      })
+    } else {
+      updateOrder(order!.id, enrichedFormData)
 
-  toast({
-    title: "Commande mise à jour",
-    description: `La commande ${order!.id} a été mise à jour avec succès.`,
-  });
-}
+      toast({
+        title: "Commande mise à jour",
+        description: `La commande ${order!.id} a été mise à jour avec succès.`,
+      })
+    }
 
+    // Clear validation errors on successful submit
+    setValidationErrors([])
     onOpenChange(false)
   }
 
   // Modified function to check if a variant needs a depot
-const variantNeedsDepot = (variant: ArticleVariant) => {
-  if (!variant.depot) return false;
-console.log("var ",variant.depot);
+  const variantNeedsDepot = (variant: ArticleVariant) => {
+    if (!variant.depot) return false
+    console.log("var ", variant.depot)
 
-  if (Array.isArray(variant.depot)) {
-    return variant.depot.length > 0 && variant.depot[0]?.quantity === 0;
+    if (Array.isArray(variant.depot)) {
+      return variant.depot.length > 0 && variant.depot[0]?.quantity === 0
+    }
+
+    return variant.depot.quantity === 0
   }
-
-  return variant.depot.quantity === 0;
-};
 
   // Add this function to get the depot name for a variant
   const getDepotForVariant = (articleId: string, variantId: string) => {
@@ -857,6 +962,7 @@ console.log("var ",variant.depot);
       )
     }
   }
+
   function getVariantOptionValue({ product, variant, label }) {
     const optionIndex = product?.options?.findIndex(
       (opt) =>
@@ -871,6 +977,7 @@ console.log("var ",variant.depot);
 
   const [isRestockMode, setIsRestockMode] = useState(false)
   const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
+
   // Add a new article for exchange
   const addExchangeArticle = () => {
     const newArticle: Article = {
@@ -918,16 +1025,10 @@ console.log("var ",variant.depot);
                   expectedDate: "",
                   size: defaultSize,
                   color: defaultColor,
-
                 }
-           
-                
+
                 return baseVariant
               })
-
-
-
-
 
               return {
                 ...article,
@@ -957,7 +1058,7 @@ console.log("var ",variant.depot);
       exchangeArticles.map((article) => {
         if (article.id === articleId) {
           const product = products.find((p) => p.id === article.id)
-        
+
           // Find options
           const sizeOption = product?.options?.find((opt) => ["Pointure", "pointure", "Taille"].includes(opt.name))
           const otherOption = product?.options?.find((opt) => opt.name !== sizeOption?.name)
@@ -973,7 +1074,7 @@ console.log("var ",variant.depot);
             price: product?.variants?.[0]?.price || 0,
             stockStatus: "available",
           }
-         
+
           return {
             ...article,
             variants: [...article.variants, newVariant],
@@ -1001,7 +1102,7 @@ console.log("var ",variant.depot);
 
   // Update a variant in an exchange article
   const updateExchangeVariant = (articleId: string, variantId: string, field: keyof ArticleVariant, value: any) => {
-  setExchangeArticles((prevArticles) =>
+    setExchangeArticles((prevArticles) =>
       prevArticles.map((article) => {
         if (article.id !== articleId) return article
 
@@ -1022,7 +1123,6 @@ console.log("var ",variant.depot);
 
               if (matchingInventoryVariant) {
                 updatedVariant.variant_id = matchingInventoryVariant.id
-               
               }
             }
           }
@@ -1041,7 +1141,6 @@ console.log("var ",variant.depot);
       }),
     )
   }
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1062,6 +1161,23 @@ console.log("var ",variant.depot);
                 : "Modifiez les informations de la commande."}
           </DialogDescription>
         </DialogHeader>
+
+        {/* Validation Errors Alert */}
+        {validationErrors.length > 0 && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Erreurs de validation ({validationErrors.length})</AlertTitle>
+            <AlertDescription>
+              <ul className="list-disc list-inside space-y-1 mt-2">
+                {validationErrors.map((error, index) => (
+                  <li key={index} className="text-sm">
+                    {error}
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
           {/* Informations client */}
@@ -1295,11 +1411,11 @@ console.log("var ",variant.depot);
                             <Label htmlFor={`variant-stock-${variant.id}`} className="text-xs">
                               Stock disponible
                             </Label>
-<p className="text-sm text-muted-foreground">
-  {Array.isArray(variant.depot)
-    ? variant.depot[0]?.quantity ?? 0
-    : variant.depot?.quantity ?? 0}
-</p>
+                            <p className="text-sm text-muted-foreground">
+                              {Array.isArray(variant.depot)
+                                ? (variant.depot[0]?.quantity ?? 0)
+                                : (variant.depot?.quantity ?? 0)}
+                            </p>
                           </div>
 
                           <div className="space-y-1">
@@ -1321,38 +1437,38 @@ console.log("var ",variant.depot);
                           </div>
 
                           {/* Modified depot column to check for zero quantity */}
-<div className="space-y-1">
-  <Label htmlFor={`variant-depot-${variant.id}`} className="text-xs">
-    Dépôt
-  </Label>
-  <div>
-    {variantNeedsDepot(variant) ? (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => openDepotSelection(article.id, variant.variant_id)}
-        className="h-8 text-xs bg-red-900/20 border-red-700 text-red-400 hover:bg-red-800/30"
-      >
-        <AlertTriangle className="h-3 w-3 mr-1" />
-        Stock épuisé
-      </Button>
-    ) : variant.depot ? (
-      <div className="flex items-center h-8 text-xs">
-        <Warehouse className="h-3 w-3 mr-1 text-green-400" />
-        <span className="text-sm text-muted-foreground text-green-400">
-          {Array.isArray(variant.depot)
-            ? variant.depot[0]?.name ?? ""
-            : variant.depot?.name ?? ""}
-        </span>
-      </div>
-    ) : (
-      <div className="flex items-center h-8 text-xs text-slate-400">
-        <Warehouse className="h-3 w-3 mr-1" />
-        Aucun dépôt
-      </div>
-    )}
-  </div>
-</div>
+                          <div className="space-y-1">
+                            <Label htmlFor={`variant-depot-${variant.id}`} className="text-xs">
+                              Dépôt
+                            </Label>
+                            <div>
+                              {variantNeedsDepot(variant) ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openDepotSelection(article.id, variant.variant_id)}
+                                  className="h-8 text-xs bg-red-900/20 border-red-700 text-red-400 hover:bg-red-800/30"
+                                >
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                  Stock épuisé
+                                </Button>
+                              ) : variant.depot ? (
+                                <div className="flex items-center h-8 text-xs">
+                                  <Warehouse className="h-3 w-3 mr-1 text-green-400" />
+                                  <span className="text-sm text-muted-foreground text-green-400">
+                                    {Array.isArray(variant.depot)
+                                      ? (variant.depot[0]?.name ?? "")
+                                      : (variant.depot?.name ?? "")}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center h-8 text-xs text-slate-400">
+                                  <Warehouse className="h-3 w-3 mr-1" />
+                                  Aucun dépôt
+                                </div>
+                              )}
+                            </div>
+                          </div>
 
                           <div className="flex justify-end">
                             {article.variants.length > 1 && (
@@ -1374,6 +1490,7 @@ console.log("var ",variant.depot);
               </div>
             )}
           </div>
+
           {isExchange && (
             <div className="md:col-span-2 py-2">
               <div className="relative">
@@ -1476,90 +1593,94 @@ console.log("var ",variant.depot);
                             key={variant.id}
                             className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end p-2 border border-slate-700 rounded bg-slate-800/20"
                           >
-                          {variant.size !== null && (
-                            <div className="space-y-1">
-                              <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
-                                Taille
-                              </Label>
-                              <Select
-                                value={variant.size}
-                                onValueChange={(value) => updateExchangeVariant(article.id, variant.id, "size", value)}
-                              >
-                                <SelectTrigger
-                                  id={`variant-size-${variant.id}`}
-                                  className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                            {variant.size !== null && (
+                              <div className="space-y-1">
+                                <Label htmlFor={`variant-size-${variant.id}`} className="text-xs">
+                                  Taille
+                                </Label>
+                                <Select
+                                  value={variant.size}
+                                  onValueChange={(value) =>
+                                    updateExchangeVariant(article.id, variant.id, "size", value)
+                                  }
                                 >
-                                  <SelectValue placeholder="Taille" />
-                                </SelectTrigger>
+                                  <SelectTrigger
+                                    id={`variant-size-${variant.id}`}
+                                    className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                                  >
+                                    <SelectValue placeholder="Taille" />
+                                  </SelectTrigger>
 
-                                <SelectContent className="bg-slate-900 border-slate-800">
-                                  {(() => {
-                                    const product = products?.find((p) => p.id === article.id)
-                                    if (!product) return null
+                                  <SelectContent className="bg-slate-900 border-slate-800">
+                                    {(() => {
+                                      const product = products?.find((p) => p.id === article.id)
+                                      if (!product) return null
 
-                                    const sizeOption = product.options.find((opt) =>
-                                      ["Pointure", "pointure", "Taille"].includes(opt.name),
-                                    )
-                                    const colorOption = product.options.find((opt) => opt.name === "Couleur")
+                                      const sizeOption = product.options.find((opt) =>
+                                        ["Pointure", "pointure", "Taille"].includes(opt.name),
+                                      )
+                                      const colorOption = product.options.find((opt) => opt.name === "Couleur")
 
-                                    const useSizeValues = sizeOption?.values.includes(variant.size)
+                                      const useSizeValues = sizeOption?.values.includes(variant.size)
 
-                                    const valuesToShow = useSizeValues ? sizeOption?.values : colorOption?.values
+                                      const valuesToShow = useSizeValues ? sizeOption?.values : colorOption?.values
 
-                                    return valuesToShow?.map((value: string) => (
-                                      <SelectItem key={value} value={value}>
-                                        {value}
-                                      </SelectItem>
-                                    ))
-                                  })()}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
+                                      return valuesToShow?.map((value: string) => (
+                                        <SelectItem key={value} value={value}>
+                                          {value}
+                                        </SelectItem>
+                                      ))
+                                    })()}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
 
-                          {/* Couleur Select */}
-                          {variant.color !== null && (
-                            <div className="space-y-1">
-                              <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
-                                Couleur
-                              </Label>
-                              <Select
-                                value={variant.color}
-                                onValueChange={(value) => updateExchangeVariant(article.id, variant.id, "color", value)}
-                              >
-                                <SelectTrigger
-                                  id={`variant-color-${variant.id}`}
-                                  className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                            {/* Couleur Select */}
+                            {variant.color !== null && (
+                              <div className="space-y-1">
+                                <Label htmlFor={`variant-color-${variant.id}`} className="text-xs">
+                                  Couleur
+                                </Label>
+                                <Select
+                                  value={variant.color}
+                                  onValueChange={(value) =>
+                                    updateExchangeVariant(article.id, variant.id, "color", value)
+                                  }
                                 >
-                                  <SelectValue placeholder="Couleur" />
-                                </SelectTrigger>
+                                  <SelectTrigger
+                                    id={`variant-color-${variant.id}`}
+                                    className="h-8 text-xs bg-slate-800/50 border-slate-700"
+                                  >
+                                    <SelectValue placeholder="Couleur" />
+                                  </SelectTrigger>
 
-                                <SelectContent className="bg-slate-900 border-slate-800">
-                                  {(() => {
-                                    const product = products?.find((p) => p.id === article.id)
-                                    if (!product) return null
+                                  <SelectContent className="bg-slate-900 border-slate-800">
+                                    {(() => {
+                                      const product = products?.find((p) => p.id === article.id)
+                                      if (!product) return null
 
-                                    const colorOption = product.options.find((opt) =>
-                                      ["Couleur", "couleur"].includes(opt.name),
-                                    )
-                                    const sizeOption = product.options.find((opt) =>
-                                      ["Pointure", "pointure", "Taille"].includes(opt.name),
-                                    )
+                                      const colorOption = product.options.find((opt) =>
+                                        ["Couleur", "couleur"].includes(opt.name),
+                                      )
+                                      const sizeOption = product.options.find((opt) =>
+                                        ["Pointure", "pointure", "Taille"].includes(opt.name),
+                                      )
 
-                                    const useColorValues = colorOption?.values.includes(variant.color)
+                                      const useColorValues = colorOption?.values.includes(variant.color)
 
-                                    const valuesToShow = useColorValues ? colorOption?.values : sizeOption?.values
+                                      const valuesToShow = useColorValues ? colorOption?.values : sizeOption?.values
 
-                                    return valuesToShow?.map((value: string) => (
-                                      <SelectItem key={value} value={value}>
-                                        {value}
-                                      </SelectItem>
-                                    ))
-                                  })()}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
+                                      return valuesToShow?.map((value: string) => (
+                                        <SelectItem key={value} value={value}>
+                                          {value}
+                                        </SelectItem>
+                                      ))
+                                    })()}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
 
                             <div className="space-y-1">
                               <Label htmlFor={`exchange-variant-quantity-${variant.id}`} className="text-xs">
@@ -1580,10 +1701,8 @@ console.log("var ",variant.depot);
                                   )
                                 }
                                 className="h-8 text-xs bg-slate-800/50 border-slate-700"
-              
                               />
                             </div>
-
 
                             <div className="space-y-1">
                               <Label htmlFor={`exchange-variant-price-${variant.id}`} className="text-xs">
@@ -1593,12 +1712,12 @@ console.log("var ",variant.depot);
                                 id={`exchange-variant-price-${variant.id}`}
                                 type="number"
                                 min="0"
-                             value={variant.unit_price || variant.price}
+                                value={variant.unit_price || variant.price}
                                 onChange={(e) => {
-                                const newPrice = Number.parseInt(e.target.value) || 0
-                                updateExchangeVariant(article.id, variant.id, "unit_price", newPrice)
-                                updateExchangeVariant(article.id, variant.id, "price", newPrice)
-                              }}
+                                  const newPrice = Number.parseInt(e.target.value) || 0
+                                  updateExchangeVariant(article.id, variant.id, "unit_price", newPrice)
+                                  updateExchangeVariant(article.id, variant.id, "price", newPrice)
+                                }}
                                 className="h-8 text-xs bg-slate-800/50 border-slate-700"
                               />
                             </div>
@@ -1624,6 +1743,7 @@ console.log("var ",variant.depot);
               )}
             </div>
           )}
+
           {/* Informations de livraison */}
           <div className="space-y-4 md:col-span-2">
             <h3 className="text-lg font-medium">Informations de livraison</h3>
@@ -1818,7 +1938,7 @@ console.log("var ",variant.depot);
                 <Input
                   id="calculatedTotalPrice"
                   type="number"
-                  value={calculateTotalPrice() + (Number(formData.deliveryPrice))-calculateTotalExchangePrice() || 0}
+                  value={calculateTotalPrice() + Number(formData.deliveryPrice) - calculateTotalExchangePrice() || 0}
                   disabled
                   className="bg-slate-800/50 border-slate-700 opacity-70"
                 />
@@ -1890,7 +2010,6 @@ console.log("var ",variant.depot);
                   >
                     <div className="flex justify-between">
                       <span className="font-medium">{depot.name}</span>
-              
                     </div>
                     <div className="text-xs text-slate-400">Priorité: {depot.priority}</div>
                   </div>
