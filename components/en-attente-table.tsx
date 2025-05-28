@@ -304,9 +304,9 @@ const TableRow = memo(
                 {getCommunesByWilayaName(order.wilaya)
                   .map((commune) => ({
                     id: commune.id,
-                    namefr: commune.commune_name_ascii,
-                    namear: commune.commune_name,
-                    normalizedName: normalizeString(commune.commune_name_ascii),
+                    namefr: commune.name,
+                    namear: commune.name,
+                    normalizedName: normalizeString(commune.name),
                   }))
                   .sort((a, b) => a.namefr.localeCompare(b.namefr))
                   .map((commune) => {

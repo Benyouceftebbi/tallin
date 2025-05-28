@@ -577,6 +577,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
       )
     }
   }
+console.log(formData);
 
   // Ajouter une variante à un article
   const addVariant = (articleId: string) => {
@@ -1779,7 +1780,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
   onValueChange={(value) => {
     const { id, namefr } = JSON.parse(value);
     handleChange("commune", namefr);
-    handleChange("commune_id", id);
+    handleChange("commune_id", id);         
   }}
   disabled={!selectedWilaya}
 >
@@ -1790,9 +1791,9 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
     {getCommunesByWilayaName(selectedWilaya)
       .map((commune) => ({
         id: commune.id,
-        namefr: commune.commune_name_ascii,
-        namear: commune.commune_name,
-        normalizedName: normalizeString(commune.commune_name_ascii),
+        namefr: commune.name,
+        namear: commune.name,
+        normalizedName: normalizeString(commune.name),
       }))
       .sort((a, b) => a.namefr.localeCompare(b.namefr))
       .map((commune) => {
@@ -1869,9 +1870,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
                       <SelectValue placeholder="Sélectionner un point de relais" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800">
-                      {getYalidinCentersForCommune(formData.commune)
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((desk) => {
+                      {getYalidinCentersForCommune(formData.commune)?.map((desk) => {
                           // Use key for NOEST centers and center_id for Yalidin centers
                           const centerId = desk.center_id
                           return (

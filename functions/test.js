@@ -329,7 +329,7 @@ async function deleteDuplicateOrdersByIdField() {
   console.log("✅ Duplicate orders deleted.");
 }
 
-deleteDuplicateOrdersByIdField().catch(console.error);
+//deleteDuplicateOrdersByIdField().catch(console.error);
 async function deleteOrdersWithProduct(productIdToDelete) {
   const snapshot = await db.collection("orders").get();
 
@@ -829,3 +829,50 @@ async function updateMissingOrderReferences() {
 }
 
 //updateMissingOrderReferences().catch(console.error);
+async function getAndUpdatePendingOrders() {
+  const ordersRef = db.collection("orders");
+  const snapshot = await ordersRef.get();
+
+  const seenPhones = new Set();
+  let updatedCount = 0;
+
+  const batch = db.batch();
+
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    const phone = data.phone?.trim();
+    const statusHistory = data.statusHistory;
+
+    const hasEmptyStatusHistory =
+      !statusHistory || (Array.isArray(statusHistory) && statusHistory.length === 0);
+
+    if (
+      data.deliveryCompany &&
+      data.deliveryCompany.trim() !== "" &&
+      data.status === "en-attente" &&
+      data.orderReference !== "" &&
+      data.date === "2025-05-28" &&
+      phone &&
+      hasEmptyStatusHistory &&
+      !seenPhones.has(phone)
+    ) {
+      seenPhones.add(phone);
+      batch.update(doc.ref, {
+        status: "Confirmé",
+        confirmationStatus: "Confirmé",
+      });
+      updatedCount++;
+    }
+  });
+
+  if (updatedCount > 0) {
+    await batch.commit();
+    console.log(`✅ Updated ${updatedCount} matching orders.`);
+  } else {
+    console.log("ℹ️ No matching orders found.");
+  }
+}
+
+// Run the function
+//getAndUpdatePendingOrders();
+
