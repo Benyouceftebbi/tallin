@@ -465,25 +465,27 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
       return updated
     })
 
-    const wilaya = field === "wilaya" ? value : formData.wilaya
-    const type = field === "deliveryType" ? value : formData.deliveryType
+const wilayaRaw = field === "wilaya" ? value : formData.wilaya;
+const type = field === "deliveryType" ? value : formData.deliveryType;
 
-    if (wilaya && type) {
-      try {
-        const docRef = doc(db, "deliveryPrices", wilaya)
-        const snap = await getDoc(docRef)
+const wilaya = wilayaRaw?.toString().padStart(2, '0');
 
-        if (snap.exists()) {
-          const price = snap.data()[type] // either "domicile" or "stopdesk"
-          setFormData((prev) => ({ ...prev, deliveryPrice: price || 0 }))
-        } else {
-          setFormData((prev) => ({ ...prev, deliveryPrice: 0 }))
-        }
-      } catch (err) {
-        console.error("Error fetching delivery price:", err)
-        setFormData((prev) => ({ ...prev, deliveryPrice: 0 }))
-      }
+if (wilaya && type) {
+  try {
+    const docRef = doc(db, "deliveryPrices", wilaya);
+    const snap = await getDoc(docRef);
+
+    if (snap.exists()) {
+      const price = snap.data()[type]; // "domicile" or "stopdesk"
+      setFormData((prev) => ({ ...prev, deliveryPrice: price || 0 }));
+    } else {
+      setFormData((prev) => ({ ...prev, deliveryPrice: 0 }));
     }
+  } catch (err) {
+    console.error("Error fetching delivery price:", err);
+    setFormData((prev) => ({ ...prev, deliveryPrice: 0 }));
+  }
+}
 
     // Clear validation errors when user makes changes
     setValidationErrors([])
@@ -886,7 +888,7 @@ console.log(formData);
           exchangeArticles: cleanedExchangeArticles,
           isExchange: true,
         }),
-      confirmatrice: workerName ? workerName : "",
+      //confirmatrice: workerName ? workerName : "",
       createdAt: isNew ? new Date() : updatedFormData.createdAt,
     }
 

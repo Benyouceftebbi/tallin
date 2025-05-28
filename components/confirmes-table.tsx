@@ -227,7 +227,7 @@ export function ConfirmesTable() {
       const region = wilayass.find(r => r.id=== Number(wilayaCode));
       const wilayaName = region?.name ;
   const commune = comuness.find(
-  c => c.id?.toString() === order.commune_id?.toString() ||
+  c => c.id === Number(order.commune_id)||
        c.name?.toString().toLowerCase() === order.commune?.toString().toLowerCase()
 );
       return {
