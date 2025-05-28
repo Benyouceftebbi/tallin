@@ -196,7 +196,17 @@ const {workerName}=useAuth()
         return order1
       }
     }, [order1, workerName])
-  const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
+const deliveryCompanies = useMemo(() => {
+  return Array.from(
+    new Set(
+      orders
+        .map((order) => order.deliveryCompany)
+        .filter((company) => company && company.trim() !== "")
+    )
+  );
+}, [orders]);
+  console.log("del",deliveryCompanies);
+  
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const uniqueDeliveryCompanies = deliveryCompanies
 
@@ -801,7 +811,7 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                       <SelectValue placeholder="Sélectionner une société" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800">
-                      {deliveryCompanies.map((company) => (
+                      {deliveryCompanies?.map((company) => (
                         <SelectItem key={company} value={company}>
                           {company}
                         </SelectItem>

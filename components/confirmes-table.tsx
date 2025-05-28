@@ -225,12 +225,14 @@ export function ConfirmesTable() {
       const wilayaCode = order.wilayaCode;
       const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
       const wilayaName = region?.wilaya_name_ascii || "Unknown";
-  
+      const commune = region?.commune_name_ascii || "Unknown";
       return {
         ...order,
         articlesNames: productTitles,
         wilayaName,
-        ref:order.orderReference
+        ref:order.orderReference,
+        adresse:order?.address
+
       };
     });
   

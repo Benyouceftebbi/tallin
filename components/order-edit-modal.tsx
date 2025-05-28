@@ -1774,49 +1774,53 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
               </div>
               <div className="space-y-2">
                 <Label htmlFor="commune">Commune *</Label>
-                <Select
-                  value={formData.commune || ""}
-                  onValueChange={(value) => handleChange("commune", value)}
-                  disabled={!selectedWilaya}
-                >
-                  <SelectTrigger id="commune" className="bg-slate-800/50 border-slate-700">
-                    <SelectValue placeholder="Sélectionner une commune" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800">
-                    {getCommunesByWilayaName(selectedWilaya)
-                      .map((commune) => ({
-                        id: commune.id,
-                        namefr: commune.commune_name_ascii,
-                        namear: commune.commune_name,
-                        normalizedName: normalizeString(commune.commune_name_ascii),
-                      }))
-                      .sort((a, b) => a.namefr.localeCompare(b.namefr))
-                      .map((commune) => {
-                        const isSelected = normalizeString(commune.namefr) === normalizeString(order?.commune)
-                        const hasStopDesk = isStopDeskAvailable(commune.namefr)
+<Select
+  value={JSON.stringify({ id: formData.commune_id, namefr: formData.commune })}
+  onValueChange={(value) => {
+    const { id, namefr } = JSON.parse(value);
+    handleChange("commune", namefr);
+    handleChange("commune_id", id);
+  }}
+  disabled={!selectedWilaya}
+>
+  <SelectTrigger id="commune" className="bg-slate-800/50 border-slate-700">
+    <SelectValue placeholder="Sélectionner une commune" />
+  </SelectTrigger>
+  <SelectContent className="bg-slate-900 border-slate-800">
+    {getCommunesByWilayaName(selectedWilaya)
+      .map((commune) => ({
+        id: commune.id,
+        namefr: commune.commune_name_ascii,
+        namear: commune.commune_name,
+        normalizedName: normalizeString(commune.commune_name_ascii),
+      }))
+      .sort((a, b) => a.namefr.localeCompare(b.namefr))
+      .map((commune) => {
+        const isSelected = normalizeString(commune.namefr) === normalizeString(order?.commune);
+        const hasStopDesk = isStopDeskAvailable(commune.namefr);
 
-                        return (
-                          <SelectItem
-                            key={commune.id}
-                            value={commune.namefr}
-                            className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <span>
-                                {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
-                                {isSelected && " ✓"}
-                              </span>
-                              {!hasStopDesk && order?.deliveryType === "stopdesk" && (
-                                <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
-                                  no stopdesk
-                                </span>
-                              )}
-                            </div>
-                          </SelectItem>
-                        )
-                      })}
-                  </SelectContent>
-                </Select>
+        return (
+          <SelectItem
+            key={commune.id}
+            value={JSON.stringify({ id: commune.id, namefr: commune.namefr })}
+            className={isSelected ? "bg-indigo-50 dark:bg-indigo-900/20" : ""}
+          >
+            <div className="flex items-center justify-between w-full">
+              <span>
+                {commune.namefr} {commune.namear ? `(${commune.namear})` : ""}
+                {isSelected && " ✓"}
+              </span>
+              {!hasStopDesk && order?.deliveryType === "stopdesk" && (
+                <span className="text-amber-500 text-xs font-medium ml-2 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">
+                  no stopdesk
+                </span>
+              )}
+            </div>
+          </SelectItem>
+        );
+      })}
+  </SelectContent>
+</Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="deliveryType">Type de livraison *</Label>

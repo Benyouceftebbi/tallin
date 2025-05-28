@@ -1410,7 +1410,7 @@ interface YalidinCenter {
     },
     "118": {
       "id": 118,
-      "commune_name_ascii": "Ain Touta",
+      "commune_name_ascii": "Aïn Touta",
       "commune_name": "عين التوتة",
       "daira_name_ascii": "Ain Touta",
       "daira_name": "عين التوتة",
@@ -2223,7 +2223,7 @@ interface YalidinCenter {
     },
     "187": {
       "id": 187,
-      "commune_name_ascii": "Bejaia",
+      "commune_name_ascii": "Béjaïa",
       "commune_name": "بجاية",
       "daira_name_ascii": "Bejaia",
       "daira_name": "بجاية",
@@ -2563,7 +2563,7 @@ interface YalidinCenter {
     },
     "215": {
       "id": 215,
-      "commune_name_ascii": "Souk El Tenine",
+      "commune_name_ascii": "Souk El Ténine",
       "commune_name": "سوق لإثنين",
       "daira_name_ascii": "Souk El Tenine",
       "daira_name": "سوق الإثنين",
@@ -6827,7 +6827,7 @@ interface YalidinCenter {
     },
     "566": {
       "id": 566,
-      "commune_name_ascii": "Bir Touta",
+        "commune_name_ascii": "Birtouta",
       "commune_name": "بئر توتة",
       "daira_name_ascii": "Birtouta",
       "daira_name": "بئر توتة",
@@ -8929,7 +8929,7 @@ interface YalidinCenter {
     },
     "729": {
       "id": 729,
-      "commune_name_ascii": "Setif",
+      "commune_name_ascii": "Sétif",
       "commune_name": "سطيف",
       "daira_name_ascii": "Setif",
       "daira_name": "سطيف",
@@ -10060,7 +10060,7 @@ interface YalidinCenter {
     },
     "824": {
       "id": 824,
-      "commune_name_ascii": "Sidi Bel-Abbes",
+      "commune_name_ascii": "Sidi Bel Abbes",
       "commune_name": "سيدي بلعباس",
       "daira_name_ascii": "Sidi Bel Abbes",
       "daira_name": "سيدي بلعباس",
@@ -17969,7 +17969,7 @@ interface YalidinCenter {
     },
     "1481": {
       "id": 1481,
-      "commune_name_ascii": "Oued Sebbah",
+    "commune_name_ascii": "Oued Sabah",
       "commune_name": "وادي الصباح",
       "daira_name_ascii": "Ain Larbaa",
       "daira_name": "عين الأربعاء",
@@ -18529,7 +18529,7 @@ interface YalidinCenter {
     },
     "1529": {
       "id": 1529,
-      "commune_name_ascii": "Oued-Rhiou",
+      "commune_name_ascii": "Oued Rhiou",
       "commune_name": "وادي رهيو",
       "daira_name_ascii": "Oued Rhiou",
       "daira_name": "وادي رهيو",
