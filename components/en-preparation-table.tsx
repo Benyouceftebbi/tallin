@@ -593,34 +593,24 @@ const {workerName}=useAuth()
   // State to track if the barcode processing is active
   const [isProcessingBarcode, setIsProcessingBarcode] = useState(false)
 
-  // Function to handle barcode processing
-  const handleBarcodeChange = useCallback(
-    (value: string) => {
-      setBarcodeValue(value)
+const handleBarcodeChange = useCallback(
+  (value: string) => {
+    setBarcodeValue(value)
 
-      // If already processing, ignore the change
-      if (isProcessingBarcode) {
-        return
-      }
+    // Only process when barcode is exactly 10 characters
+    if (value.trim().length === 10 && !isProcessingBarcode) {
+      setIsProcessingBarcode(true)
 
-      // If the value is not empty and appears to be a complete barcode
-      if (value.trim() !== "" && value.length > 5) {
-        setIsProcessingBarcode(true) // Set processing flag
+      processBarcode(value.trim())
+      setBarcodeValue("")
 
-        // Process immediately for barcode scanners
-        // Most barcode scanners complete input very quickly
-        processBarcode(value)
-        setBarcodeValue("")
-
-        // Reset processing flag after a short delay to prevent duplicate scans
-        setTimeout(() => {
-          setIsProcessingBarcode(false)
-        }, 300)
-      }
-    },
-    [processBarcode, isProcessingBarcode],
-  )
-
+      setTimeout(() => {
+        setIsProcessingBarcode(false)
+      }, 300) // Small cooldown to prevent double processing
+    }
+  },
+  [processBarcode, isProcessingBarcode]
+)
 const printSelectedLabels = useCallback(async () => {
   if (selectedRows.length === 0) {
     toast({
