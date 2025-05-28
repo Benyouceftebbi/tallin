@@ -15846,7 +15846,7 @@ export function getAllWilayas(): { code: string; name_ascii: string; name: strin
   
 
 
-  const comuness=[
+  export const comuness=[
   {
     "id": 101,
     "name": "Adrar",
