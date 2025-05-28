@@ -33,7 +33,7 @@ import { DateRangePicker } from "@/components/date-range-picker"
 import { Badge } from "@/components/ui/badge"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card"
 import { generateParcelLabel } from "@/app/commandes/confirmes/print"
-import { algeriaRegions } from "@/app/admin/commandes/en-attente/data/algeria-regions"
+import { algeriaRegions, comuness, wilayass } from "@/app/admin/commandes/en-attente/data/algeria-regions"
 import { httpsCallable } from "firebase/functions"
 import { auth, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
@@ -223,68 +223,24 @@ export function ConfirmesTable() {
       );
   
       const wilayaCode = order.wilayaCode;
-      const region = algeriaRegions.find(r => r.wilaya_code === wilayaCode);
-      const wilayaName = region?.wilaya_name_ascii || "Unknown";
-      const commune = region?.commune_name_ascii || "Unknown";
+      console.log(wilayaCode);
+      
+      const region = wilayass.find(r => r.id.toString() === wilayaCode);
+      const wilayaName = region?.name ;
+      const commune = comuness.find(c=>c.id.toString()===order.commune_id.toString() || c.name===order?.commune) ;
       return {
         ...order,
         articlesNames: productTitles,
         wilayaName,
         ref:order.orderReference,
-        adresse:order?.address
+        adresse:order?.address,
+        commune:commune
 
       };
     });
   
-    // Step 2: Group orders by delivery company
-    const ordersByCompany: Record<string, typeof rawOrders> = {};
-    for (const order of rawOrders) {
-      const company = order.deliveryCompany;
-      if (!ordersByCompany[company]) {
-        ordersByCompany[company] = [];
-      }
-      ordersByCompany[company].push(order);
-    }
-  
-    const allConfirmedOrders: typeof rawOrders = [];
-    const uploadYalidineOrders = httpsCallable(functions, "uploadYalidineOrders");
-  
-    // Step 3: Handle orders per company
-    for (const [company, orders] of Object.entries(ordersByCompany)) {
-      if (company === "deliveryMen") {
-        // Directly mark these as confirmed (or just push them as-is)
-        allConfirmedOrders.push(...orders);
-        continue;
-      }
-  
-      const deliveryKeys = deliveryCompanies.find(d => d.entity === company);
-      if (!deliveryKeys) {
-        console.warn(`Missing credentials for ${company}`);
-        continue;
-      }
-  
-      try {
-        const res = await uploadYalidineOrders({
-          apiKey: deliveryKeys.apiId,
-          apiToken: deliveryKeys.apiToken,
-          rawOrders: orders,
-        });
-  
-        allConfirmedOrders.push(...res.data.confirmedOrders);
-      } catch (err) {
-        console.error(`Failed to upload orders for ${company}`, err);
-      }
-    }
-  
-    // Step 4: Update orders in local state
-    allConfirmedOrders.forEach(confirmedOrder => {
-      setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === confirmedOrder.id ? { ...order, ...confirmedOrder } : order
-        )
-      );
-    });
-  
+    console.log("row",rawOrders);
+    
     toast({
       title: "Commandes déplacées",
       description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation".`,

@@ -15475,7 +15475,7 @@ export function normalizeString(str: string): string {
    * Get all wilayas (provinces) from the regions data
    * @returns Array of unique wilayas with their codes and names
    */
-  const wilayas=[
+  export const wilayass=[
   {
     "id": 1,
     "name": "Adrar",
@@ -15826,7 +15826,7 @@ export function normalizeString(str: string): string {
   }
 ]
 export function getAllWilayas(): { code: string; name_ascii: string; name: string }[] {
-  return wilayas.map((region) => ({
+  return wilayass.map((region) => ({
     code: region.id.toString(),
     name_ascii: region.name,
     name: region.wilaya_name || region.name, // fallback if wilaya_name is missing
