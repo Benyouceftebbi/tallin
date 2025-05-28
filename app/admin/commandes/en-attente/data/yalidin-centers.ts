@@ -14241,7 +14241,7 @@ interface YalidinCenter {
     },
     "1166": {
       "id": 1166,
-      "commune_name_ascii": "B. B. Arreridj",
+      "commune_name_ascii":"Bordj Bou Arreridj",
       "commune_name": "برج بوعريرج",
       "daira_name_ascii": "Bordj Bou Arreridj",
       "daira_name": "برج بوعريريج",
