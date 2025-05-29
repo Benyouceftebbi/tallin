@@ -36,6 +36,7 @@ import Link from "next/link"
 import { collection, where, getDocs, limit, getFirestore, query } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useShop } from "@/context/shop-context"
+import { useRouter } from "next/navigation"
 
 
 // Define the DateRange type
@@ -47,12 +48,14 @@ interface DateRange {
 export function Topbar() {
   const { getStatusCounts, loading } = useShop()
  const statusCounts = getStatusCounts()
-
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+ const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
+
+  // In the Topbar component, add the router hook after the existing state declarations:
+  const router = useRouter()
 
   const debouncedSearch = useCallback(
     debounce(async (searchQuery: string) => {
@@ -93,7 +96,7 @@ export function Topbar() {
               // Additional client-side filtering for more flexible search
               const searchableText = `${data.name || ""} ${data.phone || ""} ${data.trackingId || ""}`.toLowerCase()
               if (searchableText.includes(searchTerm)) {
-                results.set(doc.id, { id: doc.id, ...data })
+                results.set(doc.id, { id: doc.id, ...data,idd:doc.id })
               }
             })
           } catch (queryError) {
@@ -251,7 +254,36 @@ export function Topbar() {
                         key={order.id}
                         className="p-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700 last:border-b-0"
                         onClick={() => {
-                          // Handle order selection - you can navigate to order details
+                          // Navigate to the appropriate table based on order status
+                          const statusRouteMap = {
+                            "en-attente": "/admin/commandes/en-attente",
+                            Confirmé: "/admin/commandes/confirmes",
+                            "En préparation": "/admin/commandes/en-preparation",
+                            Dispatcher: "/admin/commandes/dispatcher",
+                            "En livraison": "/admin/commandes/en-livraison",
+                            Livrés: "/admin/commandes/livres",
+                            Retour: "/admin/commandes/retour",
+                          }
+
+                          // Get the route based on order status, default to en-attente if not found
+                          const targetRoute =
+                            statusRouteMap[order.status] ||
+                            statusRouteMap[order.confirmationStatus] ||
+                            "/admin/commandes/en-attente"
+
+                          // Create URL with search parameters to filter the table
+                          const searchParams = new URLSearchParams({
+                            searchId: order.idd,
+                            searchName: order.name,
+                            searchPhone: order.phone,
+                            searchTrackingId: order.trackingId || "",
+                            highlightOrder: order.idd,
+                          })
+
+                          // Navigate to the target route with filters
+                          router.push(`${targetRoute}?${searchParams.toString()}`)
+
+                          // Close search results
                           setShowResults(false)
                           setSearchQuery("")
                         }}

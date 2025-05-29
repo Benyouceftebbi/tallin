@@ -54,7 +54,7 @@ import { functions } from "@/lib/firebase"
 import { generateParcelLabel } from "@/app/admin/commandes/confirmes/print"
 import { PDFDocument } from 'pdf-lib';
 import { useAuth } from "@/context/auth-context"
-
+import { useOrderSearchParams } from "@/hooks/use-search-params"
 // Liste des livreurs disponibles - définie en dehors du composant car elle ne change pas
 const deliverymen = [
   "Ahmed Benali",
@@ -150,7 +150,6 @@ const playWarningSound = () => {
 
 export default function EnPreparationTable() {
   const { getOrdersByStatus, updateOrder, updateMultipleOrdersStatus, loading,deliveryMen} = useShop()
-  const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -165,7 +164,26 @@ export default function EnPreparationTable() {
   const [selectedDeliveryCompany, setSelectedDeliveryCompany] = useState<string>("")
   const [scannedOrders, setScannedOrders] = useState<Order[]>([])
   const [trackingId, setTrackingId] = useState<string>("")
+const searchFilters = useOrderSearchParams()
+const [searchTerm, setSearchTerm] = useState(
+  searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    "",
+)
 
+useEffect(() => {
+  const urlSearchTerm =
+    searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    ""
+  if (urlSearchTerm) {
+    setSearchTerm(urlSearchTerm)
+  }
+}, [searchFilters])
   // État pour les colonnes visibles
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>({
     id: true,
@@ -1257,8 +1275,9 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                     className={cn(
                       "border-b border-slate-800 hover:bg-slate-800/50",
                       selectedRows.includes(order.id) && "bg-slate-800/30",
-                      order.isPrinted && "bg-emerald-900/30" // add greenish background if printed
-                    )}
+                      order.isPrinted && "bg-emerald-900/30",
+searchFilters.highlightOrder === order.id && "ring-2 ring-cyan-500 bg-cyan-900/20",                   
+ )}
                   >
                       <td className="p-3">
                         <Checkbox

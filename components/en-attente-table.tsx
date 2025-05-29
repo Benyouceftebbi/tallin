@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, memo } from "react"
+import { useState, useCallback, useMemo, memo, useEffect } from "react"
 import {
   CheckCircle,
   MoreHorizontal,
@@ -56,6 +56,7 @@ import {
 import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipping-availability"
 import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
 import { useAuth } from "@/context/auth-context"
+import { useOrderSearchParams } from "@/hooks/use-search-params"
 
 // Memoized table row component for better performance
 const TableRow = memo(
@@ -82,6 +83,7 @@ const TableRow = memo(
     wilayas,
     workerName,
     updateOrder,
+    searchFilters,
   }: {
     order: Order
     isSelected: boolean
@@ -105,6 +107,7 @@ const TableRow = memo(
     wilayas: any[]
     workerName?: string
     updateOrder: (id: string, data: any) => void
+    searchFilters: any
   }) => {
     const [noteDialogOpen, setNoteDialogOpen] = useState(false)
     const [noteStatus, setNoteStatus] = useState<string>("")
@@ -121,6 +124,7 @@ const TableRow = memo(
           order.confirmationStatus === "Annulé" && "bg-red-900/40",
           order.confirmationStatus === "Reporté" && "bg-violet-900/40",
           order.confirmationStatus === "Confirmé" && "bg-green-900/40",
+          searchFilters.highlightOrder === order.id && "ring-2 ring-cyan-500 bg-cyan-900/20",
         )}
       >
         <td className="p-3">
@@ -525,7 +529,28 @@ export function EnAttenteTable() {
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [paginationLoading, setPaginationLoading] = useState(false)
 
-  const [searchTerm, setSearchTerm] = useState("")
+  const searchFilters = useOrderSearchParams()
+
+  const [searchTerm, setSearchTerm] = useState(
+    searchFilters.searchId ||
+      searchFilters.searchName ||
+      searchFilters.searchPhone ||
+      searchFilters.searchTrackingId ||
+      "",
+  )
+
+  useEffect(() => {
+    const urlSearchTerm =
+      searchFilters.searchId ||
+      searchFilters.searchName ||
+      searchFilters.searchPhone ||
+      searchFilters.searchTrackingId ||
+      ""
+    if (urlSearchTerm) {
+      setSearchTerm(urlSearchTerm)
+    }
+  }, [searchFilters])
+
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -636,10 +661,10 @@ export function EnAttenteTable() {
       const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter
       const matchesStatus = statusFilter === "all" || order.confirmationStatus === statusFilter
       const matchesSource = sourceFilter === "all" || order.source === sourceFilter
-     const matchesConfirmatrice =
-  confirmatriceFilter === "all" ||
-  (confirmatriceFilter === "non attribué" && order.confirmatrice === "") ||
-  order.confirmatrice === confirmatriceFilter;
+      const matchesConfirmatrice =
+        confirmatriceFilter === "all" ||
+        (confirmatriceFilter === "non attribué" && order.confirmatrice === "") ||
+        order.confirmatrice === confirmatriceFilter
       const matchesArticle =
         articleFilter === "all" || order.articles.some((article) => article.product_name === articleFilter)
 
@@ -658,8 +683,6 @@ export function EnAttenteTable() {
 
       return (
         matchesSearch &&
-
-        
         matchesWilaya &&
         matchesCommune &&
         matchesDeliveryCompany &&
@@ -689,7 +712,6 @@ export function EnAttenteTable() {
     articleFilter,
     dateRange,
   ])
-
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
@@ -1552,6 +1574,7 @@ export function EnAttenteTable() {
                       wilayas={wilayas}
                       workerName={workerName}
                       updateOrder={updateOrder}
+                      searchFilters={searchFilters}
                     />
                   ))
                 )}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { Search, Edit, ArrowRight, Plus, Filter, UserCheck, Columns, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -38,6 +38,7 @@ import { httpsCallable } from "firebase/functions"
 import { auth, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { useAuth } from "@/context/auth-context"
+import { useOrderSearchParams } from "@/hooks/use-search-params"
 
 export function ConfirmesTable() {
   const {
@@ -51,7 +52,7 @@ export function ConfirmesTable() {
     deliveryCenters,workers,orders // Assuming this comes from the shop context
   } = useShop()
     const { userRole,workerName } = useAuth()
-  const [searchTerm, setSearchTerm] = useState("")
+
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | undefined>(undefined)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -59,7 +60,7 @@ export function ConfirmesTable() {
   const [isConfirmatriceModalOpen, setIsConfirmatriceModalOpen] = useState(false)
   const [selectedConfirmatrice, setSelectedConfirmatrice] = useState("")
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-
+const searchFilters = useOrderSearchParams()
   // Filtres
   const [wilayaFilter, setWilayaFilter] = useState<string>("all")
   const [communeFilter, setCommuneFilter] = useState<string>("all")
@@ -68,7 +69,25 @@ export function ConfirmesTable() {
   const [sourceFilter, setSourceFilter] = useState<string>("all")
   const [confirmatriceFilter, setConfirmatriceFilter] = useState<string>("all")
   const [articleFilter, setArticleFilter] = useState<string>("all")
+const [searchTerm, setSearchTerm] = useState(
+  searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    "",
+)
 
+useEffect(() => {
+  const urlSearchTerm =
+    searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    ""
+  if (urlSearchTerm) {
+    setSearchTerm(urlSearchTerm)
+  }
+}, [searchFilters])
   // Colonnes visibles
   const [visibleColumns, setVisibleColumns] = useState({
     id: true,
@@ -745,6 +764,8 @@ export function ConfirmesTable() {
                       className={cn(
                         "border-b border-slate-800 hover:bg-slate-800/50",
                         selectedRows.includes(order.id) && "bg-slate-800/30",
+                        searchFilters.highlightOrder === order.id && "ring-2 ring-cyan-500 bg-cyan-900/20",
+
                       )}
                     >
                       <td className="p-3">

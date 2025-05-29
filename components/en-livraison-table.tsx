@@ -48,7 +48,7 @@ import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO, toDate } from "date-fns"
 import { collection, doc, setDoc, onSnapshot, query, orderBy, addDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-
+import { useOrderSearchParams } from "@/hooks/use-search-params"
 // Types pour les nœuds de suivi
 type TrackingNode =
   | "En transit"
@@ -104,10 +104,28 @@ type OrderWithTracking = Order & {
 
 export function EnLivraisonTable() {
   const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, updateOrder, loading } = useShop()
-  const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+const searchFilters = useOrderSearchParams()
+const [searchTerm, setSearchTerm] = useState(
+  searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    "",
+)
 
+useEffect(() => {
+  const urlSearchTerm =
+    searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    ""
+  if (urlSearchTerm) {
+    setSearchTerm(urlSearchTerm)
+  }
+}, [searchFilters])
   // États pour les filtres
   const [wilayaFilter, setWilayaFilter] = useState<string>("all")
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<string>("all")
@@ -1265,7 +1283,11 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
               </thead>
               <tbody>
                 {filteredOrders.length === 0 ? (
-                  <tr className="border-b border-slate-800">
+           <tr
+  className={`border-b border-slate-800 ${
+    searchFilters.highlightOrder === order.id ? "ring-2 ring-cyan-500 bg-cyan-900/20" : ""
+  }`}
+>
                     <td colSpan={14} className="text-center py-8 text-slate-400">
                       Aucune commande trouvée
                     </td>

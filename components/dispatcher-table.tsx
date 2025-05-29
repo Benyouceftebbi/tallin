@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CheckCircle, MoreHorizontal, Package, Search, ArrowRight, Clock, Columns, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,10 +23,29 @@ import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
-
+import { useOrderSearchParams } from "@/hooks/use-search-params"
 export function DispatcherTable() {
   const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, loading } = useShop()
-  const [searchTerm, setSearchTerm] = useState("")
+  const searchFilters = useOrderSearchParams()
+  const [searchTerm, setSearchTerm] = useState(
+  searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    "",
+)
+
+useEffect(() => {
+  const urlSearchTerm =
+    searchFilters.searchId ||
+    searchFilters.searchName ||
+    searchFilters.searchPhone ||
+    searchFilters.searchTrackingId ||
+    ""
+  if (urlSearchTerm) {
+    setSearchTerm(urlSearchTerm)
+  }
+}, [searchFilters])
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
@@ -466,6 +485,7 @@ export function DispatcherTable() {
                     className={cn(
                       "border-slate-800 hover:bg-slate-800/50",
                       selectedRows.includes(order.id) && "bg-slate-800/30",
+                    searchFilters.highlightOrder === order.id && "ring-2 ring-cyan-500 bg-cyan-900/20", // <- This line
                     )}
                   >
                     <TableCell>
