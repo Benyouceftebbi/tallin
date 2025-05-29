@@ -45,7 +45,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { DateRange } from "@/components/date-range-picker"
-import { isWithinInterval, parseISO } from "date-fns"
+import { isWithinInterval, parseISO, toDate } from "date-fns"
 import { collection, doc, setDoc, onSnapshot, query, orderBy, addDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
@@ -60,13 +60,20 @@ type TrackingNode =
 
 // Liste des nœuds de suivi disponibles
 const trackingNodes: TrackingNode[] = [
-  "En transit",
-  "Arrivé au hub",
-  "En cours de livraison",
-  "Tentative échouée",
-  "Reporté",
-  "Prêt à livrer",
-]
+  "ferme",
+  "nrp",
+  "j attendes",
+  "faux numero",
+  "faux commande",
+  "ok",
+  "reporte",
+  "pas seriux",
+  "occupe",
+  "en voyage",
+  "sms envoye",
+  "achete ailleurs",
+  "annule",
+];
 
 // Type pour les notes
 type OrderNote = {
@@ -636,25 +643,38 @@ export function EnLivraisonTable() {
     }
   }, [])
 
-  // Obtenir la couleur du badge pour le nœud de suivi - mémorisé
-  const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
-    switch (node) {
-      case "En transit":
-        return "bg-blue-950/50 text-blue-400 border-blue-700"
-      case "Arrivé au hub":
-        return "bg-purple-950/50 text-purple-400 border-purple-700"
-      case "En cours de livraison":
-        return "bg-amber-950/50 text-amber-400 border-amber-700"
-      case "Tentative échouée":
-        return "bg-red-950/50 text-red-400 border-red-700"
-      case "Reporté":
-        return "bg-orange-950/50 text-orange-400 border-orange-700"
-      case "Prêt à livrer":
-        return "bg-green-950/50 text-green-400 border-green-700"
-      default:
-        return "bg-slate-950/50 text-slate-400 border-slate-700"
-    }
-  }, [])
+const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
+  switch (node) {
+    case "ferme":
+      return "bg-gray-950/50 text-gray-400 border-gray-700";
+    case "nrp":
+      return "bg-yellow-950/50 text-yellow-400 border-yellow-700";
+    case "j attendes":
+      return "bg-blue-950/50 text-blue-400 border-blue-700";
+    case "faux numero":
+      return "bg-red-950/50 text-red-400 border-red-700";
+    case "faux commande":
+      return "bg-pink-950/50 text-pink-400 border-pink-700";
+    case "ok":
+      return "bg-green-950/50 text-green-400 border-green-700";
+    case "reporte":
+      return "bg-orange-950/50 text-orange-400 border-orange-700";
+    case "pas seriux":
+      return "bg-rose-950/50 text-rose-400 border-rose-700";
+    case "occupe":
+      return "bg-indigo-950/50 text-indigo-400 border-indigo-700";
+    case "en voyage":
+      return "bg-cyan-950/50 text-cyan-400 border-cyan-700";
+    case "sms envoye":
+      return "bg-teal-950/50 text-teal-400 border-teal-700";
+    case "achete ailleurs":
+      return "bg-fuchsia-950/50 text-fuchsia-400 border-fuchsia-700";
+    case "annule":
+      return "bg-red-950/50 text-red-400 border-red-700";
+    default:
+      return "bg-slate-950/50 text-slate-400 border-slate-700";
+  }
+}, []);
 
   // Vérifier si une commande a une note - mémorisé
   const hasNote = useCallback(
@@ -1280,7 +1300,7 @@ export function EnLivraisonTable() {
                       {visibleColumns.status && (
                         <td className="p-3 text-slate-300">
                           <Badge className="bg-amber-950/50 text-amber-400 border-amber-700" variant="outline">
-                            {order.status}
+                            {order?.lastStatus}
                           </Badge>
                         </td>
                       )}
@@ -1399,7 +1419,18 @@ export function EnLivraisonTable() {
                         <td className="p-3 text-slate-300">
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3 text-slate-400" />
-                            <span>{order.lastUpdated}</span>
+<span>
+  {order?.lastUpdated
+    ? new Date(order.lastUpdated.seconds * 1000).toLocaleString("fr-DZ", {
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "N/A"}
+</span>
                           </div>
                         </td>
                       )}
