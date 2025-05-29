@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+
+import { useState, useEffect, useCallback } from "react"
 import {
   CheckCircle,
   Box,
@@ -12,6 +14,8 @@ import {
   Search,
   User,
   Clock,
+  Download,
+  RefreshCw,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -26,19 +30,129 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useShop } from "@/context/shop-context"
 import Link from "next/link"
 
-// Add imports for the date range picker and other controls
-import { DateRangePicker } from "@/components/date-range-picker"
-import { Download, RefreshCw } from "lucide-react"
-import type { DateRange } from "@/components/date-range-picker"
+// Firebase imports
+import { collection, where, getDocs, limit, getFirestore, query } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+
+
+// Define the DateRange type
+interface DateRange {
+  from?: Date
+  to?: Date
+}
 
 export function Topbar() {
-  const { getStatusCounts, loading } = useShop()
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+  // Remove shop context dependency and use local state
+  const [loading, setLoading] = useState(false)
+  const [statusCounts, setStatusCounts] = useState({
+    "en-attente": 12,
+    Confirmé: 8,
+    "En préparation": 5,
+    Dispatcher: 3,
+    "En livraison": 7,
+    Livrés: 25,
+    Retour: 2,
+  })
 
-  const statusCounts = getStatusCounts()
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showResults, setShowResults] = useState(false)
+
+  const debouncedSearch = useCallback(
+    debounce(async (searchQuery: string) => {
+      if (!searchQuery.trim()) {
+        setSearchResults([])
+        setShowResults(false)
+        setIsSearching(false)
+        return
+      }
+
+      setIsSearching(true)
+      try {
+        const ordersRef = collection(db, "orders")
+        const searchTerm = searchQuery.toLowerCase()
+
+        // Create multiple queries for different fields
+        const queries = [
+          // Search by name
+          query(ordersRef, where("name", ">=", searchTerm), where("name", "<=", searchTerm + "\uf8ff"), limit(10)),
+          // Search by phone
+          query(ordersRef, where("phone", ">=", searchQuery), where("phone", "<=", searchQuery + "\uf8ff"), limit(10)),
+          // Search by trackingId
+          query(
+            ordersRef,
+            where("trackingId", ">=", searchQuery),
+            where("trackingId", "<=", searchQuery + "\uf8ff"),
+            limit(10),
+          ),
+        ]
+
+        const results = new Map()
+
+        for (const q of queries) {
+          try {
+            const snapshot = await getDocs(q)
+            snapshot.docs.forEach((doc) => {
+              const data = doc.data()
+              // Additional client-side filtering for more flexible search
+              const searchableText = `${data.name || ""} ${data.phone || ""} ${data.trackingId || ""}`.toLowerCase()
+              if (searchableText.includes(searchTerm)) {
+                results.set(doc.id, { id: doc.id, ...data })
+              }
+            })
+          } catch (queryError) {
+            console.warn("Query failed:", queryError)
+          }
+        }
+
+        setSearchResults(Array.from(results.values()))
+        setShowResults(true)
+      } catch (error) {
+        console.error("Search error:", error)
+        setSearchResults([])
+      } finally {
+        setIsSearching(false)
+      }
+    }, 300),
+    [],
+  )
+
+  // Debounce utility function
+  function debounce(func: Function, wait: number) {
+    let timeout: NodeJS.Timeout
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout)
+        func(...args)
+      }
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
+    }
+  }
+
+  useEffect(() => {
+    debouncedSearch(searchQuery)
+  }, [searchQuery, debouncedSearch])
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest(".relative")) {
+        setShowResults(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const statusLinks = [
     {
@@ -54,7 +168,7 @@ export function Topbar() {
     {
       name: "Confirmés",
       path: "/admin/commandes/confirmes",
-      count: statusCounts["Confirmé"]|| 0,
+      count: statusCounts["Confirmé"] || 0,
       icon: CheckCircle,
       color: "text-emerald-500",
       bgColor: "bg-emerald-950/30",
@@ -64,7 +178,7 @@ export function Topbar() {
     {
       name: "En préparation",
       path: "/admin/commandes/en-preparation",
-      count: statusCounts["En préparation"]|| 0,
+      count: statusCounts["En préparation"] || 0,
       icon: Box,
       color: "text-blue-500",
       bgColor: "bg-blue-950/30",
@@ -74,7 +188,7 @@ export function Topbar() {
     {
       name: "Dispatcher",
       path: "/admin/commandes/dispatcher",
-      count: statusCounts["Dispatcher"]|| 0,
+      count: statusCounts["Dispatcher"] || 0,
       icon: ClipboardCheck,
       color: "text-purple-500",
       bgColor: "bg-purple-950/30",
@@ -84,7 +198,7 @@ export function Topbar() {
     {
       name: "En livraison",
       path: "/admin/commandes/en-livraison",
-      count: statusCounts["En livraison"]|| 0,
+      count: statusCounts["En livraison"] || 0,
       icon: Truck,
       color: "text-orange-500",
       bgColor: "bg-orange-950/30",
@@ -94,7 +208,7 @@ export function Topbar() {
     {
       name: "Livrés",
       path: "/admin/commandes/livres",
-      count: statusCounts["Livrés"]|| 0,
+      count: statusCounts["Livrés"] || 0,
       icon: PackageCheck,
       color: "text-cyan-500",
       bgColor: "bg-cyan-950/30",
@@ -104,7 +218,7 @@ export function Topbar() {
     {
       name: "Retour",
       path: "/admin/commandes/retour",
-      count: statusCounts["Retour"]|| 0,
+      count: statusCounts["Retour"] || 0,
       icon: PackageX,
       color: "text-rose-500",
       bgColor: "bg-rose-950/30",
@@ -117,18 +231,80 @@ export function Topbar() {
     <div className="border-b border-slate-800 bg-slate-900 p-4 shadow-md">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-              <Input
-                type="search"
-                placeholder="Rechercher..."
-                className="pl-8 bg-slate-800 border-slate-700 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
-              />
-            </div>
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              type="search"
+              placeholder="Rechercher par nom, téléphone, ou ID de suivi..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="pl-8 bg-slate-800 border-slate-700 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+            />
+
+            {/* Search Results Dropdown */}
+            {showResults && (searchResults.length > 0 || isSearching) && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
+                {isSearching ? (
+                  <div className="p-4 text-center text-slate-400">
+                    <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-2" />
+                    Recherche en cours...
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="p-2">
+                    <div className="text-xs text-slate-400 px-2 py-1 border-b border-slate-700">
+                      {searchResults.length} résultat(s) trouvé(s)
+                    </div>
+                    {searchResults.map((order) => (
+                      <div
+                        key={order.id}
+                        className="p-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700 last:border-b-0"
+                        onClick={() => {
+                          // Handle order selection - you can navigate to order details
+                          setShowResults(false)
+                          setSearchQuery("")
+                        }}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="font-medium text-slate-200">{order.name}</div>
+                            <div className="text-sm text-slate-400">{order.phone}</div>
+                            <div className="text-xs text-slate-500">ID: {order.trackingId}</div>
+                          </div>
+                          <div className="text-right">
+                            <div
+                              className={cn(
+                                "text-xs px-2 py-1 rounded-full",
+                                order.status === "Confirmé" && "bg-emerald-900 text-emerald-300",
+                                order.status === "En préparation" && "bg-blue-900 text-blue-300",
+                                order.status === "En livraison" && "bg-orange-900 text-orange-300",
+                                order.status === "Livrés" && "bg-cyan-900 text-cyan-300",
+                                order.status === "en-attente" && "bg-amber-900 text-amber-300",
+                                order.status === "Dispatcher" && "bg-purple-900 text-purple-300",
+                                order.status === "Retour" && "bg-rose-900 text-rose-300",
+                              )}
+                            >
+                              {order.status}
+                            </div>
+                            {order.articles && (
+                              <div className="text-xs text-slate-400 mt-1">{order.articles.length} article(s)</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-slate-400">Aucun résultat trouvé</div>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 ml-auto">
-            <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
+            <Input
+              type="date"
+              className="bg-slate-800 border-slate-700 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+              placeholder="Date"
+            />
             <Button variant="outline" size="sm" className="gap-1">
               <Download className="h-4 w-4" />
               <span className="hidden sm:inline">Exporter</span>
