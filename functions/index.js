@@ -495,7 +495,8 @@ async function updateTrackingDocs(
   const shopUpdate = {
     shippmentTrack: admin.firestore.FieldValue.arrayUnion(entry),
     lastStatus: entry.status,
-    lastUpdated:new Date()
+    lastUpdated:new Date(),
+    status:"En livraison"
   };
 
   // Update shop tracking document
@@ -574,7 +575,6 @@ exports.processStatusUpdateTask = onMessagePublished(
                 shippmentTrack: [initialEntry],
                 lastStatus: initialEntry.status,
                 lastUpdated:new Date(),
-                status:"En livraison"
             });
             
             await batch.commit();

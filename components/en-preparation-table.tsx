@@ -391,7 +391,6 @@ const deliveryCompanies = useMemo(() => {
         scannedOrders.forEach((order) => {
           updateOrder(order.id, {
             deliveryCompany: selectedDeliveryman, // Change to the selected deliveryman name
-            trackingId: trackingId,
           })
         })
         updateMultipleOrdersStatus(scannedOrderIds, "Dispatcher")

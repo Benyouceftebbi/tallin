@@ -898,4 +898,87 @@ async function updateOrderStatuses() {
   console.log(`${snapshot.size} order(s) updated to status: e preparation`);
 }
 
-updateOrderStatuses().catch(console.error);
+async function getOrdersWithMissingLastStatus() {
+  const ordersRef = db.collection("orders");
+  
+  // Step 1: Query orders with status "EN livraison"
+  const snapshot = await ordersRef.where("status", "==", "En livraison").get();
+
+  if (snapshot.empty) {
+    console.log("No orders found with status 'EN livraison'.");
+    return;
+  }
+
+  const ordersWithoutLastStatus = [];
+
+  // Step 2: Filter those missing 'lastStatus'
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (!data.hasOwnProperty("lastStatus")) {
+      ordersWithoutLastStatus.push({
+        id: doc.id,
+        ...data
+      });
+    }
+  });
+
+  console.log(`${ordersWithoutLastStatus.length} order(s) found without 'lastStatus':`);
+  console.log(ordersWithoutLastStatus);
+}
+
+async function fixOrdersWithMissingLastStatus() {
+  const ordersRef = db.collection("orders");
+  const snapshot = await ordersRef.where("status", "==", "En livraison").get();
+
+  if (snapshot.empty) {
+    console.log("No matching orders found.");
+    return;
+  }
+
+  const batch = db.batch();
+  let count = 0;
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+
+    // Only update if 'lastStatus' is missing
+    if (!data.hasOwnProperty("lastStatus")) {
+      batch.update(doc.ref, {
+        status: "En préparation"
+      });
+      count++;
+    }
+  });
+
+  if (count > 0) {
+    await batch.commit();
+    console.log(`${count} order(s) updated to 'En préparation'.`);
+  } else {
+    console.log("No orders needed updating.");
+  }
+}
+
+async function updateOrdersFromLastStatus() {
+  const ordersRef = db.collection("orders");
+  const snapshot = await ordersRef.where("lastStatus", "==", "in-preparation").get();
+
+  if (snapshot.empty) {
+    console.log("No orders found with lastStatus 'in-preparation'.");
+    return;
+  }
+
+  const batch = db.batch();
+  let count = 0;
+
+  snapshot.forEach(doc => {
+    batch.update(doc.ref, {
+      status: "En préparation"
+    });
+    count++;
+  });
+
+  await batch.commit();
+  console.log(`${count} order(s) updated to status 'En préparation'.`);
+}
+
+updateOrdersFromLastStatus().catch(console.error);
