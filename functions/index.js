@@ -466,11 +466,13 @@ async function updateTrackingDocs(
 ) {
   const batch = db.batch();
   const mainRef = db.collection("Tracking").doc(tracking);
-  const shopRef = db
-    .collection("Shops")
-    .doc(deliveryCompany)
-    .collection("Tracking")
-    .doc(tracking);
+    const ref= await db
+  .collection("orders")
+  .where("trackingId", "==",tracking)
+  .limit(1)
+  .get();
+
+            const shopRef =  ref.docs[0].ref;  
 
   // Check if the main tracking document exists
   const mainDoc = await mainRef.get();
@@ -493,23 +495,8 @@ async function updateTrackingDocs(
   const shopUpdate = {
     shippmentTrack: admin.firestore.FieldValue.arrayUnion(entry),
     lastStatus: entry.status,
-    ...(status !== null && { data: status }), // Conditionally add data if status is defined
     lastUpdated:new Date()
   };
-
-  // Check if the shop tracking document exists
-  const shopDoc = await shopRef.get();
-  if (!shopDoc.exists) {
-    // If it doesn't exist, create it with an empty shipmentTrack array
-    batch.set(shopRef, {
-      trackingId: tracking,
-      deliveryCompany: company,
-      shippmentTrack: [],
-      data: status || {},
-      lastStatus: entry.status,
-      lastUpdated:new Date()
-    });
-  }
 
   // Update shop tracking document
   batch.update(shopRef, shopUpdate);
@@ -583,10 +570,11 @@ exports.processStatusUpdateTask = onMessagePublished(
               deliveryCompany: deliveryCompany,
             });
 
-            batch.set(shopRef, {
-              ...initialData,
-              data: { ...status },
-              lastUpdated:new Date()
+            batch.update(shopRef, {
+                shippmentTrack: [initialEntry],
+                lastStatus: initialEntry.status,
+                lastUpdated:new Date(),
+                status:"En livraison"
             });
             
             await batch.commit();
@@ -652,7 +640,7 @@ exports.processStatusUpdateTask = onMessagePublished(
 
                 await docRef.update({
                   shippmentTrack: updatedTracks,
-                  lastStatus: "delivery-failed",
+                  lastStatus: event.data.status,
                   lastUpdated:new Date()
                 });
               } else {
@@ -673,7 +661,7 @@ exports.processStatusUpdateTask = onMessagePublished(
                 );
                 await docRef.update({
                   shippmentTrack: admin.firestore.FieldValue.arrayUnion(entry),
-                  lastStatus: "delivery-failed",
+                  lastStatus: event.data.status,
                   lastUpdated:new Date()
                 });
               }
@@ -722,15 +710,7 @@ exports.statusUpdate  = onRequest(async (req, res) => {
       console.log("toem", req.path.split("/").pop())
       return res.status(200).send(req.query.crc_token);
     }
-    await fetch('https://samsarashoes.leaderscod.com/tenants/api/yalidine/webhooks?token=CZWPAmDc1U', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(req.body)
-    });
-    console.log("Successfully forwarded to WordPress");
-   // Extract shop name from the request path (assumes the shop name is at the end of the path)
+   
    const deliveryCompany = req.path.split("/").pop();
 
    // Verify that the shop exists
@@ -762,6 +742,63 @@ exports.statusUpdate  = onRequest(async (req, res) => {
     // We've already sent a response, so we don't need to send another one
   }
 });
+
+exports.statusUpdate2 = onRequest(async (req, res) => {
+  try {
+    if (req.method === "GET" && req.query.subscribe && req.query.crc_token) {
+      console.log("toem", req.path.split("/").pop())
+      return res.status(200).send(req.query.crc_token);
+    }
+   
+   const deliveryCompany = req.path.split("/").pop();
+
+   // Verify that the shop exists
+   const shopDoc = await db.collection("deliveryCompanies").doc(deliveryCompany).get();
+   if (!shopDoc.exists) {
+     return;
+   }
+
+   // Create the task payload
+   const payload = {
+     deliveryCompany,
+     events: req.body.events,
+     companyData: shopDoc.data(),
+   };
+
+   // Publish the payload to a Pub/Sub topic.
+   // Make sure you create a Pub/Sub topic named 'statusUpdateTopic' (or update the name here)
+   const topicName = "statusUpdateTopic";
+   const dataBuffer = Buffer.from(JSON.stringify(payload));
+   await pubsub.topic(topicName).publishMessage({
+     data: dataBuffer,
+   });
+   
+   logger.info(`Task enqueued for shop: ${deliveryCompany}`);
+   return res.status(200).send("Webhook received and queued for processing");
+    
+  } catch (error) {
+    console.error("Error in webhook forwarder:", error);
+    // We've already sent a response, so we don't need to send another one
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   async function processYalidineOrders(orders) {
 
     const processed = orders.map((order) => {

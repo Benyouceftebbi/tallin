@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import {
   CheckCircle,
   MoreHorizontal,
@@ -46,6 +46,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
+import { collection, doc, setDoc, onSnapshot, query, orderBy, addDoc, serverTimestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 // Types pour les nœuds de suivi
 type TrackingNode =
@@ -73,7 +75,7 @@ type OrderNote = {
   text: string
   date: string
   author: string
-  trackingNode?: TrackingNode // Ajouter le nœud de suivi associé
+  trackingNode?: TrackingNode
 }
 
 // Type pour l'historique de suivi
@@ -84,6 +86,13 @@ type TrackingHistory = {
   date: string
   author: string
   note?: string
+  timestamp?: any
+}
+
+// Type étendu pour les commandes avec tracking
+type OrderWithTracking = Order & {
+  currentTrackingNode?: TrackingNode
+  trackingHistory?: TrackingHistory[]
 }
 
 export function EnLivraisonTable() {
@@ -105,15 +114,11 @@ export function EnLivraisonTable() {
 
   // États pour la modal de détails
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithTracking | null>(null)
 
-  // État pour stocker les notes (dans un cas réel, cela viendrait d'une API)
+  // États pour les données Firebase
   const [notes, setNotes] = useState<OrderNote[]>([])
-
-  // État pour stocker les nœuds de suivi des commandes (dans un cas réel, cela viendrait d'une API)
   const [orderTrackingNodes, setOrderTrackingNodes] = useState<Record<string, TrackingNode>>({})
-
-  // État pour stocker l'historique de suivi (dans un cas réel, cela viendrait d'une API)
   const [trackingHistory, setTrackingHistory] = useState<TrackingHistory[]>([])
 
   // États pour la modal de notes de suivi
@@ -126,7 +131,7 @@ export function EnLivraisonTable() {
     trackingId: true,
     recipient: true,
     status: true,
-    trackingNode: true, // Ajouter le nœud de suivi
+    trackingNode: true,
     sms: true,
     type: true,
     wilaya: true,
@@ -138,6 +143,152 @@ export function EnLivraisonTable() {
     sendReminder: true,
   })
 
+  // Écouter les changements Firebase pour les nœuds de suivi
+  useEffect(() => {
+    const unsubscribeTracking = onSnapshot(
+      collection(db, "orderTracking"),
+      (snapshot) => {
+        const trackingData: Record<string, TrackingNode> = {}
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          trackingData[data.orderId] = data.currentNode
+        })
+        setOrderTrackingNodes(trackingData)
+      },
+      (error) => {
+        console.error("Error listening to tracking nodes:", error)
+        toast({
+          title: "Erreur de synchronisation",
+          description: "Impossible de synchroniser les nœuds de suivi.",
+          variant: "destructive",
+        })
+      },
+    )
+
+    return () => unsubscribeTracking()
+  }, [])
+
+  // Écouter les changements Firebase pour l'historique de suivi
+  useEffect(() => {
+    const unsubscribeHistory = onSnapshot(
+      query(collection(db, "trackingHistory"), orderBy("timestamp", "desc")),
+      (snapshot) => {
+        const historyData: TrackingHistory[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          historyData.push({
+            id: doc.id,
+            orderId: data.orderId,
+            trackingNode: data.trackingNode,
+            date: data.date,
+            author: data.author,
+            note: data.note,
+            timestamp: data.timestamp,
+          })
+        })
+        setTrackingHistory(historyData)
+      },
+      (error) => {
+        console.error("Error listening to tracking history:", error)
+        toast({
+          title: "Erreur de synchronisation",
+          description: "Impossible de synchroniser l'historique de suivi.",
+          variant: "destructive",
+        })
+      },
+    )
+
+    return () => unsubscribeHistory()
+  }, [])
+
+  // Écouter les changements Firebase pour les notes
+  useEffect(() => {
+    const unsubscribeNotes = onSnapshot(
+      collection(db, "orderNotes"),
+      (snapshot) => {
+        const notesData: OrderNote[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          notesData.push({
+            id: doc.id,
+            orderId: data.orderId,
+            text: data.text,
+            date: data.date,
+            author: data.author,
+            trackingNode: data.trackingNode,
+          })
+        })
+        setNotes(notesData)
+      },
+      (error) => {
+        console.error("Error listening to notes:", error)
+        toast({
+          title: "Erreur de synchronisation",
+          description: "Impossible de synchroniser les notes.",
+          variant: "destructive",
+        })
+      },
+    )
+
+    return () => unsubscribeNotes()
+  }, [])
+
+  // Fonction pour sauvegarder le nœud de suivi dans Firebase
+  const saveTrackingNodeToFirebase = async (orderId: string, node: TrackingNode) => {
+    try {
+      const trackingRef = doc(db, "orderTracking", orderId)
+      await setDoc(
+        trackingRef,
+        {
+          orderId,
+          currentNode: node,
+          lastUpdated: serverTimestamp(),
+          updatedBy: "current-user", // Remplacer par l'utilisateur actuel
+        },
+        { merge: true },
+      )
+    } catch (error) {
+      console.error("Error saving tracking node:", error)
+      throw error
+    }
+  }
+
+  // Fonction pour sauvegarder l'historique de suivi dans Firebase
+  const saveTrackingHistoryToFirebase = async (orderId: string, node: TrackingNode, note?: string) => {
+    try {
+      const historyRef = collection(db, "trackingHistory")
+      await addDoc(historyRef, {
+        orderId,
+        trackingNode: node,
+        date: new Date().toLocaleString("fr-FR"),
+        author: "current-user", // Remplacer par l'utilisateur actuel
+        note: note || null,
+        timestamp: serverTimestamp(),
+      })
+    } catch (error) {
+      console.error("Error saving tracking history:", error)
+      throw error
+    }
+  }
+
+  // Fonction pour sauvegarder une note dans Firebase
+  const saveNoteToFirebase = async (orderId: string, text: string, trackingNode?: TrackingNode) => {
+    try {
+      const noteRef = collection(db, "orderNotes")
+      await addDoc(noteRef, {
+        orderId,
+        text,
+        date: new Date().toLocaleString("fr-FR"),
+        author: "current-user", // Remplacer par l'utilisateur actuel
+        trackingNode: trackingNode || null,
+        timestamp: serverTimestamp(),
+      })
+    } catch (error) {
+      console.error("Error saving note:", error)
+      throw error
+    }
+  }
+
   // Toggle column visibility
   const toggleColumnVisibility = (column: string) => {
     setVisibleColumns((prev) => ({
@@ -146,17 +297,33 @@ export function EnLivraisonTable() {
     }))
   }
 
-  // Obtenir les commandes - mémorisé
-  const orders = useMemo(() => getOrdersByStatus("En livraison"), [getOrdersByStatus])
+  // Obtenir les commandes avec les données de suivi - mémorisé
+  const ordersWithTracking = useMemo(() => {
+    const baseOrders = getOrdersByStatus("En livraison")
+    return baseOrders.map((order) => ({
+      ...order,
+      currentTrackingNode: orderTrackingNodes[order.id],
+      trackingHistory: trackingHistory.filter((h) => h.orderId === order.id),
+    }))
+  }, [getOrdersByStatus, orderTrackingNodes, trackingHistory])
 
   // Obtenir les listes uniques pour les filtres - mémorisées
-  const wilayas = useMemo(() => Array.from(new Set(orders.map((order) => order.wilaya))), [orders])
-  const deliveryTypes = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryType))), [orders])
-  const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
+  const wilayas = useMemo(
+    () => Array.from(new Set(ordersWithTracking.map((order) => order.wilaya))),
+    [ordersWithTracking],
+  )
+  const deliveryTypes = useMemo(
+    () => Array.from(new Set(ordersWithTracking.map((order) => order.deliveryType))),
+    [ordersWithTracking],
+  )
+  const deliveryCompanies = useMemo(
+    () => Array.from(new Set(ordersWithTracking.map((order) => order.deliveryCompany))),
+    [ordersWithTracking],
+  )
 
   // Filtrer les commandes - mémorisé
   const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
+    return ordersWithTracking.filter((order) => {
       const matchesSearch =
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -166,7 +333,7 @@ export function EnLivraisonTable() {
       const matchesWilaya = wilayaFilter === "all" || order.wilaya === wilayaFilter
       const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter
       const matchesDeliveryCompany = deliveryCompanyFilter === "all" || order.deliveryCompany === deliveryCompanyFilter
-      const matchesTrackingNode = trackingNodeFilter === "all" || orderTrackingNodes[order.id] === trackingNodeFilter
+      const matchesTrackingNode = trackingNodeFilter === "all" || order.currentTrackingNode === trackingNodeFilter
 
       // Date range filter
       let matchesDateRange = true
@@ -178,7 +345,6 @@ export function EnLivraisonTable() {
             end: dateRange.to,
           })
         } catch (error) {
-          // If date parsing fails, we'll still include the order
           console.error("Error parsing date:", error)
         }
       }
@@ -193,13 +359,12 @@ export function EnLivraisonTable() {
       )
     })
   }, [
-    orders,
+    ordersWithTracking,
     searchTerm,
     wilayaFilter,
     deliveryTypeFilter,
     deliveryCompanyFilter,
     trackingNodeFilter,
-    orderTrackingNodes,
     dateRange,
   ])
 
@@ -297,7 +462,6 @@ export function EnLivraisonTable() {
   const openNoteModal = useCallback(
     (orderId: string) => {
       setCurrentOrderId(orderId)
-      // Trouver la note existante pour cette commande
       const existingNote = notes.find((note) => note.orderId === orderId)
       setNoteText(existingNote?.text || "")
       setIsNoteModalOpen(true)
@@ -306,13 +470,13 @@ export function EnLivraisonTable() {
   )
 
   // Ouvrir la modal de détails - mémorisé
-  const openDetailsModal = useCallback((order: Order) => {
+  const openDetailsModal = useCallback((order: OrderWithTracking) => {
     setSelectedOrder(order)
     setIsDetailsModalOpen(true)
   }, [])
 
   // Sauvegarder une note - mémorisé
-  const saveNote = useCallback(() => {
+  const saveNote = useCallback(async () => {
     if (!noteText.trim()) {
       toast({
         title: "Note vide",
@@ -322,64 +486,46 @@ export function EnLivraisonTable() {
       return
     }
 
-    // Vérifier si une note existe déjà pour cette commande
-    const existingNoteIndex = notes.findIndex((note) => note.orderId === currentOrderId)
+    try {
+      await saveNoteToFirebase(currentOrderId, noteText)
 
-    if (existingNoteIndex >= 0) {
-      // Mettre à jour la note existante
-      const updatedNotes = [...notes]
-      updatedNotes[existingNoteIndex] = {
-        ...updatedNotes[existingNoteIndex],
-        text: noteText,
-        date: new Date().toLocaleString("fr-FR"),
-      }
-      setNotes(updatedNotes)
-    } else {
-      // Créer une nouvelle note
-      const newNote: OrderNote = {
-        id: `note-${Date.now()}`,
-        orderId: currentOrderId,
-        text: noteText,
-        date: new Date().toLocaleString("fr-FR"),
-        author: "Utilisateur actuel", // Dans un cas réel, cela viendrait de l'authentification
-      }
-      setNotes((prev) => [...prev, newNote])
+      toast({
+        title: "Note sauvegardée",
+        description: "La note a été sauvegardée avec succès.",
+      })
+
+      setIsNoteModalOpen(false)
+      setNoteText("")
+      setCurrentOrderId("")
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder la note.",
+        variant: "destructive",
+      })
     }
-
-    toast({
-      title: "Note sauvegardée",
-      description: "La note a été sauvegardée avec succès.",
-    })
-
-    setIsNoteModalOpen(false)
-    setNoteText("")
-    setCurrentOrderId("")
-  }, [currentOrderId, noteText, notes])
+  }, [currentOrderId, noteText])
 
   // Mettre à jour le nœud de suivi d'une commande - mémorisé
-  const updateTrackingNode = useCallback((orderId: string, node: TrackingNode, note?: string) => {
-    setOrderTrackingNodes((prev) => ({
-      ...prev,
-      [orderId]: node,
-    }))
+  const updateTrackingNode = useCallback(async (orderId: string, node: TrackingNode, note?: string) => {
+    try {
+      // Sauvegarder le nœud de suivi
+      await saveTrackingNodeToFirebase(orderId, node)
 
-    // Ajouter à l'historique de suivi
-    const newHistoryEntry: TrackingHistory = {
-      id: `history-${Date.now()}`,
-      orderId,
-      trackingNode: node,
-      date: new Date().toLocaleString("fr-FR"),
-      author: "Utilisateur actuel", // Dans un cas réel, cela viendrait de l'authentification
-      note,
+      // Sauvegarder l'historique
+      await saveTrackingHistoryToFirebase(orderId, node, note)
+
+      toast({
+        title: "Nœud de suivi mis à jour",
+        description: `Le nœud de suivi de la commande ${orderId} a été mis à jour.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le nœud de suivi.",
+        variant: "destructive",
+      })
     }
-
-    setTrackingHistory((prev) => [...prev, newHistoryEntry])
-
-    // Dans un cas réel, vous appelleriez une API pour mettre à jour le nœud de suivi
-    toast({
-      title: "Nœud de suivi mis à jour",
-      description: `Le nœud de suivi de la commande ${orderId} a été mis à jour.`,
-    })
   }, [])
 
   // Ouvrir la modal de notes de suivi
@@ -391,15 +537,19 @@ export function EnLivraisonTable() {
   }, [])
 
   // Sauvegarder une note de suivi
-  const saveTrackingNote = useCallback(() => {
+  const saveTrackingNote = useCallback(async () => {
     if (!currentTrackingNode) return
 
-    updateTrackingNode(currentOrderId, currentTrackingNode, trackingNoteText.trim() || undefined)
+    try {
+      await updateTrackingNode(currentOrderId, currentTrackingNode, trackingNoteText.trim() || undefined)
 
-    setIsTrackingNoteModalOpen(false)
-    setTrackingNoteText("")
-    setCurrentOrderId("")
-    setCurrentTrackingNode(null)
+      setIsTrackingNoteModalOpen(false)
+      setTrackingNoteText("")
+      setCurrentOrderId("")
+      setCurrentTrackingNode(null)
+    } catch (error) {
+      // L'erreur est déjà gérée dans updateTrackingNode
+    }
   }, [currentOrderId, currentTrackingNode, trackingNoteText, updateTrackingNode])
 
   // Obtenir l'historique de suivi pour une commande
@@ -414,11 +564,11 @@ export function EnLivraisonTable() {
   const getTrackingHistoryForConfirmatrice = useCallback(
     (confirmatrice: string) => {
       return trackingHistory.filter((history) => {
-        const order = orders.find((o) => o.id === history.orderId)
+        const order = ordersWithTracking.find((o) => o.id === history.orderId)
         return order?.confirmatrice === confirmatrice
       })
     },
-    [trackingHistory, orders],
+    [trackingHistory, ordersWithTracking],
   )
 
   // Mettre à jour la société de livraison d'une commande - mémorisé
@@ -445,15 +595,12 @@ export function EnLivraisonTable() {
 
   // Formater le numéro de téléphone pour WhatsApp
   const formatPhoneForWhatsApp = useCallback((phone: string) => {
-    // Supprimer tous les caractères non numériques
     const cleanPhone = phone.replace(/\D/g, "")
 
-    // Si le numéro commence par 0, le remplacer par 213 (code pays Algérie)
     if (cleanPhone.startsWith("0")) {
       return "213" + cleanPhone.substring(1)
     }
 
-    // Si le numéro ne commence pas par 213, ajouter 213
     if (!cleanPhone.startsWith("213")) {
       return "213" + cleanPhone
     }
@@ -713,13 +860,31 @@ export function EnLivraisonTable() {
                   <div className="font-medium text-slate-300">{selectedOrder.pickupPoint}</div>
                 </div>
               )}
-              {orderTrackingNodes[selectedOrder.id] && (
+              {selectedOrder.currentTrackingNode && (
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-slate-400">Nœud de suivi</Label>
                   <div>
-                    <Badge className={getTrackingNodeColor(orderTrackingNodes[selectedOrder.id])} variant="outline">
-                      {orderTrackingNodes[selectedOrder.id]}
+                    <Badge className={getTrackingNodeColor(selectedOrder.currentTrackingNode)} variant="outline">
+                      {selectedOrder.currentTrackingNode}
                     </Badge>
+                  </div>
+                </div>
+              )}
+              {selectedOrder.trackingHistory && selectedOrder.trackingHistory.length > 0 && (
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-slate-400">Historique de suivi</Label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {selectedOrder.trackingHistory.map((history) => (
+                      <div key={history.id} className="border border-slate-700 rounded p-2 bg-slate-800/30">
+                        <div className="flex items-center justify-between">
+                          <Badge className={getTrackingNodeColor(history.trackingNode)} variant="outline">
+                            {history.trackingNode}
+                          </Badge>
+                          <span className="text-xs text-slate-500">{history.date}</span>
+                        </div>
+                        {history.note && <div className="mt-1 text-sm text-slate-400">{history.note}</div>}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -1128,12 +1293,12 @@ export function EnLivraisonTable() {
                                   variant="outline"
                                   className="h-8 w-[180px] justify-between bg-slate-800/50 border-slate-700 hover:bg-slate-700 hover:text-slate-100"
                                 >
-                                  {orderTrackingNodes[order.id] ? (
+                                  {order.currentTrackingNode ? (
                                     <Badge
-                                      className={getTrackingNodeColor(orderTrackingNodes[order.id])}
+                                      className={getTrackingNodeColor(order.currentTrackingNode)}
                                       variant="outline"
                                     >
-                                      {orderTrackingNodes[order.id]}
+                                      {order.currentTrackingNode}
                                     </Badge>
                                   ) : (
                                     <span className="text-slate-500">Non défini</span>
