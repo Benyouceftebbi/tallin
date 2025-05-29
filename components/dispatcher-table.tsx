@@ -536,7 +536,16 @@ export function DispatcherTable() {
                       <TableCell className="text-slate-300">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3 text-slate-400" />
-                          <span>{order.lastUpdated}</span>
+                    {order?.lastUpdated
+    ? new Date(order.lastUpdated.seconds * 1000).toLocaleString("fr-DZ", {
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "N/A"}
                         </div>
                       </TableCell>
                     )}
