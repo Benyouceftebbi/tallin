@@ -876,3 +876,26 @@ async function getAndUpdatePendingOrders() {
 // Run the function
 //getAndUpdatePendingOrders();
 
+async function updateOrderStatuses() {
+  const ordersRef = db.collection("orders");
+  const snapshot = await ordersRef.where("lastStatus", "==", "in-preparation").get();
+
+  if (snapshot.empty) {
+    console.log("No matching orders found.");
+    return;
+  }
+
+  const batch = db.batch();
+
+  snapshot.forEach(doc => {
+    const docRef = doc.ref;
+    batch.update(docRef, {
+      status: "En préparation"
+    });
+  });
+
+  await batch.commit();
+  console.log(`${snapshot.size} order(s) updated to status: e preparation`);
+}
+
+updateOrderStatuses().catch(console.error);

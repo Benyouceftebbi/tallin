@@ -1300,7 +1300,7 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                       {visibleColumns.status && (
                         <td className="p-3 text-slate-300">
                           <Badge className="bg-amber-950/50 text-amber-400 border-amber-700" variant="outline">
-                            {order?.lastStatus}
+                            {order?.lastStatus || "En livraison"}
                           </Badge>
                         </td>
                       )}
