@@ -893,7 +893,7 @@ console.log(formData);
     }
 
     if (isNew) {
-      addOrder(enrichedFormData)
+      addOrder({...enrichedFormData,confirmatrice: workerName ? workerName : ""})
       console.log(enrichedFormData)
 
       toast({
