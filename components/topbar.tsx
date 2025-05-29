@@ -35,6 +35,7 @@ import Link from "next/link"
 // Firebase imports
 import { collection, where, getDocs, limit, getFirestore, query } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { useShop } from "@/context/shop-context"
 
 
 // Define the DateRange type
@@ -44,17 +45,8 @@ interface DateRange {
 }
 
 export function Topbar() {
-  // Remove shop context dependency and use local state
-  const [loading, setLoading] = useState(false)
-  const [statusCounts, setStatusCounts] = useState({
-    "en-attente": 12,
-    Confirmé: 8,
-    "En préparation": 5,
-    Dispatcher: 3,
-    "En livraison": 7,
-    Livrés: 25,
-    Retour: 2,
-  })
+  const { getStatusCounts, loading } = useShop()
+ const statusCounts = getStatusCounts()
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
   const [searchQuery, setSearchQuery] = useState("")
