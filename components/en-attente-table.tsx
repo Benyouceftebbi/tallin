@@ -151,7 +151,7 @@ const TableRow = memo(
                 <div className="max-h-[300px] overflow-y-auto">
                   {order.statusHistory && order.statusHistory.length >= 0 ? (
                     <div className="p-0">
-                      {[...order.statusHistory,{changedBy:"Système",status:"creer",timestamp:format(order?.createdAt.toDate(), 'yyyy-MM-dd HH:mm')}].map((entry, index) => (
+                      {[{changedBy:"Système",status:"creer",timestamp:format(order?.createdAt.toDate(), 'yyyy-MM-dd HH:mm')},...order.statusHistory].map((entry, index) => (
                         <div
                           key={index}
                           className={cn(
