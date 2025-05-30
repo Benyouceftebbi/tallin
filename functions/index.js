@@ -37,7 +37,7 @@ function convertShopifyOrderToCustomFormat(shopifyOrder) {
     articles: [],
     wilaya: wilaya|| "",
     commune: shopifyOrder.shipping_address?.city || "",
-    deliveryType: "home-delivery", // Default value as per shipping method
+    deliveryType:shopifyOrder?.shipping_lines[0]?.code==="التوصيل للمكتب" ?"stopdesk":"domicile", // Default value as per shipping method
     deliveryCompany: "", // Not available in Shopify data
     deliveryCenter:"", // Not available in Shopify data
     confirmationStatus: "En attente", // Default status
@@ -496,7 +496,7 @@ async function updateTrackingDocs(
     shippmentTrack: admin.firestore.FieldValue.arrayUnion(entry),
     lastStatus: entry.status,
     lastUpdated:new Date(),
-    status:"En livraison"
+    status:entry.status==="delivered"?"Livrés":"En livraison"
   };
 
   // Update shop tracking document
@@ -798,46 +798,44 @@ exports.statusUpdate2 = onRequest(async (req, res) => {
 
 
 
+async function processYalidineOrders(orders) {
+  const processed = orders.map((order) => {
+    const productNames = order.articlesNames.join(", ");
+    const totalPrice = order.totalPrice;
 
-  async function processYalidineOrders(orders) {
+    const isExchange = order.isExchange === true;
+    const exchangeProducts = isExchange && Array.isArray(order.exchangeArticlesNames)
+      ? order.exchangeArticlesNames.join(", ")
+      : "";
 
-    const processed = orders.map((order) => {
+    return {
+      to_commune_name: order.commune,
+      code_wilaya: Number(order.wilayaCode || 0),
+      from_wilaya_name: "Alger",
+      to_wilaya_name: order.wilayaName,
+      firstname: order.name,
+      familyname: " ",
+      contact_phone: order.phone || 0,
+      address: order.address,
+      product_list: productNames,
+      order_id: order.ref,
+      do_insurance: false,
+      declared_value: Number(totalPrice || 0),
+      Length: 0,
+      Width: 0,
+      Height: 0,
+      Weight: 0,
+      freeshipping: true,
+      price: Number(totalPrice || 0),
+      is_stopdesk: order.deliveryType === "stopdesk",
+      ...(order.deliveryType === "stopdesk" && { station_code: order.deliveryCenter }),
+      has_exchange: isExchange,
+      ...(isExchange && { product_to_collect: exchangeProducts })
+    };
+  });
 
-
-      const productNames = order.articlesNames.join(", ");
-  
-      const totalPrice = order.totalPrice;
-  
-
-  
-      return {
-        to_commune_name: order.commune,
-        code_wilaya: Number(order.wilayaCode || 0),
-        from_wilaya_name:'Alger',
-        to_wilaya_name:order.wilayaName,
-        firstname: order.name,
-        familyname: " ",
-        contact_phone:order.phone || 0,
-        address: order.address,
-        product_list: productNames,
-        order_id: order.ref,
-       do_insurance:false,
-       declared_value:Number(totalPrice || 0),
-       Length:0,
-       Width:0,
-       Height:0,
-       Weight:0,
-       freeshipping:true,
-       price: Number(totalPrice || 0),
-        is_stopdesk: order.deliveryType === "stopdesk" ? true : false,
-        ...(order.deliveryType === "stopdesk" && { station_code: order.deliveryCenter}),
-        has_exchange:false
-      };
-    });
-  console.log("proccess",processed);
-  
-    return processed;
-  }
+  return processed;
+}
   exports.uploadYalidineOrders =onCall(async ({ data, auth }) => {
 
     const {
@@ -937,8 +935,9 @@ exports.statusUpdate2 = onRequest(async (req, res) => {
           'X-API-ID': apiId,
           'X-API-TOKEN': apiToken,
         },
-      });
-  
+      }); 
+      console.log(response.data);
+      
       return {
         message: "Parcels deleted successfully",
         result: response.data,

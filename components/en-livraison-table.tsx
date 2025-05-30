@@ -49,6 +49,7 @@ import { isWithinInterval, parseISO, toDate } from "date-fns"
 import { collection, doc, setDoc, onSnapshot, query, orderBy, addDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
+import { useAuth } from "@/context/auth-context"
 // Types pour les nœuds de suivi
 type TrackingNode =
   | "En transit"
@@ -321,16 +322,21 @@ useEffect(() => {
       [column]: !prev[column as keyof typeof prev],
     }))
   }
+  const { workerName } = useAuth()
+const ordersWithTracking = useMemo(() => {
+  const baseOrders = getOrdersByStatus("En livraison");
 
-  // Obtenir les commandes avec les données de suivi - mémorisé
-  const ordersWithTracking = useMemo(() => {
-    const baseOrders = getOrdersByStatus("En livraison")
-    return baseOrders.map((order) => ({
-      ...order,
-      currentTrackingNode: orderTrackingNodes[order.id],
-      trackingHistory: trackingHistory.filter((h) => h.orderId === order.id),
-    }))
-  }, [getOrdersByStatus, orderTrackingNodes, trackingHistory])
+  // Filter based on workerName
+  const filteredOrders = workerName
+    ? baseOrders.filter(order => order.confirmatrice === workerName)
+    : baseOrders;
+
+  return filteredOrders.map((order) => ({
+    ...order,
+    currentTrackingNode: orderTrackingNodes[order.id],
+    trackingHistory: trackingHistory.filter((h) => h.orderId === order.id),
+  }));
+}, [getOrdersByStatus, orderTrackingNodes, trackingHistory, workerName]);
 
   // Obtenir les listes uniques pour les filtres - mémorisées
   const wilayas = useMemo(
@@ -956,25 +962,7 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
           />
         </div>
         <div className="flex gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={moveBackToDispatcher}
-                  disabled={selectedRows.length === 0}
-                  className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
-                >
-                  <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
-                  <span>Dispatcher</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Déplacer les commandes sélectionnées vers "Dispatcher"</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+
 
           <TooltipProvider>
             <Tooltip>
@@ -1535,25 +1523,7 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                                 <Package className="mr-2 h-4 w-4" />
                                 <span>Détails</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-slate-800 focus:bg-slate-800">
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                <span>Changer le statut</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-slate-800" />
-                              <DropdownMenuItem
-                                className="hover:bg-slate-800 focus:bg-slate-800"
-                                onClick={() => {
-                                  handleSelectRow(order.id, true)
-                                  updateMultipleOrdersStatus([order.id], "Dispatcher")
-                                  toast({
-                                    title: "Commande déplacée",
-                                    description: `La commande ${order.trackingId} a été déplacée vers "Dispatcher".`,
-                                  })
-                                }}
-                              >
-                                <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
-                                <span>Retour vers Dispatcher</span>
-                              </DropdownMenuItem>
+  
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>

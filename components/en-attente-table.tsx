@@ -46,7 +46,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { DateRange } from "@/components/date-range-picker"
-import { isWithinInterval, parseISO } from "date-fns"
+import { format, isWithinInterval, parseISO } from "date-fns"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import {
   getAllWilayas,
@@ -57,6 +57,7 @@ import { isStopDeskAvailable } from "@/app/admin/commandes/en-attente/data/shipp
 import { getYalidinCentersForCommune } from "@/app/admin/commandes/en-attente/data/yalidin-centers"
 import { useAuth } from "@/context/auth-context"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
+import { Timestamp } from "firebase/firestore"
 
 // Memoized table row component for better performance
 const TableRow = memo(
@@ -136,7 +137,7 @@ const TableRow = memo(
         </td>
         {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.idd}</td>}
         {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
-        {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
+        {visibleColumns.date && <td className="p-3 text-slate-300">{format(order?.createdAt.toDate(), 'yyyy-MM-dd HH:mm')}</td>}
         {visibleColumns.name && (
           <td className="p-3 text-slate-300">
             <HoverCard>
@@ -148,9 +149,9 @@ const TableRow = memo(
                   <h4 className="text-sm font-medium text-slate-200">Historique des statuts</h4>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto">
-                  {order.statusHistory && order.statusHistory.length > 0 ? (
+                  {order.statusHistory && order.statusHistory.length >= 0 ? (
                     <div className="p-0">
-                      {order.statusHistory.map((entry, index) => (
+                      {[...order.statusHistory,{changedBy:"Système",status:"creer",timestamp:format(order?.createdAt.toDate(), 'yyyy-MM-dd HH:mm')}].map((entry, index) => (
                         <div
                           key={index}
                           className={cn(
@@ -625,6 +626,7 @@ export function EnAttenteTable() {
       "Ne répond pas 1",
       "Ne répond pas 2",
       "Ne répond pas 3",
+      "a modifier"
     ],
     [],
   )
@@ -1569,7 +1571,7 @@ export function EnAttenteTable() {
                       getDeliveryTypeColor={getDeliveryTypeColor}
                       formatPhoneForWhatsApp={formatPhoneForWhatsApp}
                       deliveryCompanies={deliveryCompanies}
-                      deliveryTypes={deliveryTypes}
+                      deliveryTypes={["stopdesk","domicile"]}
                       confirmationStatuses={confirmationStatuses}
                       wilayas={wilayas}
                       workerName={workerName}

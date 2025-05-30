@@ -49,7 +49,7 @@ export function ConfirmesTable() {
     updateConfirmationStatus,
     setOrders,
     deliveryCompanies, // Assuming this comes from the shop context
-    deliveryCenters,workers,orders // Assuming this comes from the shop context
+    deliveryCenters,workers,orders,updateMultipleOrdersStatustoEnAttente // Assuming this comes from the shop context
   } = useShop()
     const { userRole,workerName } = useAuth()
 
@@ -235,31 +235,43 @@ useEffect(() => {
     setIsPrinting(true); // Start loading
   
     // Step 1: Build enriched raw orders
-    const rawOrders = selectedRows.map((selectedId) => {
-      const order = ordersConfirme.find(o => o.id === selectedId);
-      const productTitles = order.articles.map((a) =>
-        `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''} (${a.quantity || ''})`.trim()
-      );
-       const wilayaCode = order.wilayaCode?.toString();
-      console.log(wilayaCode);
-      
-      const region = wilayass.find(r => r.id=== Number(wilayaCode));
-      const wilayaName = region?.name ;
+const rawOrders = selectedRows.map((selectedId) => {
+  const order = ordersConfirme.find(o => o.id === selectedId);
+  if (!order) return null;
+
+  const productTitles = order.articles.map((a) =>
+    `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''} (${a.quantity || ''})`.trim()
+  );
+
+  const wilayaCode = order.wilayaCode?.toString();
+  const region = wilayass.find(r => r.id === Number(wilayaCode));
+  const wilayaName = region?.name;
+
   const commune = comuness.find(
-  c => c.id === Number(order.commune_id)||
-       c.name?.toString().toLowerCase() === order.commune?.toString().toLowerCase()
-);
-      return {
-        ...order,
-        articlesNames: productTitles,
-        wilayaName,
-        ref:order.orderReference,
-        adresse:order?.address,
-        commune:commune.name,
+    c =>
+      c.id === Number(order.commune_id) ||
+      c.name?.toString().toLowerCase() === order.commune?.toString().toLowerCase()
+  );
 
+  let exchangeProductTitles: string[] = [];
 
-      };
-    });
+  if (order.isExchange && order.exchangeArticles?.length > 0) {
+    exchangeProductTitles = order.exchangeArticles.map((a) =>
+      `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''} (${a.quantity || ''})`.trim()
+    );
+  }
+
+  return {
+    ...order,
+    articlesNames: productTitles,
+    exchangeArticlesNames: exchangeProductTitles,
+    wilayaName,
+    ref: order.orderReference,
+    adresse: order.address,
+    commune: commune?.name || '',
+    isExchange: order.isExchange || false,
+  };
+}).filter(Boolean);
   
       // Step 2: Group orders by delivery company
     const ordersByCompany: Record<string, typeof rawOrders> = {};
@@ -434,12 +446,14 @@ useEffect(() => {
     }
 
     updateMultipleOrdersStatus(selectedRows, "en-attente")
+    updateMultipleOrdersStatustoEnAttente(selectedRows,"a modifier")
     toast({
       title: "Commandes déplacées",
       description: `${selectedRows.length} commande(s) déplacée(s) vers "Confirmés".`,
     })
     setSelectedRows([])
   }, [selectedRows, updateMultipleOrdersStatus])
+
   if (loading) {
     return (
       <div className="space-y-4">

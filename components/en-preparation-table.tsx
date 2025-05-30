@@ -149,7 +149,7 @@ const playWarningSound = () => {
 }
 
 export default function EnPreparationTable() {
-  const { getOrdersByStatus, updateOrder, updateMultipleOrdersStatus, loading,deliveryMen} = useShop()
+  const { getOrdersByStatus, updateOrder, updateMultipleOrdersStatus, loading,deliveryMen,   deliveryCompanies} = useShop()
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -214,7 +214,7 @@ const {workerName}=useAuth()
         return order1
       }
     }, [order1, workerName])
-const deliveryCompanies = useMemo(() => {
+const deliveryCompaniess = useMemo(() => {
   return Array.from(
     new Set(
       orders
@@ -223,10 +223,9 @@ const deliveryCompanies = useMemo(() => {
     )
   );
 }, [orders]);
-  console.log("del",deliveryCompanies);
+
   
-  // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
-  const uniqueDeliveryCompanies = deliveryCompanies
+
 
   // Filtrer les commandes en fonction du terme de recherche et des filtres - mémorisé
   const filteredOrders = useMemo(() => {
@@ -307,36 +306,65 @@ const deliveryCompanies = useMemo(() => {
   }, [selectedRows, updateMultipleOrdersStatus])
 
   // Déplacer les commandes sélectionnées vers "Confirmés" - mémorisé
-  const moveBack = useCallback(async () => {
-    if (selectedRows.length === 0) {
-      toast({
-        title: "Aucune commande sélectionnée",
-        description: "Veuillez sélectionner au moins une commande à déplacer.",
-        variant: "destructive",
-      })
-      return
-    }
-    const deleteParcels = httpsCallable(functions, "deleteParcels");
-    const trackingIds = selectedRows.map((selectedId) => {
-      const order = orders.find(o => o.id === selectedId);
-      return order.id;
-    });
-    const response = await deleteParcels({
-          trackingIds:trackingIds,
-          apiId: "52528606089270324708",
-          apiToken: "YunCzjP8vgJxygpDBihLomWBGuAKHY6rUDRKIS0QsPS3wq9M5OLmGV5Oh2IrdZQa",
-        });
-    
-    console.log("Delete response:", response.data);
-      
-    updateMultipleOrdersStatus(selectedRows, "Confirmé")
+const moveBack = useCallback(async () => {
+  if (selectedRows.length === 0) {
     toast({
-      title: "Commandes déplacées",
-      description: `${selectedRows.length} commande(s) déplacée(s) vers "Confirmés".`,
-    })
-    setSelectedRows([])
-  }, [selectedRows, updateMultipleOrdersStatus])
+      title: "Aucune commande sélectionnée",
+      description: "Veuillez sélectionner au moins une commande à déplacer.",
+      variant: "destructive",
+    });
+    return;
+  }
 
+  const deleteParcels = httpsCallable(functions, "deleteParcels");
+
+  // Group selected orders by deliveryCompany
+  const groupedByCompany: Record<string, string[]> = {};
+
+  selectedRows.forEach((selectedId) => {
+    const order = orders.find(o => o.id === selectedId);
+    if (!order) return;
+
+    const company = order.deliveryCompany || "unknown";
+    if (!groupedByCompany[company]) {
+      groupedByCompany[company] = [];
+    }
+    groupedByCompany[company].push(order.id);
+  });
+
+  // Loop through each group and delete parcels with correct API keys
+  for (const company in groupedByCompany) {
+    const trackingIds = groupedByCompany[company];
+    const deliveryKeys = deliveryCompanies.find(d => d.entity === company);
+
+    if (!deliveryKeys) {
+      console.warn(`Missing credentials for ${company}`);
+      continue;
+    }
+
+    try {
+      const response = await deleteParcels({
+        trackingIds,
+        apiId: deliveryKeys.apiId,
+        apiToken: deliveryKeys.apiToken,
+      });
+
+      console.log(`Deleted parcels for ${company}:`, response.data);
+    } catch (error) {
+      console.error(`Failed to delete parcels for ${company}:`, error);
+    }
+  }
+
+  // Update Firestore status for all selected orders
+  updateMultipleOrdersStatus(selectedRows, "Confirmé");
+
+  toast({
+    title: "Commandes déplacées",
+    description: `${selectedRows.length} commande(s) déplacée(s) vers "Confirmés".`,
+  });
+
+  setSelectedRows([]);
+}, [selectedRows, orders, deliveryCompanies, updateMultipleOrdersStatus]);
   // Ouvrir la modal d'édition - mémorisé
   const openEditModal = useCallback((order: Order) => {
     setEditingOrder(order)
@@ -549,10 +577,9 @@ const deliveryCompanies = useMemo(() => {
         }
 
         // Check for different delivery company
-        const hasDifferentDeliveryCompany =
+       {/*} const hasDifferentDeliveryCompany =
           scanMode === "delivery_company" &&
           order.deliveryCompany &&
-          order.deliveryCompany !== selectedDeliveryCompany &&
           order.deliveryCompany !== "Deliveryman"
 
         if (hasDifferentDeliveryCompany) {
@@ -564,7 +591,7 @@ const deliveryCompanies = useMemo(() => {
           playAlertSound()
           return // Exit early without adding the order
         }
-
+       */}
         // Check if in assign_deliveryman mode and order doesn't have "Deliveryman" as delivery company
         if (scanMode === "assign_deliveryman" && order.deliveryCompany !== "Deliveryman") {
           toast({
@@ -591,8 +618,11 @@ const deliveryCompanies = useMemo(() => {
         // Ajouter la commande aux commandes scannées
         setScannedOrders((prev) => [...prev, order])
 
+        {/*  if (!hasDifferentDeliveryCompany && !hasMultipleArticles) {
+          playSuccessSound()
+        } */}
         // Play success sound if no warnings
-        if (!hasDifferentDeliveryCompany && !hasMultipleArticles) {
+        if (!hasMultipleArticles) {
           playSuccessSound()
         }
 
@@ -828,7 +858,7 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                       <SelectValue placeholder="Sélectionner une société" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800">
-                      {deliveryCompanies?.map((company) => (
+                      {deliveryCompaniess?.map((company) => (
                         <SelectItem key={company} value={company}>
                           {company}
                         </SelectItem>
@@ -838,7 +868,6 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                 </div>
                 <Button
                   onClick={() => startScanWithMode("delivery_company")}
-                  disabled={!selectedDeliveryCompany}
                   className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400"
                 >
                   <Truck className="h-4 w-4 mr-2" />
@@ -1181,7 +1210,7 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Toutes les sociétés</SelectItem>
-             {[...deliveryCompanies, { companyId: "deliveryMen" }].map((company) => (
+             {[...deliveryCompaniess, { companyId: "deliveryMen" }].map((company) => (
               <SelectItem key={company.companyId} value={company.companyId}>
                 {company.companyId}
               </SelectItem>

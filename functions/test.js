@@ -981,4 +981,60 @@ async function updateOrdersFromLastStatus() {
   console.log(`${count} order(s) updated to status 'En préparation'.`);
 }
 
-updateOrdersFromLastStatus().catch(console.error);
+async function fetchYalidineStatusesForDispatcherOrders() {
+  const snapshot = await db.collection("orders")
+    .where("status", "==", "Dispatcher")
+    .get();
+
+  if (snapshot.empty) {
+    console.log("No dispatcher orders found.");
+    return;
+  }
+
+  const batch = db.batch(); // Firestore batch for safe bulk update
+  const BATCH_SIZE = 500; // Firestore limit
+
+  let count = 0;
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+
+    if (data.label) {
+      try {
+        const trackingId = new URL(data.label).searchParams.get("tracking");
+
+        if (trackingId) {
+          batch.update(doc.ref, { trackingId });
+          count++;
+        }
+      } catch (err) {
+        console.warn(`Skipping malformed label for doc ${doc.id}`);
+      }
+    }
+  });
+
+  if (count > 0) {
+    await batch.commit();
+    console.log(`✅ Updated ${count} documents with trackingId.`);
+  } else {
+    console.log("ℹ️ No trackingId updates performed.");
+  }
+}
+async function cancelUnassignedPendingOrders() {
+  const snapshot = await db.collection("orders").where("lastStatus", "==", "delivered")
+    .get();
+
+  if (snapshot.empty) {
+    console.log("No matching orders found.");
+    return;
+  }
+
+  const batch = db.batch();
+
+  snapshot.docs.forEach(doc => {
+    batch.update(doc.ref, { status: "Livrés" });
+  });
+
+  await batch.commit();
+  console.log(`${snapshot.size} orders updated to "Livrés"`);
+}

@@ -144,6 +144,7 @@ const confirmationStatuses: ConfirmationStatus[] = [
   "Ne répond pas 1",
   "Ne répond pas 2",
   "Ne répond pas 3",
+  "a modifier"
 ]
 
 // Liste des points de relais

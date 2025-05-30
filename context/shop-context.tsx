@@ -46,6 +46,7 @@ export type ConfirmationStatus =
   | "Ne répond pas 1"
   | "Ne répond pas 2"
   | "Ne répond pas 3"
+  | "a modifier"
 
 export type DeliveryType = "Domicile" | "Point de relais" | "Express"
 
@@ -375,6 +376,34 @@ async function deleteDepot(id: string): Promise<void> {
       // Update local state
       setOrders((prev) =>
         prev.map((order) => (ids.includes(order.id) ? { ...order, status: newStatus as OrderStatus } : order)),
+      )
+
+      console.log(`Updated status to ${newStatus} for ${ids.length} orders`)
+    } catch (error) {
+      console.error("Error updating multiple order statuses:", error)
+      throw error
+    }
+  }
+ const updateMultipleOrdersStatustoEnAttente = async (ids: string[], newStatus: string) => {
+    try {
+      // Create a batch operation
+      const batch = writeBatch(db)
+
+      // Add each order update to the batch
+      ids.forEach((id) => {
+        const orderRef = doc(db, "orders", id)
+        batch.update(orderRef, {
+          confirmationStatus: newStatus,
+          updatedAt: new Date(),
+        })
+      })
+
+      // Commit the batch
+      await batch.commit()
+
+      // Update local state
+      setOrders((prev) =>
+        prev.map((order) => (ids.includes(order.id) ? { ...order, confirmationStatus: newStatus as OrderStatus } : order)),
       )
 
       console.log(`Updated status to ${newStatus} for ${ids.length} orders`)
