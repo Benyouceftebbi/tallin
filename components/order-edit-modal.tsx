@@ -139,6 +139,7 @@ const confirmationStatuses: ConfirmationStatus[] = [
   "En attente",
   "Confirmé",
   "Annulé",
+  "annule",
   "Reporté",
   "Double",
   "Ne répond pas 1",
