@@ -45,6 +45,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
+import { HoverCard, HoverCardContent,HoverCardTrigger } from "./ui/hover-card"
 
 // Type pour les notes
 type OrderNote = {
@@ -139,7 +140,7 @@ export function RetourTable() {
         }
       }
 
-      const matchesRetourType = order.retourType === activeTab
+     // const matchesRetourType = order.retourType === activeTab
 
       return (
         matchesSearch &&
@@ -148,9 +149,9 @@ export function RetourTable() {
         matchesDeliveryType &&
         matchesDeliveryCompany &&
         matchesConfirmatrice &&
-        matchesPreparateur &&
-        matchesRetourType &&
-        matchesDateRange
+        matchesPreparateur 
+        //matchesRetourType 
+
       )
     })
   }, [
@@ -809,6 +810,8 @@ export function RetourTable() {
                 </th>
                 <th className="p-3 text-left text-slate-400">TrackingID</th>
                 <th className="p-3 text-left text-slate-400">Recipient</th>
+                <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Articles</th>
+
                 <th className="p-3 text-left text-slate-400">Status</th>
                 <th className="p-3 text-left text-slate-400">SMS</th>
                 <th className="p-3 text-left text-slate-400">Type</th>
@@ -854,6 +857,44 @@ export function RetourTable() {
                       </div>
                     </td>
                     <td className="p-3 text-slate-300">
+                                                              <HoverCard>
+                                                                <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors block truncate">
+                                                                  {(() => {
+                                                                    const allProducts = order.articles.map((article: { product_name: string }) => article.product_name).join(", ");
+                                                                    return allProducts.length > 7 ? `${allProducts.substring(0, 7)}...` : allProducts;
+                                                                  })()}
+                                                                </HoverCardTrigger>
+                                                                <HoverCardContent className="w-80 bg-slate-900 border-slate-800 p-0">
+                                                                  <div className="p-3 border-b border-slate-800">
+                                                                    <h4 className="text-sm font-medium text-slate-200">Détails des articles</h4>
+                                                                  </div>
+                                                                  <div className="max-h-[300px] overflow-y-auto">
+                                                                    <div className="p-3 space-y-2">
+                                                                      {order.articles.map((article: any, index: number) => {
+                                                                        const productTitle =
+                                                                          `${article.product_name} ${article.variant_options?.option1 || ""} ${article.variant_options?.option2 || ""} (${article.quantity || ""})`.trim()
+                                                                        return (
+                                                                          <div key={index} className="p-2 bg-slate-800/50 rounded-md border border-slate-700">
+                                                                            <div className="text-sm text-slate-200 font-medium">{article.product_name}</div>
+                                                                            {(article.variant_options?.option1 || article.variant_options?.option2) && (
+                                                                              <div className="text-xs text-slate-400 mt-1">
+                                                                                Variante:{" "}
+                                                                                {[article.variant_options?.option1, article.variant_options?.option2]
+                                                                                  .filter(Boolean)
+                                                                                  .join(" / ")}
+                                                                              </div>
+                                                                            )}
+                                                                            {article.quantity && <div className="text-xs text-slate-400">Quantité: {article.quantity}</div>}
+                                                                            {article.price && <div className="text-xs text-slate-400">Prix: {article.price}</div>}
+                                                                          </div>
+                                                                        )
+                                                                      })}
+                                                                    </div>
+                                                                  </div>
+                                                                </HoverCardContent>
+                                                              </HoverCard>
+                                                            </td>
+                    <td className="p-3 text-slate-300">
                       <Badge className={getRetourTypeColor(order.retourType || "Retour")} variant="outline">
                         {order.retourType}
                       </Badge>
@@ -888,12 +929,25 @@ export function RetourTable() {
                         <span>{hasNote(order.id) ? "Voir note" : "Ajouter"}</span>
                       </Button>
                     </td>
-                    <td className="p-3 text-slate-300">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-slate-400" />
-                        <span>{order.lastUpdated}</span>
-                      </div>
-                    </td>
+       
+                        <td className="p-3 text-slate-300">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-slate-400" />
+<span>
+  {order?.lastUpdated
+    ? new Date(order.lastUpdated.seconds * 1000).toLocaleString("fr-DZ", {
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "N/A"}
+</span>
+                          </div>
+                        </td>
+
                     <td className="p-3 text-slate-300">
                       <Button
                         variant="outline"

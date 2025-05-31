@@ -1,5 +1,4 @@
-import { DispatcherTable } from "@/components/dispatcher-table"
-
+import { AnnuleTable} from "@/components/annule-table"
 
 export const metadata = {
   title: "Commandes à dispatcher",
@@ -10,7 +9,7 @@ export default function DispatcherPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold tracking-tight">Commandes à dispatcher</h1>
-      <DispatcherTable />
+      <AnnuleTable />
     </div>
   )
 }

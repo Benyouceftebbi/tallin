@@ -220,6 +220,16 @@ export function Topbar() {
       borderColor: "border-rose-800/30",
       hoverColor: "hover:border-rose-700",
     },
+    {
+      name: "Annulé",
+      path: "/admin/commandes/annule",
+      count: statusCounts["Annulé"] || 0,
+      icon: PackageX,
+      color: "text-rose-500",
+      bgColor: "bg-rose-950/30",
+      borderColor: "border-rose-800/30",
+      hoverColor: "hover:border-rose-700",
+    },
   ]
 
   return (

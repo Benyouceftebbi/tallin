@@ -379,11 +379,52 @@ const TableRow = memo(
             </Select>
           </td>
         )}
-        {visibleColumns.articles && (
-          <td className="p-3 text-slate-300">
-            {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
-          </td>
-        )}
+{visibleColumns.articles && (
+  <td className="p-3 text-slate-300">
+    <HoverCard>
+      <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors block truncate">
+        {order.articles.map((article: { product_name: string }) => article.product_name).join(", ")}
+      </HoverCardTrigger>
+      <HoverCardContent className="w-80 bg-slate-900 border-slate-800 p-0">
+        <div className="p-3 border-b border-slate-800">
+          <h4 className="text-sm font-medium text-slate-200">Détails des articles</h4>
+        </div>
+        <div className="max-h-[300px] overflow-y-auto">
+          <div className="p-3 space-y-2">
+            {order.articles.map((article: any, index: number) => {
+              const productTitle = `${article.product_name} ${article.variant_options?.option1 || ''} ${article.variant_options?.option2 || ''} (${article.quantity || ''})`.trim();
+              return (
+                <div
+                  key={index}
+                  className="p-2 bg-slate-800/50 rounded-md border border-slate-700"
+                >
+                  <div className="text-sm text-slate-200 font-medium">
+                    {article.product_name}
+                  </div>
+                  {(article.variant_options?.option1 || article.variant_options?.option2) && (
+                    <div className="text-xs text-slate-400 mt-1">
+                      Variante: {[article.variant_options?.option1, article.variant_options?.option2].filter(Boolean).join(' / ')}
+                    </div>
+                  )}
+                  {article.quantity && (
+                    <div className="text-xs text-slate-400">
+                      Quantité: {article.quantity}
+                    </div>
+                  )}
+                  {article.price && (
+                    <div className="text-xs text-slate-400">
+                      Prix: {article.price}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
+  </td>
+)}
         {visibleColumns.deliveryPrice && <td className="p-3 text-slate-300">{order.deliveryPrice}</td>}
         {visibleColumns.totalPrice && <td className="p-3 text-slate-300">{order.totalPrice}</td>}
         {visibleColumns.confirmatrice && <td className="p-3 text-slate-300">{order.confirmatrice}</td>}

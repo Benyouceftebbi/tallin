@@ -89,6 +89,12 @@ const sidebarLinks = [
         href: "/admin/commandes/retour",
         color: "text-rose-700",
       },
+      {
+        title: "Annule",
+        icon: PackageX,
+        href: "/admin/commandes/annule",
+        color: "text-rose-700",
+      },
     ],
   },
 
@@ -190,6 +196,12 @@ const workersidebarLinks =  [
         title: "Retour",
         icon: PackageX,
         href: "/worker/commandes/retour",
+        color: "text-rose-700",
+      },
+      {
+        title: "Annule",
+        icon: PackageX,
+        href: "/admin/commandes/annule",
         color: "text-rose-700",
       },
     ],

@@ -50,6 +50,7 @@ import { collection, doc, setDoc, onSnapshot, query, orderBy, addDoc, serverTime
 import { db } from "@/lib/firebase"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
 import { useAuth } from "@/context/auth-context"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
 // Types pour les nœuds de suivi
 type TrackingNode =
   | "En transit"
@@ -167,6 +168,7 @@ useEffect(() => {
     preparateur: true,
     lastUpdated: true,
     sendReminder: true,
+    articles: true,
   })
 
   // Écouter les changements Firebase pour les nœuds de suivi
@@ -348,7 +350,7 @@ const ordersWithTracking = useMemo(() => {
     [ordersWithTracking],
   )
   const deliveryCompanies = useMemo(
-    () => Array.from(new Set(ordersWithTracking.map((order) => order.deliveryCompany))),
+    () => Array.from(new Set(ordersWithTracking.map((order) => order.deliveryCompany || "N/A"))),
     [ordersWithTracking],
   )
 
@@ -1254,6 +1256,9 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                   {visibleColumns.trackingId && <th className="p-3 text-left text-slate-400">TrackingID</th>}
                   {visibleColumns.recipient && <th className="p-3 text-left text-slate-400">Recipient</th>}
                   {visibleColumns.status && <th className="p-3 text-left text-slate-400">Status</th>}
+                  {visibleColumns.articles && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Articles</th>
+                  )}
                   {visibleColumns.trackingNode && <th className="p-3 text-left text-slate-400">Nœud de suivi</th>}
                   {visibleColumns.sms && <th className="p-3 text-left text-slate-400">SMS</th>}
                   {visibleColumns.type && <th className="p-3 text-left text-slate-400">Type</th>}
@@ -1272,9 +1277,7 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
               <tbody>
                 {filteredOrders.length === 0 ? (
            <tr
-  className={`border-b border-slate-800 ${
-    searchFilters.highlightOrder === order.id ? "ring-2 ring-cyan-500 bg-cyan-900/20" : ""
-  }`}
+  className={`border-b border-slate-800 `}
 >
                     <td colSpan={14} className="text-center py-8 text-slate-400">
                       Aucune commande trouvée
@@ -1287,6 +1290,10 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                       className={cn(
                         "border-b border-slate-800 hover:bg-slate-800/50",
                         selectedRows.includes(order.id) && "bg-slate-800/30",
+                    searchFilters.highlightOrder === order.id ? "ring-2 ring-cyan-500 bg-cyan-900/20" : ""
+                    
+                
+                        
                       )}
                     >
                       <td className="p-3">
@@ -1314,6 +1321,46 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                           </Badge>
                         </td>
                       )}
+                                            {visibleColumns.articles && (
+  <td className="p-3 text-slate-300">
+  <HoverCard>
+    <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors block truncate">
+      {(() => {
+        const allProducts = order.articles.map((article: { product_name: string }) => article.product_name).join(", ");
+        return allProducts.length > 7 ? `${allProducts.substring(0, 7)}...` : allProducts;
+      })()}
+    </HoverCardTrigger>
+    <HoverCardContent className="w-80 bg-slate-900 border-slate-800 p-0">
+      <div className="p-3 border-b border-slate-800">
+        <h4 className="text-sm font-medium text-slate-200">Détails des articles</h4>
+      </div>
+      <div className="max-h-[300px] overflow-y-auto">
+        <div className="p-3 space-y-2">
+          {order.articles.map((article: any, index: number) => {
+            const productTitle =
+              `${article.product_name} ${article.variant_options?.option1 || ""} ${article.variant_options?.option2 || ""} (${article.quantity || ""})`.trim()
+            return (
+              <div key={index} className="p-2 bg-slate-800/50 rounded-md border border-slate-700">
+                <div className="text-sm text-slate-200 font-medium">{article.product_name}</div>
+                {(article.variant_options?.option1 || article.variant_options?.option2) && (
+                  <div className="text-xs text-slate-400 mt-1">
+                    Variante:{" "}
+                    {[article.variant_options?.option1, article.variant_options?.option2]
+                      .filter(Boolean)
+                      .join(" / ")}
+                  </div>
+                )}
+                {article.quantity && <div className="text-xs text-slate-400">Quantité: {article.quantity}</div>}
+                {article.price && <div className="text-xs text-slate-400">Prix: {article.price}</div>}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </HoverCardContent>
+  </HoverCard>
+</td>
+)}
                       {visibleColumns.trackingNode && (
                         <td className="p-3 text-slate-300">
                           <div className="flex items-center gap-2">

@@ -26,7 +26,7 @@ import { isWithinInterval, parseISO } from "date-fns"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
 import { HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
 import { HoverCard } from "@radix-ui/react-hover-card"
-export function DispatcherTable() {
+export function AnnuleTable() {
   const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, loading } = useShop()
   const searchFilters = useOrderSearchParams()
   const [searchTerm, setSearchTerm] = useState(
@@ -78,7 +78,7 @@ useEffect(() => {
   }
 
   // Obtenir les commandes
-  const orders = getOrdersByStatus("Dispatcher")
+  const orders = getOrdersByStatus("Annulé")
 
   // Filtrer les commandes en fonction du terme de recherche
   const filteredOrders = orders.filter((order) => {
