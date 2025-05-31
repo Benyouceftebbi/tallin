@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
+  ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -195,48 +196,60 @@ const TableRow = memo(
         {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
         {visibleColumns.status && (
           <td className="p-3 text-slate-300">
-            <div className="flex items-center gap-2">
-              <Select
-                value={order?.confirmationStatus}
-                onValueChange={(value) => {
-                  updateConfirmationStatus(order.id, value as ConfirmationStatus)
-                  toast({
-                    title: "Statut mis à jour",
-                    description: `Le statut a été changé en "${value}".`,
-                  })
-                }}
-              >
-                <SelectTrigger
-                  className={cn(
-                    "h-8 w-full border",
-                    getConfirmationStatusColor(order.confirmationStatus as ConfirmationStatus),
-                  )}
-                >
-                  <SelectValue placeholder="Statut" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800">
-                  {confirmationStatuses.map((status) => (
-                    <SelectItem key={status} value={status} className="flex items-center justify-between p-0">
-                      <div className="flex items-center justify-between w-full py-2 px-3">
-                        <span>{status}</span>
-                        <MessageCircle
-                          className="h-4 w-4 ml-2 text-slate-400 hover:text-cyan-400 cursor-pointer transition-colors"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setNoteDialogOpen(true)
-                            setNoteStatus(status)
-                            setNoteOrderId(order.id)
-                            setNoteText("")
-                          }}
-                        />
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </td>
+  <div className="flex items-center gap-2">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-8 w-[180px] justify-between bg-slate-800/50 border-slate-700 hover:bg-slate-700 hover:text-slate-100",
+            getConfirmationStatusColor(order.confirmationStatus as ConfirmationStatus)
+          )}
+        >
+          {order.confirmationStatus ? (
+            <span>{order.confirmationStatus}</span>
+          ) : (
+            <span className="text-slate-500">Non défini</span>
+          )}
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-[220px] bg-slate-900 border-slate-800">
+        <DropdownMenuLabel>Statut de confirmation</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-slate-800" />
+        {confirmationStatuses.map((status) => (
+          <DropdownMenuItem
+            key={status}
+            className="hover:bg-slate-800 focus:bg-slate-800 flex justify-between items-center"
+            onClick={() => {
+              updateConfirmationStatus(order.id, status as ConfirmationStatus)
+              toast({
+                title: "Statut mis à jour",
+                description: `Le statut a été changé en "${status}".`,
+              })
+            }}
+          >
+            <div className="flex-1 cursor-pointer">{status}</div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 ml-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+              onClick={(e) => {
+                e.stopPropagation()
+                setNoteDialogOpen(true)
+                setNoteStatus(status)
+                setNoteOrderId(order.id)
+                setNoteText("")
+              }}
+            >
+              <MessageCircle className="h-3 w-3" />
+            </Button>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+</td>
         )}
         {visibleColumns.deliveryCompany && (
           <td className="p-3 text-slate-300">
