@@ -139,7 +139,6 @@ const confirmationStatuses: ConfirmationStatus[] = [
   "En attente",
   "Confirmé",
   "Annulé",
-  "annule",
   "Reporté",
   "Double",
   "Ne répond pas 1",
@@ -816,7 +815,7 @@ console.log(formData);
   const handleSubmit = () => {
     // Validate form
     const errors = validateForm()
-
+  
     if (errors.length > 0) {
       setValidationErrors(errors)
       toast({
@@ -826,7 +825,20 @@ console.log(formData);
       })
       return
     }
-
+  
+    // Check if deliveryPrice is 0 but freeDelivery is not enabled
+    const freeDelivery = formData.freeDelivery ?? false
+    const deliveryPrice = Number(formData.deliveryPrice ?? 0)
+  
+    if (!freeDelivery && deliveryPrice === 0) {
+      toast({
+        title: "Prix de livraison invalide",
+        description: "Le prix de livraison ne peut pas être 0 sauf si la livraison est gratuite.",
+        variant: "destructive",
+      })
+      return
+    }
+  
     // Update inventory stock for each article variant
     selectedArticles.forEach((article) => {
       const inventoryItem = getInventoryItem(article.name)
@@ -838,10 +850,11 @@ console.log(formData);
         })
       }
     })
-
+  
     // Calculate the total price
-    const totalPrice = calculateTotalPrice() + Number(formData.deliveryPrice) - calculateTotalExchangePrice() || 0
-
+    const totalPrice =
+      calculateTotalPrice() + deliveryPrice - calculateTotalExchangePrice() || 0
+  
     // Update the articles and total price
     const updatedFormData = {
       ...formData,
@@ -853,7 +866,7 @@ console.log(formData);
         article.variants.map((variant) => {
           const variantKey = `${article.id}-${variant.id}`
           const selectedDepot = selectedDepots[variantKey]
-
+  
           return {
             product_id: article.id,
             product_name: article.name,
@@ -867,14 +880,21 @@ console.log(formData);
               option1: variant.size,
               option2: variant.color,
             },
-            depotId: selectedDepot?.id ?? (Array.isArray(variant.depot) ? variant.depot[0]?.id : variant.depot?.id),
+            depotId:
+              selectedDepot?.id ??
+              (Array.isArray(variant.depot)
+                ? variant.depot[0]?.id
+                : variant.depot?.id),
             depotName:
-              selectedDepot?.name ?? (Array.isArray(variant.depot) ? variant.depot[0]?.name : variant.depot?.name),
+              selectedDepot?.name ??
+              (Array.isArray(variant.depot)
+                ? variant.depot[0]?.name
+                : variant.depot?.name),
           }
         }),
       ),
     }
-
+  
     const cleanedExchangeArticles = (exchangeArticles || []).map((article) => {
       const cleaned = {}
       for (const key in article) {
@@ -882,7 +902,7 @@ console.log(formData);
       }
       return cleaned
     })
-
+  
     const enrichedFormData = {
       ...updatedFormData,
       ...(isExchange &&
@@ -890,27 +910,30 @@ console.log(formData);
           exchangeArticles: cleanedExchangeArticles,
           isExchange: true,
         }),
-      //confirmatrice: workerName ? workerName : "",
       createdAt: isNew ? new Date() : updatedFormData.createdAt,
     }
-
+  
     if (isNew) {
-      addOrder({...enrichedFormData,confirmatrice: workerName ? workerName : ""})
+      addOrder({
+        ...enrichedFormData,
+        confirmatrice: workerName ? workerName : "",
+      })
+  
       console.log(enrichedFormData)
-
+  
       toast({
         title: "Commande ajoutée",
         description: `La commande ${updatedFormData.id} a été ajoutée avec succès.`,
       })
     } else {
       updateOrder(order!.id, enrichedFormData)
-
+  
       toast({
         title: "Commande mise à jour",
         description: `La commande ${order!.id} a été mise à jour avec succès.`,
       })
     }
-
+  
     // Clear validation errors on successful submit
     setValidationErrors([])
     onOpenChange(false)
@@ -1932,7 +1955,7 @@ console.log(formData);
                       const checked = e.target.checked
                       setFormData((prev) => ({
                         ...prev,
-                        freeDelivery: checked,
+                        confirmationStatus: checked,
                         deliveryPrice: checked ? 0 : prev.deliveryPrice,
                       }))
                     }}

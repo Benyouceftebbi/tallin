@@ -983,7 +983,7 @@ async function updateOrdersFromLastStatus() {
 
 async function fetchYalidineStatusesForDispatcherOrders() {
   const snapshot = await db.collection("orders")
-    .where("status", "==", "Dispatcher")
+    .where("status", "==", "Annulé")
     .get();
 
   if (snapshot.empty) {
@@ -999,18 +999,16 @@ async function fetchYalidineStatusesForDispatcherOrders() {
   snapshot.forEach(doc => {
     const data = doc.data();
 
-    if (data.label) {
       try {
-        const trackingId = new URL(data.label).searchParams.get("tracking");
+       
 
-        if (trackingId) {
-          batch.update(doc.ref, { trackingId });
+          batch.update(doc.ref, { status:"Annulé", confirmationStatus:"Annulé" });
           count++;
-        }
+
       } catch (err) {
         console.warn(`Skipping malformed label for doc ${doc.id}`);
       }
-    }
+    
   });
 
   if (count > 0) {
@@ -1020,6 +1018,7 @@ async function fetchYalidineStatusesForDispatcherOrders() {
     console.log("ℹ️ No trackingId updates performed.");
   }
 }
+//fetchYalidineStatusesForDispatcherOrders()
 async function cancelUnassignedPendingOrders() {
   const snapshot = await db.collection("orders").where("lastStatus", "==", "delivered")
     .get();
@@ -1032,7 +1031,7 @@ async function cancelUnassignedPendingOrders() {
   const batch = db.batch();
 
   snapshot.docs.forEach(doc => {
-    batch.update(doc.ref, { status: "Livrés" });
+    batch.update(doc.ref, { status: "Annulé" });
   });
 
   await batch.commit();
