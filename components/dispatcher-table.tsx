@@ -532,7 +532,7 @@ useEffect(() => {
                       <TableCell className="text-slate-300">{order.commune || "N/A"}</TableCell>
                     )}
                     {visibleColumns.deliveryCompany && (
-                      <TableCell className="text-slate-300">{order.deliveryCompany || "N/A"}</TableCell>
+                      <TableCell className="text-slate-300">{order?.deliveryCompany}</TableCell>
                     )}
                     {visibleColumns.confirmatrice && (
                       <TableCell className="text-slate-300">{order.confirmatrice || "N/A"}</TableCell>

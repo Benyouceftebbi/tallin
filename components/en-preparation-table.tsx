@@ -424,12 +424,6 @@ const moveBack = useCallback(async () => {
 
       // Mettre à jour les commandes en fonction du mode de scan
       if (scanMode === "delivery_company") {
-        // Mettre à jour avec la société de livraison
-        scannedOrders.forEach((order) => {
-          updateOrder(order.id, {
-            deliveryCompany: selectedDeliveryCompany,
-          })
-        })
         updateMultipleOrdersStatus(scannedOrderIds, "Dispatcher")
       } else if (scanMode === "assign_deliveryman") {
         // Assigner au livreur
