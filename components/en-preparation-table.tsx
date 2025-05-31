@@ -428,7 +428,6 @@ const moveBack = useCallback(async () => {
         scannedOrders.forEach((order) => {
           updateOrder(order.id, {
             deliveryCompany: selectedDeliveryCompany,
-            trackingId: trackingId,
           })
         })
         updateMultipleOrdersStatus(scannedOrderIds, "Dispatcher")
@@ -446,7 +445,6 @@ const moveBack = useCallback(async () => {
           updateOrder(order.id, {
             deliveryCompany: "Deliveryman",
             additionalInfo: selectedDeliveryman,
-            trackingId: trackingId,
           })
         })
         updateMultipleOrdersStatus(scannedOrderIds, "Dispatcher")
