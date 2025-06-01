@@ -444,7 +444,14 @@ const rawOrders = selectedRows.map((selectedId) => {
       })
       return
     }
-
+    if (selectedRows.length > 1) {
+      toast({
+        title: "Plus d une commande sélectionnée",
+        description: "Veuillez sélectionner une seul commande à déplacer.",
+        variant: "destructive",
+      })
+      return
+    }
     updateMultipleOrdersStatus(selectedRows, "en-attente")
     updateMultipleOrdersStatustoEnAttente(selectedRows,"a modifier")
     toast({
@@ -551,7 +558,7 @@ const rawOrders = selectedRows.map((selectedId) => {
                     variant="outline"
                     size="sm"
                     onClick={moveBack}
-                    disabled={selectedRows.length === 0}
+                    disabled={selectedRows.length === 0 || selectedRows.length > 1}
                     className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
                   >
                     <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
