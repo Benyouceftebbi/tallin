@@ -55,7 +55,7 @@ import { generateParcelLabel } from "@/app/admin/commandes/confirmes/print"
 import { PDFDocument } from 'pdf-lib';
 import { useAuth } from "@/context/auth-context"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
-import { HoverCard, HoverCardContent, HoverCardTrigger, HoverCardTrigger } from "./ui/hover-card"
+import { HoverCard, HoverCardContent, HoverCardTrigger} from "./ui/hover-card"
 // Liste des livreurs disponibles - définie en dehors du composant car elle ne change pas
 const deliverymen = [
   "Ahmed Benali",
