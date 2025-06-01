@@ -454,6 +454,7 @@ const rawOrders = selectedRows.map((selectedId) => {
     setSelectedRows([])
   }, [selectedRows, updateMultipleOrdersStatus])
 
+  const changeConfirmatrices = (e) => {}
   if (loading) {
     return (
       <div className="space-y-4">
@@ -484,6 +485,48 @@ const rawOrders = selectedRows.map((selectedId) => {
 
   <OrderEditModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} order={editingOrder} confirm={true} />
       {/* Barre d'outils */}
+            <Dialog open={isConfirmatriceModalOpen} onOpenChange={setIsConfirmatriceModalOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800">
+          <DialogHeader>
+            <DialogTitle>Changer la confirmatrice</DialogTitle>
+            <DialogDescription>
+              Sélectionnez une confirmatrice pour les {selectedRows.length} commande(s) sélectionnée(s).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select
+              value={selectedConfirmatrice}
+              onValueChange={(e) => {
+                setSelectedConfirmatrice(e)
+                changeConfirmatrices(e)
+              }}
+            >
+              <SelectTrigger className="bg-slate-800/50 border-slate-700">
+                <SelectValue placeholder="Sélectionner une confirmatrice" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-800">
+                {confirmatrices.map((confirmatrice) => (
+                  <SelectItem key={confirmatrice} value={confirmatrice}>
+                    {confirmatrice}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmatriceModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={changeConfirmatrice}
+              className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
+            >
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex justify-end mb-4">
         <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
       </div>
@@ -539,7 +582,25 @@ const rawOrders = selectedRows.map((selectedId) => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openConfirmatriceModal}
+                  disabled={selectedRows.length === 0 || userRole === "worker"}
+                  className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
+                >
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  <span>Changer confirmatrice</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Changer la confirmatrice des commandes sélectionnées</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

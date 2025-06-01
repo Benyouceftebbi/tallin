@@ -1037,3 +1037,43 @@ async function cancelUnassignedPendingOrders() {
   await batch.commit();
   console.log(`${snapshot.size} orders updated to "Livrés"`);
 }
+async function getTodayOrders() {
+  const now = new Date();
+
+  // Start of today: 00:00:00
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // End of today: 23:59:59.999
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  const todayStart = Timestamp.fromDate(startOfToday);
+  const todayEnd = Timestamp.fromDate(endOfToday);
+
+  const snapshot = await db.collection("orders")
+    .where("status", "==", "en-attente")
+    .where("confirmationStatus", "==", "Confirmé")
+    .where("updatedAt", ">=", todayStart)
+    .where("updatedAt", "<=", todayEnd)
+    .get();
+
+  if (snapshot.empty) {
+    console.log("No matching orders found.");
+    return [];
+  }
+
+  const orders = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  console.log(`Found ${orders.length} orders.`);
+    const batch = db.batch();
+
+  snapshot.docs.forEach((doc) => {
+    const docRef = db.collection("orders").doc(doc.id);
+    batch.update(docRef, { status: "Confirmé" });
+  });
+
+  await batch.commit();
+  return orders;
+}
+getTodayOrders()
