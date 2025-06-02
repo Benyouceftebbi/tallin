@@ -1172,6 +1172,23 @@ console.log(formData);
       }),
     )
   }
+useEffect(() => {
+  if (!open) {
+    setFormData({})
+    setSelectedArticles([])
+    setExchangeArticles([])
+    setSelectedWilaya("")
+    setCommunes([])
+    setOrderReference("")
+    setSelectedDepots({})
+    setValidationErrors([])
+    setIsExchange(false)
+    setIsRestockMode(false)
+    setSelectedPreviousOrder("")
+    setShowDepotDialog(false)
+    setCurrentVariantForDepot(null)
+  }
+}, [open])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
