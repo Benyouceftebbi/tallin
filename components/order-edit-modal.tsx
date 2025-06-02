@@ -469,13 +469,15 @@ setCommunes((prevCommunes) =>
       return updated
     })
 
-const wilayaRaw = field === "wilaya" ? value : formData.wilaya;
+const wilayaRaw = field === "wilaya" ? value : formData.wilayaCode;
 const type = field === "deliveryType" ? value : formData.deliveryType;
 
 const wilaya = wilayaRaw?.toString().padStart(2, '0');
 
 if (wilaya && type) {
   try {
+    console.log("wweewee",wilaya);
+    
     const docRef = doc(db, "deliveryPrices", wilaya);
     const snap = await getDoc(docRef);
 
