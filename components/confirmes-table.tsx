@@ -278,7 +278,7 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
     adresse: order.address,
     commune: commune?.name || '',
     isExchange: order.isExchange || false,
-    phone:"0670603416"
+
   };
 }).filter(Boolean);
   
