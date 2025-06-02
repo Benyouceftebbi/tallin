@@ -1077,3 +1077,61 @@ async function getTodayOrders() {
   return orders;
 }
 //getTodayOrders()
+async function updateAnnuleOrders() {
+  const snapshot = await db.collection("orders")
+    .where("status", "==", "en-attente")
+    .where("confirmationStatus", "==", "Annulé")
+    .get();
+
+  if (snapshot.empty) {
+    console.log("No matching orders found.");
+    return;
+  }
+
+  const batch = db.batch();
+
+  snapshot.forEach(doc => {
+    const orderRef = db.collection("orders").doc(doc.id);
+    batch.update(orderRef, {
+      status: "Annulé",
+      confirmationStatus: "Annulé",
+      updatedAt: new Date(),
+    });
+  });
+
+  await batch.commit();
+  console.log(`Updated ${snapshot.size} orders to 'Annulé'.`);
+}
+
+// Call the function
+
+async function updateReturnedOrders() {
+  const snapshot = await db.collection("orders").get();
+
+  const batch = db.batch();
+  let count = 0;
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const lastStatus = data.lastStatus;
+
+    if (lastStatus === "returned-to-center" || lastStatus === "returning-to-center") {
+      const orderRef = db.collection("orders").doc(doc.id);
+      batch.update(orderRef, {
+        status: "Retour",
+        updatedAt: new Date(),
+      });
+      count++;
+    }
+  });
+
+  if (count > 0) {
+    await batch.commit();
+    console.log(`Updated ${count} orders to 'Retour'.`);
+  } else {
+    console.log("No orders to update.");
+  }
+}
+
+// Call the function
+//updateReturnedOrders().catch(console.error);
