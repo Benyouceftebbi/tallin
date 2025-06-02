@@ -511,78 +511,60 @@ const updateOrder = async (id: string, updatedOrder: Partial<Order>) => {
     }, 1000)
   }
 
-  const updateConfirmationStatus = async (id: string, newStatus: ConfirmationStatus, changedBy) => {
-    try {
-      // Create the new history entry
-      const newHistoryEntry = {
-        status: newStatus,
-        timestamp: new Date().toISOString(),
-        changedBy: changedBy ? changedBy : "System",
-      }
-if(newStatus=== "Confirmé") {
-      // Get the current order to access its statusHistory
-      const currentOrder = orders.find((order) => order.id === id)
-      const updatedStatusHistory = [...(currentOrder?.statusHistory || []), newHistoryEntry]
-
-      // Update in Firestore
-      const orderRef = doc(db, "orders", id)
-      await updateDoc(orderRef, {
-        confirmationStatus: newStatus,
-        status: "Confirmé",
-        statusHistory: updatedStatusHistory,
-        updatedAt: new Date(),
-      })
-
-      // Update local state
-      setOrders((prev) =>
-        prev.map((order) => {
-          if (order.id !== id) return order
-
-          return {
-            ...order,
-            confirmationStatus: newStatus,
-            status: "Confirmé",
-            statusHistory: updatedStatusHistory,
-          }
-        }),
-      )
-}
-else{
-      // Get the current order to access its statusHistory
-      const currentOrder = orders.find((order) => order.id === id)
-      const updatedStatusHistory = [...(currentOrder?.statusHistory || []), newHistoryEntry]
-
-      // Update in Firestore
-      const orderRef = doc(db, "orders", id)
-      await updateDoc(orderRef, {
-        confirmationStatus: newStatus,
-        status: "en-attente",
-        statusHistory: updatedStatusHistory,
-        updatedAt: new Date(),
-      })
-
-      // Update local state
-      setOrders((prev) =>
-        prev.map((order) => {
-          if (order.id !== id) return order
-
-          return {
-            ...order,
-            confirmationStatus: newStatus,
-            status: "en-attente",
-            statusHistory: updatedStatusHistory,
-          }
-        }),
-      )
-}
-
-
-      console.log(`Order ${id} confirmation status updated to ${newStatus}`)
-    } catch (error) {
-      console.error("Error updating confirmation status:", error)
-      throw error
+const updateConfirmationStatus = async (
+  id: string,
+  newStatus: ConfirmationStatus,
+  changedBy?: string
+) => {
+  try {
+    const newHistoryEntry = {
+      status: newStatus,
+      timestamp: new Date().toISOString(),
+      changedBy: changedBy || "System",
     }
+
+    const currentOrder = orders.find((order) => order.id === id)
+    const updatedStatusHistory = [...(currentOrder?.statusHistory || []), newHistoryEntry]
+
+    const orderRef = doc(db, "orders", id)
+
+    let firestoreUpdate: any = {
+      confirmationStatus: newStatus,
+      statusHistory: updatedStatusHistory,
+      updatedAt: new Date(),
+    }
+
+    // Determine status based on newStatus
+    if (newStatus === "Confirmé") {
+      firestoreUpdate.status = "Confirmé"
+    } else if (newStatus === "Annulé") {
+      firestoreUpdate.status = "Annulé"
+      firestoreUpdate.confirmationStatus = "Annulé"
+    } else {
+      firestoreUpdate.status = "en-attente"
+    }
+
+    await updateDoc(orderRef, firestoreUpdate)
+
+    // Update local state
+    setOrders((prev) =>
+      prev.map((order) => {
+        if (order.id !== id) return order
+        return {
+          ...order,
+          confirmationStatus: firestoreUpdate.confirmationStatus,
+          status: firestoreUpdate.status,
+          statusHistory: updatedStatusHistory,
+        }
+      }),
+    )
+
+    console.log(`Order ${id} confirmation status updated to ${newStatus}`)
+  } catch (error) {
+    console.error("Error updating confirmation status:", error)
+    throw error
   }
+}
 
   const getInventoryItem = (name: string) => {
     return inventory.find((item) => item.name === name)
