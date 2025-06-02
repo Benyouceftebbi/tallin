@@ -92,7 +92,11 @@ export function RetourTable() {
   const wilayas = useMemo(() => Array.from(new Set(orders.map((order) => order.wilaya))), [orders])
   const communes = useMemo(() => Array.from(new Set(orders.map((order) => order.commune))), [orders])
   const deliveryTypes = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryType))), [orders])
-  const deliveryCompanies = useMemo(() => Array.from(new Set(orders.map((order) => order.deliveryCompany))), [orders])
+   const deliveryCompanies = useMemo(
+     () => Array.from(new Set(orders.map((order) => order.deliveryCompany || "N/A"))),
+     [orders],
+   )
+ 
   const confirmatrices = useMemo(
     () => Array.from(new Set(orders.map((order) => order.confirmatrice).filter(Boolean))),
     [orders],
