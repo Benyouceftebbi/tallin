@@ -201,6 +201,7 @@ useEffect(() => {
     dateRange,
   ])
 
+  
   // Gérer la sélection de toutes les lignes - mémorisé pour éviter des recréations de fonction
   const handleSelectAll = useCallback(
     (checked: boolean) => {

@@ -919,38 +919,41 @@ async function processYalidineOrders(orders) {
   
     const { trackingIds, apiId, apiToken } = data;
   
-    if (!apiId || !apiToken || !trackingIds) {
-      return { error: "Missing apiId, apiToken, or trackingIds." };
-    }
-  
-    const trackingParam = Array.isArray(trackingIds)
-      ? trackingIds.join(",")
-      : trackingIds;
-  
-    try {
-      const response = await axios.delete("https://api.yalidine.app/v1/parcels", {
-        params: {
-          tracking: trackingParam,
-        },
-        headers: {
-          'X-API-ID': apiId,
-          'X-API-TOKEN': apiToken,
-        },
-      }); 
-      console.log(response.data);
-      
-      return {
-        message: "Parcels deleted successfully",
-        result: response.data,
-      };
-    } catch (error) {
-      console.error("Error deleting parcels:", error.response?.data || error.message);
-      return {
-        error: "Failed to delete parcels",
-        details: error.response?.data || error.message,
-      };
-    }
-  });
+  if (!apiId || !apiToken || !trackingIds) {
+    return { error: "Missing apiId, apiToken, or trackingIds." };
+  }
+
+  if (!Array.isArray(trackingIds) || trackingIds.length === 0) {
+    return { error: "trackingIds must be a non-empty array." };
+  }
+
+  const trackingParam = trackingIds.join(",");
+
+  try {
+    const response = await axios.delete("https://api.yalidine.app/v1/parcels", {
+      params: {
+        tracking: trackingParam,
+      },
+      headers: {
+        "X-API-ID": apiId,
+        "X-API-TOKEN": apiToken,
+      },
+    });
+
+    console.log("✅ Delete response:", response.data);
+
+    return {
+      message: "Parcels deleted successfully",
+      result: response.data,
+    };
+  } catch (error) {
+    console.error("❌ Error deleting parcels:", error.response?.data || error.message);
+    return {
+      error: "Failed to delete parcels",
+      details: error.response?.data || error.message,
+    };
+  }
+});
   exports.createWorkerUser =onCall(async ({data, auth}) => {
   const { email, password } = data;
 

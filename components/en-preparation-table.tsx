@@ -336,7 +336,7 @@ const moveBack = useCallback(async () => {
     if (!groupedByCompany[company]) {
       groupedByCompany[company] = [];
     }
-    groupedByCompany[company].push(order.id);
+    groupedByCompany[company].push(order.trackingId);
   });
 
   // Loop through each group and delete parcels with correct API keys
