@@ -304,25 +304,34 @@ export function Topbar() {
                             <div className="text-sm text-slate-400">{order.phone}</div>
                             <div className="text-xs text-slate-500">ID: {order.trackingId}</div>
                           </div>
-                          <div className="text-right">
-                            <div
-                              className={cn(
-                                "text-xs px-2 py-1 rounded-full",
-                                order.status === "Confirmé" && "bg-emerald-900 text-emerald-300",
-                                order.status === "En préparation" && "bg-blue-900 text-blue-300",
-                                order.status === "En livraison" && "bg-orange-900 text-orange-300",
-                                order.status === "Livrés" && "bg-cyan-900 text-cyan-300",
-                                order.status === "en-attente" && "bg-amber-900 text-amber-300",
-                                order.status === "Dispatcher" && "bg-purple-900 text-purple-300",
-                                order.status === "Retour" && "bg-rose-900 text-rose-300",
-                              )}
-                            >
-                              {order.status}
-                            </div>
-                            {order.articles && (
-                              <div className="text-xs text-slate-400 mt-1">{order.articles.length} article(s)</div>
-                            )}
-                          </div>
+<div className="flex justify-between items-start w-full">
+  {/* Empty left side to keep layout balanced */}
+  <div />
+
+  {/* Right side: status + confirmationStatus stacked and right-aligned */}
+  <div className="flex flex-col items-end space-y-1">
+    <div
+      className={cn(
+        "text-xs px-2 py-1 rounded-full w-fit",
+        order.status === "Confirmé" && "bg-emerald-900 text-emerald-300",
+        order.status === "En préparation" && "bg-blue-900 text-blue-300",
+        order.status === "En livraison" && "bg-orange-900 text-orange-300",
+        order.status === "Livrés" && "bg-cyan-900 text-cyan-300",
+        order.status === "en-attente" && "bg-amber-900 text-amber-300",
+        order.status === "Dispatcher" && "bg-purple-900 text-purple-300",
+        order.status === "Retour" && "bg-rose-900 text-rose-300",
+      )}
+    >
+      {order.status}
+    </div>
+
+    {order.status === "en-attente" && order.confirmationStatus && (
+      <div className="text-xs text-slate-400 text-right">
+        État de confirmation: <span className="font-semibold">{order.confirmationStatus}</span>
+      </div>
+    )}
+  </div>
+</div>
                         </div>
                       </div>
                     ))}
