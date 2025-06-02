@@ -27,7 +27,7 @@ import { useOrderSearchParams } from "@/hooks/use-search-params"
 import { HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
 import { HoverCard } from "@radix-ui/react-hover-card"
 export function AnnuleTable() {
-  const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, loading } = useShop()
+  const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, loading,updateMultipleOrdersStatustoEnAttente } = useShop()
   const searchFilters = useOrderSearchParams()
   const [searchTerm, setSearchTerm] = useState(
   searchFilters.searchId ||
@@ -154,7 +154,8 @@ useEffect(() => {
       return
     }
 
-    updateMultipleOrdersStatus(selectedRows, "En livraison")
+    updateMultipleOrdersStatus(selectedRows, "en-attente")
+    updateMultipleOrdersStatustoEnAttente(selectedRows, "En attente")
     toast({
       title: "Commandes déplacées",
       description: `${selectedRows.length} commande(s) déplacée(s) vers "En livraison".`,
@@ -237,25 +238,7 @@ useEffect(() => {
           />
         </div>
         <div className="flex gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={moveToEnPreparation}
-                  disabled={selectedRows.length === 0}
-                  className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
-                >
-                  <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
-                  <span>En préparation</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Déplacer les commandes sélectionnées vers "En préparation"</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -267,11 +250,11 @@ useEffect(() => {
                   className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
                 >
                   <ArrowRight className="h-4 w-4 mr-2" />
-                  <span>En livraison</span>
+                  <span>En Attente</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Déplacer les commandes sélectionnées vers "En livraison"</p>
+                <p>Déplacer les commandes sélectionnées vers "En Attente"</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -510,13 +510,14 @@ const updateOrder = async (id: string, updatedOrder: Partial<Order>) => {
       setLoading(false)
     }, 1000)
   }
-
 const updateConfirmationStatus = async (
   id: string,
   newStatus: ConfirmationStatus,
   changedBy?: string
 ) => {
   try {
+    const conflictingStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
+
     const newHistoryEntry = {
       status: newStatus,
       timestamp: new Date().toISOString(),
@@ -528,13 +529,34 @@ const updateConfirmationStatus = async (
 
     const orderRef = doc(db, "orders", id)
 
+    // If confirming, check for another active order with same phone
+    if (newStatus === "Confirmé" && currentOrder?.phone) {
+      const q = query(
+        collection(db, "orders"),
+        where("phone", "==", currentOrder.phone),
+        where("status", "in", conflictingStatuses)
+      )
+
+      const snapshot = await getDocs(q)
+
+      for (const docSnap of snapshot.docs) {
+        const conflictingOrderId = docSnap.id
+        if (conflictingOrderId !== id) {
+          await updateDoc(doc(db, "orders", conflictingOrderId), {
+            confirmationStatus: "Double Confirmé",
+            updatedAt: new Date(),
+          })
+        }
+      }
+    }
+
+    // Determine Firestore update payload
     let firestoreUpdate: any = {
       confirmationStatus: newStatus,
       statusHistory: updatedStatusHistory,
       updatedAt: new Date(),
     }
 
-    // Determine status based on newStatus
     if (newStatus === "Confirmé") {
       firestoreUpdate.status = "Confirmé"
     } else if (newStatus === "Annulé") {
@@ -544,27 +566,41 @@ const updateConfirmationStatus = async (
       firestoreUpdate.status = "en-attente"
     }
 
+    // Update current order
     await updateDoc(orderRef, firestoreUpdate)
 
     // Update local state
     setOrders((prev) =>
       prev.map((order) => {
-        if (order.id !== id) return order
-        return {
-          ...order,
-          confirmationStatus: firestoreUpdate.confirmationStatus,
-          status: firestoreUpdate.status,
-          statusHistory: updatedStatusHistory,
+        if (order.id === id) {
+          return {
+            ...order,
+            confirmationStatus: firestoreUpdate.confirmationStatus,
+            status: firestoreUpdate.status,
+            statusHistory: updatedStatusHistory,
+          }
         }
-      }),
+        if (
+          order.phone === currentOrder?.phone &&
+          conflictingStatuses.includes(order.status) &&
+          order.id !== id
+        ) {
+          return {
+            ...order,
+            confirmationStatus: "Double Confirmé",
+          }
+        }
+        return order
+      })
     )
 
-    console.log(`Order ${id} confirmation status updated to ${newStatus}`)
+    console.log(`✅ Order ${id} confirmation status updated to ${newStatus}`)
   } catch (error) {
-    console.error("Error updating confirmation status:", error)
+    console.error("❌ Error updating confirmation status:", error)
     throw error
   }
 }
+
 
   const getInventoryItem = (name: string) => {
     return inventory.find((item) => item.name === name)
@@ -891,6 +927,7 @@ const value = {
   updateOrder,
   updateOrderStatus,
   updateMultipleOrdersStatus,
+  updateMultipleOrdersStatustoEnAttente,
   updateRetourStatus,
   getOrdersByStatus,
   getOrderById,

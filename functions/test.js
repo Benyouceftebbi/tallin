@@ -1135,3 +1135,49 @@ async function updateReturnedOrders() {
 
 // Call the function
 //updateReturnedOrders().catch(console.error);
+
+async function markDoubleConfirmedOrders() {
+  const activeStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
+
+  const ordersSnapshot = await db
+    .collection("orders")
+    .where("status", "in", activeStatuses)
+    .get()
+
+  const allOrders = ordersSnapshot.docs.map((doc) => ({
+   
+    ...doc.data(),
+     id: doc.id,
+  }))
+
+  const batch = db.batch()
+  let updatedCount = 0
+
+  for (const order of allOrders) {
+    if (order.status === "Confirmé" && order.phone) {
+      const samePhoneOrders = allOrders.filter(
+        (o) => o.phone === order.phone && o.id !== order.id
+      )
+      console.log(`Checking order ${order.id} with phone ${order.phone}, found ${samePhoneOrders.length} matching orders.`);
+      
+      for (const other of samePhoneOrders) {
+        const orderRef = db.collection("orders").doc(other.id)
+        batch.update(orderRef, {
+          confirmationStatus: "Double Confirmé",
+          updatedAt: new Date(),
+        })
+        updatedCount++
+      }
+    }
+  }
+
+  if (updatedCount > 0) {
+    await batch.commit()
+    console.log(`✅ ${updatedCount} orders updated to 'Double Confirmé'`)
+  } else {
+    console.log("ℹ️ No matching orders to update")
+  }
+}
+
+// Run the function
+markDoubleConfirmedOrders().catch(console.error)
