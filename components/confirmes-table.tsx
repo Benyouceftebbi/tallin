@@ -106,6 +106,7 @@ useEffect(() => {
     confirmatrice: true,
     totalPrice: true,
     source: true,
+    status:true
   })
 
   // Obtenir les commandes confirmées - mémorisé pour éviter des appels inutiles
@@ -255,11 +256,18 @@ const rawOrders = selectedRows.map((selectedId) => {
 
   let exchangeProductTitles: string[] = [];
 
-  if (order.isExchange && order.exchangeArticles?.length > 0) {
-    exchangeProductTitles = order.exchangeArticles.map((a) =>
-      `${a.product_name} ${a.variant_options?.option1 || ''} ${a.variant_options?.option2 || ''} (${a.quantity || ''})`.trim()
-    );
-  }
+if (order.isExchange && order.exchangeArticles?.length > 0) {
+  exchangeProductTitles = order.exchangeArticles.flatMap((article) =>
+    article.variants?.map((variant) => {
+      const color = variant.option1 || '';
+      const size = variant.option2 || '';
+      const quantity = variant.quantity || '';
+      const title = article.title || ''; // from articleExchange.title
+
+      return `${title} ${color} ${size} (${quantity})`.trim();
+    }) || []
+  );
+}
 
   return {
     ...order,
@@ -270,6 +278,7 @@ const rawOrders = selectedRows.map((selectedId) => {
     adresse: order.address,
     commune: commune?.name || '',
     isExchange: order.isExchange || false,
+    phone:"0670603416"
   };
 }).filter(Boolean);
   
@@ -805,6 +814,9 @@ const rawOrders = selectedRows.map((selectedId) => {
                   )}
                   {visibleColumns.deliveryCompany && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Société de livraison</th>
+                  )}
+                                    {visibleColumns.status && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Statut</th>
                   )}
                   {visibleColumns.pickupPoint && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Point de relais</th>

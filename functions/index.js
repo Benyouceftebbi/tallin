@@ -852,6 +852,7 @@ async function processYalidineOrders(orders) {
       const url = 'https://api.yalidine.app/v1/parcels/';
 
       const payload = processed;
+    console.log("pro",processed);
     
       const response = await axios.post(url, payload, {
         headers: {

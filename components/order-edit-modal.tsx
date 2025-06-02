@@ -365,13 +365,16 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
             ? order.deliveryPrice.replace(/\s?DZD$/, "")
             : order.deliveryPrice?.toString() || "0"
 
-        setFormData({
-          ...order,
-          deliveryPrice: cleanedDeliveryPrice,
-        })
+setFormData((prev) => ({
+  ...order,
+  ...prev, // keeps wilaya, commune, etc.
+  deliveryPrice: cleanedDeliveryPrice,
+}))
 
-        setSelectedWilaya(order.wilaya)
-        setCommunes(getCommunesByWilayaName(order.wilaya) || [])
+      setSelectedWilaya((prevWilaya) => prevWilaya || order.wilaya)
+setCommunes((prevCommunes) =>
+  prevCommunes.length === 0 ? getCommunesByWilayaName(order.wilaya) || [] : prevCommunes
+)
         setOrderReference(order.orderReference || "")
 
         const acc: Record<string, Article> = {}
@@ -1779,7 +1782,7 @@ console.log(formData);
               <div className="space-y-2">
                 <Label htmlFor="wilaya">Wilaya *</Label>
                 <Select
-                  value={formData.wilaya}
+                  value={formData.wilayaCode || formData.wilaya}
                   onValueChange={(value) => {
                     const selectedWilaya = getAllWilayas().find((w) => w.code === value)
                     setSelectedWilaya(selectedWilaya?.name_ascii)

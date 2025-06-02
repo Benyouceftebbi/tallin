@@ -150,7 +150,8 @@ const playWarningSound = () => {
 }
 
 export default function EnPreparationTable() {
-  const { getOrdersByStatus, updateOrder, updateMultipleOrdersStatus, loading,deliveryMen,   deliveryCompanies} = useShop()
+  const { getOrdersByStatus, updateOrder, updateMultipleOrdersStatus, loading,deliveryMen,   deliveryCompanies,workers} = useShop()
+      const confirmatrices = workers.filter(w=>w.role==='Confirmatrice').map(c=>c.name)
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -173,8 +174,11 @@ const [searchTerm, setSearchTerm] = useState(
     searchFilters.searchTrackingId ||
     "",
 )
+  const [selectedConfirmatrice, setSelectedConfirmatrice] = useState("")
+  const [isConfirmatriceModalOpen, setIsConfirmatriceModalOpen] = useState(false)
+  const [confirmatriceFilter, setConfirmatriceFilter] = useState<string>("all")
 
-useEffect(() => {
+  useEffect(() => {
   const urlSearchTerm =
     searchFilters.searchId ||
     searchFilters.searchName ||
@@ -201,6 +205,7 @@ useEffect(() => {
     address: true,
     totalPrice: true,
     source: true,
+    confirmatrice:true
   })
 
   // Filtres
@@ -239,6 +244,7 @@ const deliveryCompaniess = useMemo(() => {
         order.commune.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesDeliveryCompany = deliveryCompanyFilter === "all" || order.deliveryCompany === deliveryCompanyFilter
+      const matchesConfirmatrice = confirmatriceFilter === "all" || order.confirmatrice === confirmatriceFilter
 
       // Date range filter
       let matchesDateRange = true
@@ -255,7 +261,7 @@ const deliveryCompaniess = useMemo(() => {
         }
       }
 
-      return matchesSearch && matchesDeliveryCompany && matchesDateRange
+      return matchesSearch && matchesDeliveryCompany && matchesDateRange && matchesConfirmatrice
     })
   }, [orders, searchTerm, deliveryCompanyFilter, dateRange])
 
@@ -724,6 +730,29 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
   });
 
 }, [selectedRows, filteredOrders, toast]);
+  const changeConfirmatrices = (e) => {}
+    const changeConfirmatrice = useCallback(() => {
+      if (!selectedConfirmatrice) {
+        toast({
+          title: "Aucune confirmatrice sélectionnée",
+          description: "Veuillez sélectionner une confirmatrice.",
+          variant: "destructive",
+        })
+        return
+      }
+  
+      selectedRows.forEach((id) => {
+        updateOrder(id, { confirmatrice: selectedConfirmatrice })
+      })
+  
+      toast({
+        title: "Confirmatrice mise à jour",
+        description: `La confirmatrice a été changée pour ${selectedRows.length} commande(s).`,
+      })
+  
+      setIsConfirmatriceModalOpen(false)
+      setSelectedConfirmatrice("")
+    }, [selectedRows, selectedConfirmatrice, updateOrder])
   if (loading) {
     return (
       <div className="space-y-4">
@@ -827,7 +856,47 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+            <Dialog open={isConfirmatriceModalOpen} onOpenChange={setIsConfirmatriceModalOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800">
+          <DialogHeader>
+            <DialogTitle>Changer la confirmatrice</DialogTitle>
+            <DialogDescription>
+              Sélectionnez une confirmatrice pour les {selectedRows.length} commande(s) sélectionnée(s).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select
+              value={selectedConfirmatrice}
+              onValueChange={(e) => {
+                setSelectedConfirmatrice(e)
+                changeConfirmatrices(e)
+              }}
+            >
+              <SelectTrigger className="bg-slate-800/50 border-slate-700">
+                <SelectValue placeholder="Sélectionner une confirmatrice" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-800">
+                {confirmatrices.map((confirmatrice) => (
+                  <SelectItem key={confirmatrice} value={confirmatrice}>
+                    {confirmatrice}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmatriceModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={changeConfirmatrice}
+              className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
+            >
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Modal de sélection du mode de scan */}
       <Dialog open={isScanModeDialogOpen} onOpenChange={setIsScanModeDialogOpen}>
         <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800">
@@ -1023,6 +1092,7 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          
           {!scanMode && (
             
             <TooltipProvider>
@@ -1215,6 +1285,19 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
             ))}
           </SelectContent>
         </Select>
+                <Select value={confirmatriceFilter} onValueChange={setConfirmatriceFilter}>
+                  <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700">
+                    <SelectValue placeholder="Confirmatrice" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800">
+                    <SelectItem value="all">Confirmatrice</SelectItem>
+                    {confirmatrices.map((confirmatrice) => (
+                      <SelectItem key={confirmatrice} value={confirmatrice}>
+                        {confirmatrice}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
         <Button
           variant="outline"
@@ -1270,6 +1353,9 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                   )}
                   {visibleColumns.deliveryPrice && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Delivery Price</th>
+                  )}
+                                   {visibleColumns.confirmatrice && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Confirmatrice</th>
                   )}
                   {visibleColumns.address && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Address</th>
@@ -1373,6 +1459,8 @@ searchFilters.highlightOrder === order.id && "ring-2 ring-cyan-500 bg-cyan-900/2
                       )}
                       {visibleColumns.pickupPoint && <td className="p-3 text-slate-300">{order.pickupPoint || "-"}</td>}
                       {visibleColumns.deliveryPrice && <td className="p-3 text-slate-300">{order.deliveryPrice}</td>}
+                                            {visibleColumns.confirmatrice && <td className="p-3 text-slate-300">{order.confirmatrice}</td>}
+
                       {visibleColumns.address && (
                         <td className="p-3 text-slate-300 max-w-[200px] truncate">{order.address}</td>
                       )}

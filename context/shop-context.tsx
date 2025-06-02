@@ -17,6 +17,7 @@ import {
   where,
   setDoc,
   orderBy,
+  getDoc,
 } from 'firebase/firestore'
 import { useEffect } from 'react'
 import { auth, db, functions } from "@/lib/firebase"
@@ -314,26 +315,60 @@ async function deleteDepot(id: string): Promise<void> {
     }
   }
 
-  const updateOrder = async (id: string, updatedOrder: Partial<Order>) => {
-    try {
-      // Update in Firestore
-      console.log(updatedOrder);
-      
-      const orderRef = doc(db, "orders", id)
-      await updateDoc(orderRef, {
-        ...updatedOrder,
-        updatedAt: new Date(),
+const updateOrder = async (id: string, updatedOrder: Partial<Order>) => {
+  try {
+    const orderRef = doc(db, "orders", id)
+    const currentSnap = await getDoc(orderRef)
+    const currentOrder = currentSnap.data() as Order
+
+    if (!currentOrder) {
+      console.error(`Order ${id} not found.`)
+      return
+    }
+
+    let finalUpdate: Partial<Order> = { ...updatedOrder }
+
+    // 👇 Only run duplicate-check logic if we're trying to confirm the order
+    if (
+      updatedOrder.confirmationStatus === "Confirmé" &&
+      currentOrder.phone
+    ) {
+      const conflictingStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
+      const ordersRef = collection(db, "orders")
+
+      const snapshot = await getDocs(ordersRef)
+
+      const conflictExists = snapshot.docs.some((docSnap) => {
+        const data = docSnap.data()
+        return (
+          docSnap.id !== id &&
+          data.phone === currentOrder.phone &&
+          conflictingStatuses.includes(data.status)
+        )
       })
 
-      // Update local state
-      setOrders((prev) => prev.map((order) => (order.id === id ? { ...order, ...updatedOrder } : order)))
-
-      console.log(`Order ${id} updated successfully`)
-    } catch (error) {
-      console.error("Error updating order:", error)
-      throw error
+      if (conflictExists) {
+        finalUpdate.confirmationStatus = "Confirmé Double"
+      }
     }
+
+    // ✅ Always update `updatedAt` and apply the final changes
+    await updateDoc(orderRef, {
+      ...finalUpdate,
+      updatedAt: new Date(),
+    })
+
+    // ✅ Update local state
+    setOrders((prev) =>
+      prev.map((order) => (order.id === id ? { ...order, ...finalUpdate } : order))
+    )
+
+    console.log(`Order ${id} updated successfully`)
+  } catch (error) {
+    console.error("Error updating order:", error)
+    throw error
   }
+}
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
     try {
