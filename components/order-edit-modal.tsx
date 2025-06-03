@@ -459,9 +459,7 @@ setCommunes((prevCommunes) =>
 
   // Gérer les changements dans le formulaire
   const handleChange = async (field: keyof Order, value: any) => {
-      if (["name", "phone"].includes(field)) {
-    return;
-  }
+
     setFormData((prev) => {
       const updated = { ...prev, [field]: value }
 
