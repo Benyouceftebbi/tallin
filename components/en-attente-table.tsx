@@ -958,6 +958,7 @@ export function EnAttenteTable() {
         return "bg-slate-950/50 text-slate-400 border-slate-700"
     }
   }, [])
+console.log("aa",ordersWait);
 
   // Obtenir la couleur du badge pour le type de livraison - mémorisé
   const getDeliveryTypeColor = useCallback((type: DeliveryType) => {

@@ -300,8 +300,8 @@ async function deleteDepot(id: string): Promise<void> {
       // Add the document ID to the order object if it doesn't have one
       const newOrder = {
         ...orderWithTimestamp,
-        id: order.id || docRef.id,
-        idd: order.id || docRef.id, // Ensure id and idd are the same
+        id:  docRef.id,
+        idd:  docRef.id, // Ensure id and idd are the same
       }
 
       // Update local state

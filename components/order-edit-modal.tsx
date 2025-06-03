@@ -367,7 +367,6 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
 
 setFormData((prev) => ({
   ...order,
-  ...prev, // keeps wilaya, commune, etc.
   deliveryPrice: cleanedDeliveryPrice,
 }))
 
@@ -446,6 +445,7 @@ setCommunes((prevCommunes) =>
 
     initializeOrderForm()
   }, [order, getOrdersByStatus])
+console.log("ff",formData);
 
   // Mettre à jour les communes lorsque la wilaya change
   useEffect(() => {
@@ -952,6 +952,7 @@ if (wilaya && type) {
   
     // Clear validation errors on successful submit
     setValidationErrors([])
+    setFormData({})
     onOpenChange(false)
     setOrder(undefined) // Reset order state after submission
   }
@@ -1133,23 +1134,7 @@ if (wilaya && type) {
       }),
     )
   }
-useEffect(() => {
-  if (!open) {
-    setFormData({})
-    setSelectedArticles([])
-    setExchangeArticles([])
-    setSelectedWilaya("")
-    setCommunes([])
-    setOrderReference("")
-    setSelectedDepots({})
-    setValidationErrors([])
-    setIsExchange(false)
-    setIsRestockMode(false)
-    setSelectedPreviousOrder("")
-    setShowDepotDialog(false)
-    setCurrentVariantForDepot(null)
-  }
-}, [open])
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

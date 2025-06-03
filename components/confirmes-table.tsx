@@ -77,6 +77,7 @@ const [searchTerm, setSearchTerm] = useState(
     "",
 )
 
+
 useEffect(() => {
   const urlSearchTerm =
     searchFilters.searchId ||
@@ -124,6 +125,7 @@ useEffect(() => {
    
   }
 }, [orders, userRole, workerName]);
+console.log("co",ordersConfirme);
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const wilayas = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.wilaya))), [ordersConfirme])
   const communes = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.commune))), [ordersConfirme])
@@ -704,8 +706,8 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Entreprise</SelectItem>
-            {[...deliveryCompanies,{companyId:"deliveryMen"}].map((company) => (
-              <SelectItem key={company.companyId} value={company.companyId}>
+            {[...deliveryCompanies,{companyId:"deliveryMen"}].map((company,id) => (
+              <SelectItem key={id} value={company.companyId}>
                 {company.companyId}
               </SelectItem>
             ))}
