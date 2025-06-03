@@ -1223,7 +1223,7 @@ async function markDuplicateConfirmedOrders() {
   }
 }
 
-//markDuplicateConfirmedOrders().catch(console.error);
+markDuplicateConfirmedOrders().catch(console.error);
 async function findAndWriteDuplicateOrders() {
   const ordersSnapshot = await db.collection("orders").get();
 
