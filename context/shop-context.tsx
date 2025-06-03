@@ -768,6 +768,7 @@ useEffect(() => {
       console.error("Error with order listener:", error);
     }
   );
+  
 
   return () => unsubscribe();
 }, []);
