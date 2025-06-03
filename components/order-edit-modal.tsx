@@ -476,7 +476,7 @@ const wilaya = wilayaRaw?.toString().padStart(2, '0');
 
 if (wilaya && type) {
   try {
-    console.log("wweewee",wilaya);
+   
     
     const docRef = doc(db, "deliveryPrices", wilaya);
     const snap = await getDoc(docRef);
@@ -585,7 +585,7 @@ if (wilaya && type) {
       )
     }
   }
-console.log(formData);
+//console.log(formData);
 
   // Ajouter une variante à un article
   const addVariant = (articleId: string) => {
@@ -820,7 +820,16 @@ console.log(formData);
   const handleSubmit = () => {
     // Validate form
     const errors = validateForm()
-  
+    // 📞 Check if phone number is valid (basic regex: starts with 0 and has 10 digits)
+  const phoneRegex = /^0\d{9}$/ // e.g., 0555123456
+  if (!phoneRegex.test(formData.phone)) {
+    toast({
+      title: "Numéro invalide",
+      description: "Veuillez entrer un numéro de téléphone valide (ex: 0555123456).",
+      variant: "destructive",
+    })
+    return
+  }
     if (errors.length > 0) {
       setValidationErrors(errors)
       toast({
@@ -917,7 +926,8 @@ console.log(formData);
         }),
       createdAt: isNew ? new Date() : updatedFormData.createdAt,
     }
-  
+    console.log(updatedFormData);
+    
     if (isNew) {
       addOrder({
         ...enrichedFormData,
@@ -955,59 +965,6 @@ console.log(formData);
 
     return variant.depot.quantity === 0
   }
-
-  // Add this function to get the depot name for a variant
-  const getDepotForVariant = (articleId: string, variantId: string) => {
-    return selectedDepots[`${articleId}-${variantId}`]
-  }
-
-  // Function to render stock status with appropriate styling
-  // Modify the renderStockStatus function to show alerts for zero stock
-  const renderStockStatus = (variant: ArticleVariant) => {
-    if (!variant.stockStatus || variant.stockStatus === "available") {
-      const stockNum = Number(variant.availableStock)
-      if (stockNum === 0) {
-        return (
-          <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-red-900/20 text-red-400">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Stock épuisé
-          </div>
-        )
-      }
-      return (
-        <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-green-900/20 text-green-400">
-          {variant.availableStock !== undefined ? variant.availableStock : "En stock"}
-        </div>
-      )
-    } else if (variant.stockStatus === "coming_soon") {
-      return (
-        <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-yellow-900/20 text-yellow-400">
-          <Clock className="h-3 w-3 mr-1" />
-          Bientôt disponible {variant.expectedDate ? `(${variant.expectedDate})` : ""}
-        </div>
-      )
-    } else {
-      return (
-        <div className="h-8 px-3 py-1 rounded text-xs flex items-center bg-red-900/20 text-red-400">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          Non disponible
-        </div>
-      )
-    }
-  }
-
-  function getVariantOptionValue({ product, variant, label }) {
-    const optionIndex = product?.options?.findIndex(
-      (opt) =>
-        opt.name.toLowerCase() === label.toLowerCase() ||
-        (label === "Taille" && ["pointure", "taille"].includes(opt.name.toLowerCase())),
-    )
-
-    if (optionIndex === 0) return variant?.option1
-    if (optionIndex === 1) return variant?.option2
-    return ""
-  }
-
   const [isRestockMode, setIsRestockMode] = useState(false)
   const [exchangeArticles, setExchangeArticles] = useState<Article[]>([])
 

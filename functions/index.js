@@ -828,7 +828,7 @@ async function processYalidineOrders(orders) {
       freeshipping: true,
       price: Number(totalPrice || 0),
       is_stopdesk: order.deliveryType === "stopdesk",
-      ...(order.deliveryType === "stopdesk" && { station_code: order.deliveryCenter }),
+      ...(order.deliveryType === "stopdesk" && { stopdesk_id: order.deliveryCenter }),
       has_exchange: isExchange,
       ...(isExchange && { product_to_collect: exchangeProducts })
     };

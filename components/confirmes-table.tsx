@@ -792,9 +792,7 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
                     />
                   </th>
                   {visibleColumns.id && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">ID</th>}
-                  {visibleColumns.date && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Date</th>
-                  )}
+
                   {visibleColumns.name && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Client</th>
                   )}
@@ -871,7 +869,6 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
                         />
                       </td>
                       {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.docId}</td>}
-                      {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
                                             {visibleColumns.articles && (

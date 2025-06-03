@@ -317,58 +317,66 @@ async function deleteDepot(id: string): Promise<void> {
 
 const updateOrder = async (id: string, updatedOrder: Partial<Order>) => {
   try {
-    const orderRef = doc(db, "orders", id)
-    const currentSnap = await getDoc(orderRef)
-    const currentOrder = currentSnap.data() as Order
+    const orderRef = doc(db, "orders", id);
+    const currentSnap = await getDoc(orderRef);
+    const currentOrder = currentSnap.data() as Order;
 
     if (!currentOrder) {
-      console.error(`Order ${id} not found.`)
-      return
+      console.error(`Order ${id} not found.`);
+      return;
     }
 
-    let finalUpdate: Partial<Order> = { ...updatedOrder }
+    let finalUpdate: Partial<Order> = { ...updatedOrder };
 
-    // 👇 Only run duplicate-check logic if we're trying to confirm the order
+    // 🔍 Only check for duplicates if setting confirmationStatus to "Confirmé"
     if (
       updatedOrder.confirmationStatus === "Confirmé" &&
       currentOrder.phone
     ) {
-      const conflictingStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
-      const ordersRef = collection(db, "orders")
+     const conflictingStatuses = [
+  "Confirmé",
+  "En préparation",
+  "Dispatcher",
+  "En livraison",
+];
 
-      const snapshot = await getDocs(ordersRef)
+const ordersRef = collection(db, "orders");
+const q = query(ordersRef, where("phone", "==", currentOrder.phone));
+const snapshot = await getDocs(q);
 
-      const conflictExists = snapshot.docs.some((docSnap) => {
-        const data = docSnap.data()
-        return (
-          docSnap.id !== id &&
-          data.phone === currentOrder.phone &&
-          conflictingStatuses.includes(data.status)
-        )
-      })
+const hasOtherConfirmedOrder = snapshot.docs.some((docSnap) => {
+  const data = docSnap.data();
+  return (
+    conflictingStatuses.includes(data.status)
+  );
+});
 
-      if (conflictExists) {
-        finalUpdate.confirmationStatus = "Confirmé Double"
+      if (hasOtherConfirmedOrder) {
+        finalUpdate.confirmationStatus = "Confirmé Double";
       }
     }
+    console.log("final",finalUpdate);
+    
 
-    // ✅ Always update `updatedAt` and apply the final changes
+    // 🕒 Add/update updatedAt timestamp
     await updateDoc(orderRef, {
       ...finalUpdate,
       updatedAt: new Date(),
-    })
+    });
 
-    // ✅ Update local state
+    // 🔄 Update UI state
     setOrders((prev) =>
-      prev.map((order) => (order.id === id ? { ...order, ...finalUpdate } : order))
-    )
+      prev.map((order) =>
+        order.id === id ? { ...order, ...finalUpdate } : order
+      )
+    );
 
-    console.log(`Order ${id} updated successfully`)
+    console.log(`Order ${id} updated successfully`);
   } catch (error) {
-    console.error("Error updating order:", error)
-    throw error
+    console.error("Error updating order:", error);
+    throw error;
   }
-}
+};
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
     try {

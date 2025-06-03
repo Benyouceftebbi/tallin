@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { CheckCircle, MoreHorizontal, Package, Search, ArrowRight, Clock, Columns, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -198,6 +198,25 @@ useEffect(() => {
         return "bg-slate-950/50 text-slate-400 border-slate-700"
     }
   }
+const inputRef = useRef<HTMLInputElement | null>(null)
+const [scannedOrder, setScannedOrder] = useState<any | null>(null)
+
+const handleScan = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value.trim()
+  if (!value) return
+
+  const foundOrder = orders.find((order) => order.trackingId === value || order.id === value)
+  setScannedOrder(foundOrder || null)
+  inputRef.current!.value = ""
+
+  if (!foundOrder) {
+    toast({
+      title: "Commande introuvable",
+      description: `Aucune commande avec le code ${value} n'a été trouvée.`,
+      variant: "destructive",
+    })
+  }
+}
 
   if (loading) {
     return (
@@ -224,6 +243,39 @@ useEffect(() => {
   return (
     <div className="space-y-4">
       <Toaster />
+<div className="flex items-center gap-3">
+  <Input
+    ref={inputRef}
+    type="text"
+    onChange={handleScan}
+    placeholder="Scanner un code barre..."
+    className="max-w-xs bg-slate-800/50 border-slate-700"
+  />
+</div>
+
+{scannedOrder && (
+  <div className="mt-4 p-4 border border-slate-800 bg-slate-900 rounded-md">
+    <h4 className="text-slate-300 text-lg mb-2">Commande trouvée</h4>
+    <p className="text-slate-400 mb-1">ID: {scannedOrder.id}</p>
+    <p className="text-slate-400 mb-1">Nom: {scannedOrder.name}</p>
+    <p className="text-slate-400 mb-1">Téléphone: {scannedOrder.phone}</p>
+    <p className="text-slate-400 mb-1">Tracking: {scannedOrder.trackingId}</p>
+    <Button
+      variant="outline"
+      size="sm"
+      className="mt-2 border-cyan-600 text-cyan-400 hover:bg-cyan-700"
+      onClick={() => {
+        // Implémentez ici la logique d'impression
+        toast({
+          title: "Réimpression",
+          description: `Réimpression de la commande ${scannedOrder.trackingId}`,
+        })
+      }}
+    >
+      Réimprimer
+    </Button>
+  </div>
+) }
 
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
         <div className="relative w-full sm:max-w-xs">

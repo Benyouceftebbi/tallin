@@ -1163,7 +1163,7 @@ async function markDoubleConfirmedOrders() {
       for (const other of samePhoneOrders) {
         const orderRef = db.collection("orders").doc(other.id)
         batch.update(orderRef, {
-          confirmationStatus: "Double Confirmé",
+          confirmationStatus: "Confirmé Double",
           updatedAt: new Date(),
         })
         updatedCount++
@@ -1178,6 +1178,106 @@ async function markDoubleConfirmedOrders() {
     console.log("ℹ️ No matching orders to update")
   }
 }
+//markDoubleConfirmedOrders().catch(console.error);
+async function markDuplicateConfirmedOrders() {
+  const ordersRef = db.collection("orders");
+  const snapshot = await ordersRef.where("status", "==", "Confirmé").get();
 
-// Run the function
-markDoubleConfirmedOrders().catch(console.error)
+  if (snapshot.empty) {
+    console.log("No orders found with status Confirmé.");
+    return;
+  }
+
+  const phoneToOrders = new Map();
+
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    const phone = data.phone;
+    if (!phone) return;
+
+    if (!phoneToOrders.has(phone)) {
+      phoneToOrders.set(phone, []);
+    }
+    phoneToOrders.get(phone).push({ id: doc.id, ...data });
+  });
+
+  const batch = db.batch();
+  let updateCount = 0;
+
+  for (const [phone, orders] of phoneToOrders.entries()) {
+    if (orders.length > 1) {
+      // Keep one order with Confirmé, change others to Confirmé Double
+      orders.slice(1).forEach((order) => {
+        const orderRef = db.collection("orders").doc(order.id);
+        batch.update(orderRef, { confirmationStatus: "Confirmé Double" });
+        updateCount++;
+      });
+    }
+  }
+
+  if (updateCount > 0) {
+    await batch.commit();
+    console.log(`Updated ${updateCount} duplicate orders to "Confirmé Double".`);
+  } else {
+    console.log("No duplicate confirmed orders found.");
+  }
+}
+
+//markDuplicateConfirmedOrders().catch(console.error);
+async function findAndWriteDuplicateOrders() {
+  const ordersSnapshot = await db.collection("orders").get();
+
+  const phoneToOrders = {};
+
+  ordersSnapshot.forEach((doc) => {
+    const data = doc.data();
+    const phone = data.phone;
+    const name = data.name;
+    const status = data.status;
+    const id = doc.id;
+
+    if (!phone || !name) return;
+
+    if (!phoneToOrders[phone]) {
+      phoneToOrders[phone] = [];
+    }
+
+    phoneToOrders[phone].push({ id, name, phone, status });
+  });
+
+  const duplicates = [];
+
+  for (const phone in phoneToOrders) {
+    const relatedOrders = phoneToOrders[phone];
+    const uniqueNames = new Set(relatedOrders.map(order => order.name));
+
+    if (uniqueNames.size > 1) {
+      duplicates.push({
+        phone,
+        orders: relatedOrders
+      });
+    }
+  }
+
+  fs.writeFileSync("duplicates.json", JSON.stringify(duplicates, null, 2), "utf8");
+  console.log("duplicates.json has been created.");
+}
+//indAndWriteDuplicateOrders()
+async function findOrdersByShopifyShippingName() {
+  const snapshot = await db.collection("Orders").get();
+
+  const matchingOrderIds = [];
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const shippingName = data.shopifyOrder?.shipping_address?.name;
+
+    if (shippingName === "LAMAMARIA") {
+      matchingOrderIds.push(doc.id);
+    }
+  });
+
+  console.log("Matching Order IDs:", matchingOrderIds);
+  return matchingOrderIds;
+}
+//findOrdersByShopifyShippingName()
