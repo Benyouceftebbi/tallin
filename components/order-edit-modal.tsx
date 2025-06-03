@@ -171,7 +171,7 @@ type OrderEditModalProps = {
   confirm?: boolean
 }
 
-export function OrderEditModal({ open, onOpenChange, order, isNew = false, confirm = false }: OrderEditModalProps) {
+export function OrderEditModal({ open, onOpenChange, order, isNew = false, confirm = false,setOrder }: OrderEditModalProps) {
   const {
     updateOrder,
     addOrder,
@@ -955,6 +955,7 @@ if (wilaya && type) {
     // Clear validation errors on successful submit
     setValidationErrors([])
     onOpenChange(false)
+    setOrder(undefined) // Reset order state after submission
   }
 
   // Modified function to check if a variant needs a depot

@@ -1118,8 +1118,8 @@ export function EnAttenteTable() {
       <Toaster />
 
       {/* Modals */}
-      <OrderEditModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} order={editingOrder} />
-      <OrderEditModal open={isNewOrderModalOpen} onOpenChange={setIsNewOrderModalOpen} isNew={true} />
+      <OrderEditModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} order={editingOrder}  setOrder={setEditingOrder}/>
+      <OrderEditModal open={isNewOrderModalOpen} onOpenChange={setIsNewOrderModalOpen} isNew={true}  setOrder={setEditingOrder}/>
 
       {/* Modal pour changer la confirmatrice */}
       <Dialog open={isConfirmatriceModalOpen} onOpenChange={setIsConfirmatriceModalOpen}>
