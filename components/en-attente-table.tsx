@@ -138,7 +138,7 @@ const TableRow = memo(
         </td>
         {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.idd}</td>}
         {visibleColumns.source && <td className="p-3 text-slate-300">{order.source}</td>}
-        {visibleColumns.date && <td className="p-3 text-slate-300">{format(order?.createdAt.toDate(), 'yyyy-MM-dd HH:mm')}</td>}
+        {visibleColumns.date && <td className="p-3 text-slate-300">{format(order?.createdAt?.toDate(), 'yyyy-MM-dd HH:mm')}</td>}
         {visibleColumns.name && (
           <td className="p-3 text-slate-300">
             <HoverCard>

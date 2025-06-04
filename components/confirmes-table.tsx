@@ -125,7 +125,7 @@ useEffect(() => {
    
   }
 }, [orders, userRole, workerName]);
-console.log("co",ordersConfirme);
+// console.log("co",ordersConfirme);
   // Obtenir les listes uniques pour les filtres - mémorisées pour éviter des recalculs
   const wilayas = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.wilaya))), [ordersConfirme])
   const communes = useMemo(() => Array.from(new Set(ordersConfirme.map((order) => order.commune))), [ordersConfirme])
@@ -324,25 +324,48 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
         console.error(`Failed to upload orders for ${company}`, err);
       }
     }
-  
-    // Step 4: Update orders in local state
-    allConfirmedOrders.forEach(confirmedOrder => {
-      setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === confirmedOrder.id ? { ...order, ...confirmedOrder } : order
-        )
-      );
-    });
-  
-    
-    toast({
-      title: "Commandes déplacées",
-      description: `${selectedRows.length} commande(s) déplacée(s) vers "En préparation".`,
-    });
-  
-    updateMultipleOrdersStatus(selectedRows, "En préparation");
-    setIsPrinting(false); // Stop loading
-    setSelectedRows([]);
+// Step 4: Filter confirmed orders with valid trackingId (starting with 'yal')
+const validYalidineOrders = allConfirmedOrders.filter(
+  (order) => order.trackingId?.toLowerCase().startsWith("yal")
+);
+console.log("Valid Yalidine Orders:", validYalidineOrders,allConfirmedOrders);
+
+// ✅ Update local state only for those
+validYalidineOrders.forEach((validOrder) => {
+  setOrders((prevOrders) =>
+    prevOrders.map((order) =>
+      order.id === validOrder.id ? { ...order, ...validOrder } : order
+    )
+  );
+});
+
+// ✅ Show toast for only valid orders
+toast({
+  title: "Commandes déplacées",
+  description: `${validYalidineOrders.length} commande(s) déplacée(s) vers "En préparation".`,
+});
+
+// ✅ Update status only for valid order IDs
+const validOrderIds = validYalidineOrders.map((order) => order.id);
+
+updateMultipleOrdersStatus(validOrderIds, "En préparation");
+  const failedOrders = allConfirmedOrders.filter(
+    (order) => !order.trackingId?.toLowerCase().startsWith("yal")
+  );
+
+
+  if (failedOrders.length > 0) {
+    const failedPhones = failedOrders.map((o) => o.phone || "Numéro inconnu").join("\n");
+console.log("hahha");
+
+    alert(
+      `Les commandes suivantes n'ont pas été déplacées car leur Info de suivi est invalide ou manquant :\n\n${failedPhones}`
+    );
+  }
+
+// ✅ Reset UI
+setIsPrinting(false);
+setSelectedRows([]);
   }, [selectedRows, updateMultipleOrdersStatus, ordersConfirme]);
 
   // Ouvrir la modal d'édition - mémorisé
@@ -351,11 +374,7 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
     setIsEditModalOpen(true)
   }, [])
 
-  // Ouvrir la modal de nouvelle commande - mémorisé
-  const openNewOrderModal = useCallback(() => {
-    setEditingOrder(undefined)
-    setIsNewOrderModalOpen(true)
-  }, [])
+
 
   // Ouvrir la modal de changement de confirmatrice
   const openConfirmatriceModal = useCallback(() => {
@@ -394,18 +413,7 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
     setSelectedConfirmatrice("")
   }, [selectedRows, selectedConfirmatrice, updateOrder])
 
-  const getDeliveryTypeColor = useCallback((type: DeliveryType) => {
-    switch (type) {
-      case "Domicile":
-        return "bg-blue-950/50 text-blue-400 border-blue-700"
-      case "Point de relais":
-        return "bg-purple-950/50 text-purple-400 border-purple-700"
-      case "Express":
-        return "bg-amber-950/50 text-amber-400 border-amber-700"
-      default:
-        return "bg-slate-950/50 text-slate-400 border-slate-700"
-    }
-  }, [])
+
 
   // Formater le numéro de téléphone pour WhatsApp
   const formatPhoneForWhatsApp = useCallback((phone: string) => {
@@ -425,17 +433,7 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
     return cleanPhone
   }, [])
 
-  // Gérer le déplacement d'une commande individuelle - mémorisé
-  const handleMoveOrder = useCallback(
-    (orderId: string) => {
-      updateMultipleOrdersStatus([orderId], "En préparation")
-      toast({
-        title: "Commande déplacée",
-        description: `La commande a été déplacée vers "En préparation".`,
-      })
-    },
-    [updateMultipleOrdersStatus],
-  )
+
 
   const resetFilters = useCallback(() => {
     setWilayaFilter("all")
@@ -762,8 +760,8 @@ if (order.isExchange && order.exchangeArticles?.length > 0) {
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
             <SelectItem value="all">Article</SelectItem>
-            {articles.map((article) => (
-              <SelectItem key={article} value={article}>
+            {articles.map((article,id) => (
+              <SelectItem key={id} value={article}>
                 {article}
               </SelectItem>
             ))}
