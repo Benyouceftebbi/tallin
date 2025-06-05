@@ -1223,7 +1223,7 @@ async function markDuplicateConfirmedOrders() {
   }
 }
 
-markDuplicateConfirmedOrders().catch(console.error);
+//markDuplicateConfirmedOrders().catch(console.error);
 async function findAndWriteDuplicateOrders() {
   const ordersSnapshot = await db.collection("orders").get();
 
@@ -1281,3 +1281,56 @@ async function findOrdersByShopifyShippingName() {
   return matchingOrderIds;
 }
 //findOrdersByShopifyShippingName()
+async function countFilteredPendingOrders() {
+  try {
+    // Step 1: Get all orders with status 'en-attente'
+    const snapshot = await db.collection('orders')
+      .where('status', '==', 'en-attente')
+      .get();
+
+    // Step 2: Filter manually for confirmationStatus !== 'Double' && !== 'annule'
+    const filteredOrders = snapshot.docs.filter(doc => {
+      const confirmationStatus = doc.data().confirmationStatus;
+      return confirmationStatus !== 'Double' && confirmationStatus !== 'annule' && confirmationStatus !== 'Reporté';
+    });
+
+    const count = filteredOrders.length;
+
+    console.log(`Filtered pending orders count: ${count}`);
+    return count;
+  } catch (error) {
+    console.error('Error counting filtered orders:', error);
+    throw error;
+  }
+}
+
+
+async function getConfirmationStatusCounts() {
+  try {
+    const snapshot = await db.collection('orders')
+      .where('status', '==', 'en-attente')
+      .get();
+
+    const statusCounts = {};
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const confirmationStatus = data.confirmationStatus || 'undefined';
+
+      if (statusCounts[confirmationStatus]) {
+        statusCounts[confirmationStatus]++;
+      } else {
+        statusCounts[confirmationStatus] = 1;
+      }
+    });
+
+    console.log('Confirmation status counts:', statusCounts);
+    return statusCounts;
+  } catch (error) {
+    console.error('Error retrieving confirmation status counts:', error);
+    throw error;
+  }
+}
+
+// Example usage
+getConfirmationStatusCounts();

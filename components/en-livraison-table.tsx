@@ -133,7 +133,7 @@ useEffect(() => {
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<string>("all")
   const [deliveryCompanyFilter, setDeliveryCompanyFilter] = useState<string>("all")
   const [trackingNodeFilter, setTrackingNodeFilter] = useState<string>("all")
-
+  const [statusFilter, setStatusFilter] = useState<string>("all")
   // États pour la modal de notes
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
   const [currentOrderId, setCurrentOrderId] = useState<string>("")
@@ -339,6 +339,7 @@ const ordersWithTracking = useMemo(() => {
     trackingHistory: trackingHistory.filter((h) => h.orderId === order.id),
   }));
 }, [getOrdersByStatus, orderTrackingNodes, trackingHistory, workerName]);
+  const [confirmatriceFilter, setConfirmatriceFilter] = useState<string>("all")
 
   // Obtenir les listes uniques pour les filtres - mémorisées
   const wilayas = useMemo(
@@ -351,6 +352,14 @@ const ordersWithTracking = useMemo(() => {
   )
   const deliveryCompanies = useMemo(
     () => Array.from(new Set(ordersWithTracking.map((order) => order.deliveryCompany || "N/A"))),
+    [ordersWithTracking],
+  )
+  const statuses = useMemo(
+    () => Array.from(new Set(ordersWithTracking.map((order) => order.lastStatus))),
+    [ordersWithTracking],
+  )
+    const confirmatrices =  useMemo(
+    () => Array.from(new Set(ordersWithTracking.map((order) => order?.confirmatrice || " "))),
     [ordersWithTracking],
   )
 
@@ -367,8 +376,14 @@ const ordersWithTracking = useMemo(() => {
       const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter
       const matchesDeliveryCompany = deliveryCompanyFilter === "all" || order.deliveryCompany === deliveryCompanyFilter
       const matchesTrackingNode = trackingNodeFilter === "all" || order.currentTrackingNode === trackingNodeFilter
+const matchesstatus = statusFilter === "all" || order.lastStatus === statusFilter
+      const matchesConfirmatrice =
+        confirmatriceFilter === "all" ||
+        (confirmatriceFilter === "non attribué" && order.confirmatrice === "") ||
+        order.confirmatrice === confirmatriceFilter
 
-      // Date range filter
+
+// Date range filter
       let matchesDateRange = true
       if (dateRange) {
         try {
@@ -388,7 +403,8 @@ const ordersWithTracking = useMemo(() => {
         matchesDeliveryType &&
         matchesDeliveryCompany &&
         matchesTrackingNode &&
-        matchesDateRange
+       matchesstatus &&
+        matchesConfirmatrice
       )
     })
   }, [
@@ -1244,36 +1260,128 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
         <div className="relative overflow-x-auto">
           <div className="max-h-[70vh] overflow-y-auto">
             <table className="w-full border-collapse">
-              <thead className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800">
-                <tr className="border-b border-slate-800">
-                  <th className="p-3 text-left text-slate-400 w-[40px]">
-                    <Checkbox
-                      checked={selectedRows.length > 0 && selectedRows.length === filteredOrders.length}
-                      onCheckedChange={handleSelectAll}
-                      className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
-                    />
-                  </th>
-                  {visibleColumns.trackingId && <th className="p-3 text-left text-slate-400">TrackingID</th>}
-                  {visibleColumns.recipient && <th className="p-3 text-left text-slate-400">Recipient</th>}
-                  {visibleColumns.status && <th className="p-3 text-left text-slate-400">Status</th>}
-                  {visibleColumns.articles && (
-                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Articles</th>
-                  )}
-                  {visibleColumns.trackingNode && <th className="p-3 text-left text-slate-400">Nœud de suivi</th>}
-                  {visibleColumns.sms && <th className="p-3 text-left text-slate-400">SMS</th>}
-                  {visibleColumns.type && <th className="p-3 text-left text-slate-400">Type</th>}
-                  {visibleColumns.wilaya && <th className="p-3 text-left text-slate-400">Wilaya</th>}
-                  {visibleColumns.commune && <th className="p-3 text-left text-slate-400">Commune</th>}
-                  {visibleColumns.deliveryCompany && (
-                    <th className="p-3 text-left text-slate-400">Société de livraison</th>
-                  )}
-                  {visibleColumns.confirmatrice && <th className="p-3 text-left text-slate-400">Confirmatrice</th>}
-                  {visibleColumns.preparateur && <th className="p-3 text-left text-slate-400">Préparateur</th>}
-                  {visibleColumns.lastUpdated && <th className="p-3 text-left text-slate-400">Last Updated</th>}
-                  {visibleColumns.sendReminder && <th className="p-3 text-left text-slate-400">Send Reminder</th>}
-                  <th className="p-3 text-right text-slate-400">Actions</th>
-                </tr>
-              </thead>
+  <thead className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800">
+          <tr className="border-b border-slate-800 text-xs text-slate-400">
+            <th colSpan={100} className="p-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <Filter className="h-4 w-4 mr-2 text-slate-400" />
+                <span>Filtres actifs :</span>
+
+                {wilayaFilter !== "all" && <span className="px-2 py-1 rounded bg-slate-800 text-white text-xs">{wilayaFilter}</span>}
+                {deliveryTypeFilter !== "all" && <span className="px-2 py-1 rounded bg-slate-800 text-white text-xs">{deliveryTypeFilter}</span>}
+                {deliveryCompanyFilter !== "all" && <span className="px-2 py-1 rounded bg-slate-800 text-white text-xs">{deliveryCompanyFilter}</span>}
+                {trackingNodeFilter !== "all" && <span className="px-2 py-1 rounded bg-slate-800 text-white text-xs">{trackingNodeFilter}</span>}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetFilters}
+                  className="h-6 border-slate-700 bg-slate-800/50 text-slate-400 ml-auto"
+                >
+                  Réinitialiser
+                </Button>
+              </div>
+            </th>
+          </tr>
+          <tr>
+            <th className="p-3 text-left text-slate-400 w-[40px]">
+              <Checkbox
+                checked={selectedRows.length > 0 && selectedRows.length === filteredOrders.length}
+                onCheckedChange={handleSelectAll}
+                className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
+              />
+            </th>
+            {visibleColumns.trackingId && <th className="p-3 text-left text-slate-400">TrackingID</th>}
+            {visibleColumns.recipient && <th className="p-3 text-left text-slate-400">Recipient</th>}
+            {visibleColumns.status && <th className="p-3 text-left text-slate-400">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-8 w-[130px] bg-slate-800/50 border-slate-700">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  <SelectItem value="all">Status</SelectItem>
+                  {statuses.map((status,id) => (
+                    <SelectItem key={id} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </th>}
+            {visibleColumns.articles && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Articles</th>}
+            {visibleColumns.trackingNode && <th className="p-3 text-left text-slate-400">
+              <Select value={trackingNodeFilter} onValueChange={setTrackingNodeFilter}>
+                <SelectTrigger className="h-8 w-[140px] bg-slate-800/50 border-slate-700">
+                  <SelectValue placeholder="Nœud de suivi" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  <SelectItem value="all">Nœud de suivi</SelectItem>
+                  {trackingNodes.map(node => (
+                    <SelectItem key={node} value={node}>{node}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </th>}
+            {visibleColumns.sms && <th className="p-3 text-left text-slate-400">SMS</th>}
+            {visibleColumns.type && <th className="p-3 text-left text-slate-400">
+              <Select value={deliveryTypeFilter} onValueChange={setDeliveryTypeFilter}>
+                <SelectTrigger className="h-8 w-[120px] bg-slate-800/50 border-slate-700">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  <SelectItem value="all">Type de livraison</SelectItem>
+                  {deliveryTypes.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </th>}
+            {visibleColumns.wilaya && <th className="p-3 text-left text-slate-400">
+              <Select value={wilayaFilter} onValueChange={setWilayaFilter}>
+                <SelectTrigger className="h-8 w-[120px] bg-slate-800/50 border-slate-700">
+                  <SelectValue placeholder="Wilaya" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  <SelectItem value="all">Wilaya</SelectItem>
+                  {wilayas.map(w => (
+                    <SelectItem key={w} value={w}>{w}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </th>}
+            {visibleColumns.commune && <th className="p-3 text-left text-slate-400">Commune</th>}
+            {visibleColumns.deliveryCompany && <th className="p-3 text-left text-slate-400">
+              <Select value={deliveryCompanyFilter} onValueChange={setDeliveryCompanyFilter}>
+                <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
+                  <SelectValue placeholder="Société de livraison" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  <SelectItem value="all">Societie de livraison</SelectItem>
+                  {deliveryCompanies.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </th>}
+            {visibleColumns.confirmatrice && <th className="p-3 text-left text-slate-400">
+              <Select value={confirmatriceFilter} onValueChange={setConfirmatriceFilter}>
+                <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
+              <SelectValue placeholder="Confirmatrice" />
+            </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+              <SelectItem value="all">Confirmatrice</SelectItem>
+              {["non attribué", ...confirmatrices].map((confirmatrice) => (
+                <SelectItem key={confirmatrice} value={confirmatrice}>
+                  {confirmatrice === "" ? "non assigné" : confirmatrice}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+            </th>}
+            {visibleColumns.preparateur && <th className="p-3 text-left text-slate-400">Préparateur</th>}
+            {visibleColumns.lastUpdated && <th className="p-3 text-left text-slate-400">Last Updated</th>}
+            {visibleColumns.sendReminder && <th className="p-3 text-left text-slate-400">Send Reminder</th>}
+            <th className="p-3 text-right text-slate-400">Actions</th>
+          </tr>
+        </thead>
               <tbody>
                 {filteredOrders.length === 0 ? (
            <tr
