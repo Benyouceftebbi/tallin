@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react"
 import {
   collection,
   addDoc,
@@ -24,6 +24,7 @@ import { auth, db, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { httpsCallable } from "firebase/functions"
 import { useAuth } from "./auth-context"
+import { useAppContext } from "./app-context"
 
 // Types
 export type OrderStatus =
@@ -197,7 +198,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const [deliveryCompanies, setDeliveryCompanies] = useState<DeliveryCompany[]>([])
   const [deliveryMen, setDeliveryMen] = useState<DeliveryMan[]>([])
-  
+  const {products}=useAppContext()
 // Add a new depot
 async function addDepot(depot: Omit<Depot, "id">): Promise<string> {
   try {
@@ -928,6 +929,264 @@ const updateInvoice = async (updatedInvoice: any) => {
     return Promise.reject(error);
   }
 };
+ const [filters, setFilters] = useState<Filters>({
+    dateFilter: "today",
+    confirmatrice: "all",
+    article: "all",
+  })
+  
+const filteredOrders = useMemo(() => {
+  // Wait until orders are loaded
+  if (!orders || orders.length === 0) return [];
+
+  let filtered = [...orders];
+
+  // Filter by date
+  if (filters.dateFilter === "today") {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth();
+    const d = today.getDate();
+
+    filtered = filtered.filter((order) => {
+      const created =
+        typeof order?.createdAt?.toDate === "function"
+          ? order.createdAt.toDate()
+          : new Date(order?.createdAt);
+
+      if (!(created instanceof Date) || isNaN(created.getTime())) return false;
+
+      return (
+        created.getFullYear() === y &&
+        created.getMonth() === m &&
+        created.getDate() === d
+      );
+    });
+  } else if (filters.dateFilter === "yesterday") {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const y = yesterday.getFullYear();
+    const m = yesterday.getMonth();
+    const d = yesterday.getDate();
+
+    filtered = filtered.filter((order) => {
+      const created =
+        typeof order?.createdAt?.toDate === "function"
+          ? order.createdAt.toDate()
+          : new Date(order?.createdAt);
+
+      if (!(created instanceof Date) || isNaN(created.getTime())) return false;
+
+      return (
+        created.getFullYear() === y &&
+        created.getMonth() === m &&
+        created.getDate() === d
+      );
+    });
+  } else if (filters.dateFilter === "lastweek") {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    filtered = filtered.filter((order) => {
+      const created =
+        typeof order?.createdAt?.toDate === "function"
+          ? order.createdAt.toDate()
+          : new Date(order?.createdAt);
+
+      return created >= weekAgo;
+    });
+  } else if (filters.dateFilter === "custom" && filters.dateRange) {
+    filtered = filtered.filter((order) => {
+      const created =
+        typeof order?.createdAt?.toDate === "function"
+          ? order.createdAt.toDate()
+          : new Date(order?.createdAt);
+
+      return (
+        created >= filters.dateRange.from && created <= filters.dateRange.to
+      );
+    });
+  }
+
+  // Filter by confirmatrice
+  if (filters.confirmatrice !== "all") {
+    const selectedWorker = workers.find((w) => w.name === filters.confirmatrice);
+    if (selectedWorker) {
+      filtered = filtered.filter(
+        (order) => order.confirmatrice === selectedWorker.name
+      );
+    }
+  }
+
+  // Filter by article using product titles
+  if (filters.article !== "all") {
+    const selectedProduct = products.find((p) => p.id === filters.article);
+    if (selectedProduct && selectedProduct.title) {
+      filtered = filtered.filter(
+        (order) =>
+          order.article &&
+          order.article
+            .toLowerCase()
+            .includes(selectedProduct.title.toLowerCase())
+      );
+    }
+  }
+
+  return filtered;
+}, [orders, filters, workers, products]);
+  const getOrdersByStatuss = (status: string, useFiltered = true) => {
+    const ordersToUse = useFiltered ? filteredOrders : orders
+    return ordersToUse.filter((order) => order.status === status)
+  }
+
+
+  const getOrdersByConfirmatrice = (confirmatrice: string) => {
+    if (confirmatrice === "all") return filteredOrders
+    return filteredOrders.filter((order) => order.confirmatrice === confirmatrice)
+  }
+
+  const getOrdersByDateRange = (startDate: Date, endDate: Date) => {
+    return orders.filter((order) => {
+      const orderDate = new Date(order.date)
+      return orderDate >= startDate && orderDate <= endDate
+    })
+  }
+
+  const getTotalOrders = (useFiltered = true) => {
+    return useFiltered ? filteredOrders.length : orders.length
+  }
+
+  const getConfirmationRate = (useFiltered = true) => {
+    const ordersToUse = useFiltered ? filteredOrders : orders
+    const confirmedOrders = ordersToUse.filter(
+      (order) => order.status === "Confirmé" || order.status === "En livraison" || order.status === "Livrés",
+    ).length
+    return ordersToUse.length > 0 ? (confirmedOrders / ordersToUse.length) * 100 : 0
+  }
+
+  const getTodayRevenue = (useFiltered = true) => {
+    const ordersToUse = useFiltered ? filteredOrders : orders
+    const revenueOrders = ordersToUse.filter(
+      (order) => order.status === "Confirmé" || order.status === "En livraison" || order.status === "Livrés",
+    )
+return revenueOrders.reduce((sum, order) => {
+  const price = typeof order.totalPrice === "number"
+    ? order.totalPrice
+    : parseFloat(order.totalPrice); // safely handles "1200 DZD", "999.50", etc.
+
+  return sum + (isNaN(price) ? 0 : price); // fallback if parsing fails
+}, 0);  }
+
+  const getStatusDistribution = (useFiltered = true) => {
+    const ordersToUse = useFiltered ? filteredOrders : orders
+    return [
+      { name: "En attente", value: getOrdersByStatus("en-attente", useFiltered).length, color: "#eab308" },
+      { name: "Confirmé", value: getOrdersByStatus("Confirmé", useFiltered).length, color: "#22c55e" },
+      { name: "En livraison", value: getOrdersByStatus("En livraison", useFiltered).length, color: "#3b82f6" },
+      { name: "Livré", value: getOrdersByStatus("Livrés", useFiltered).length, color: "#10b981" },
+      { name: "Retour", value: getOrdersByStatus("Retour", useFiltered).length, color: "#ef4444" },
+    ]
+  }
+
+  const getPerformanceData = (useFiltered = true) => {
+    const ordersToUse = useFiltered ? filteredOrders : orders
+    return workers
+      .map((worker) => {
+        const workerOrders = ordersToUse.filter((order) => order.confirmatrice === worker.name)
+        const confirmed = workerOrders.filter(
+      (order) => order.status === "Confirmé" || order.status === "En livraison" || order.status === "Livrés",
+        ).length
+        const pending = workerOrders.filter((order) => order.status === "en-attente").length
+        const total = workerOrders.length
+        const success_rate = total > 0 ? (confirmed / total) * 100 : 0
+
+        return {
+          name: worker.name
+            .split(" ")
+            .map((n) => n.charAt(0).toUpperCase() + n.slice(1, 3))
+            .join(" "),
+          fullName: worker.name,
+          confirmed,
+          pending,
+          success_rate: Number.parseFloat(success_rate.toFixed(1)),
+        }
+      })
+      .filter((worker) => worker.confirmed > 0 || worker.pending > 0)
+  }
+  const getArticleData = (useFiltered = true) => {
+    const ordersToUse = useFiltered ? filteredOrders : orders
+
+    // Group orders by product titles from the Products collection
+    const productGroups = products.reduce(
+      (acc, product) => {
+        if (product.title) {
+          acc[product.title] = []
+        }
+        return acc
+      },
+      {} as Record<string, Order[]>,
+    )
+
+    // Categorize orders based on product titles
+    ordersToUse.forEach((order) => {
+      if (order.article) {
+        // Find matching product by checking if order article contains product title
+        const matchingProduct = products.find(
+          (product) => product.title && order.article.toLowerCase().includes(product.title.toLowerCase()),
+        )
+
+        if (matchingProduct && productGroups[matchingProduct.title]) {
+          productGroups[matchingProduct.title].push(order)
+        }
+      }
+    })
+
+    // Convert to the expected format
+    return Object.entries(productGroups)
+      .map(([productTitle, categoryOrders]) => {
+        const confirmed = categoryOrders.filter(
+      (order) => order.status === "Confirmé" || order.status === "En livraison" || order.status === "Livrés",
+        ).length
+        const returnOrders = categoryOrders.filter((order) => order.status === "retour").length
+        const return_rate = categoryOrders.length > 0 ? (returnOrders / categoryOrders.length) * 100 : 0
+        const revenue = categoryOrders
+          .filter(      (order) => order.status === "Confirmé" || order.status === "En livraison" || order.status === "Livrés")
+
+          .reduce((sum, order) => sum + order.amount, 0)
+
+        return {
+          name: productTitle,
+          orders: categoryOrders.length,
+          confirmed,
+          return_rate: Number.parseFloat(return_rate.toFixed(1)),
+          revenue,
+        }
+      })
+      .filter((item) => item.orders > 0) // Only show products that have orders
+  }
+
+  const getWeeklyData = (useFiltered = true) => {
+    const ordersToUse = useFiltered ? filteredOrders : orders
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (6 - i))
+      return date.toISOString().split("T")[0]
+    })
+
+    return last7Days.map((date, index) => {
+      const dayOrders = ordersToUse.filter((order) => order.date === date)
+      const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+      const dayName = dayNames[new Date(date).getDay()]
+
+      return {
+        date: dayName,
+        en_attente: dayOrders.filter((o) => o.status === "en-attente").length,
+        confirme: dayOrders.filter((o) => o.status === "Confirmé").length,
+        en_livraison: dayOrders.filter((o) => o.status === "En livraison").length,
+        livre: dayOrders.filter((o) => o.status === "Livrés").length,
+        retour: dayOrders.filter((o) => o.status === "Retour").length,
+      }
+    })
+  }
 const value = {
   orders,
   inventory,
@@ -972,7 +1231,21 @@ const value = {
   getDepots,
   getDepot,
   updateDepot,
-  deleteDepot
+  deleteDepot,
+    filteredOrders,
+    error,
+    filters,
+    setFilters,
+    getOrdersByConfirmatrice,
+    getOrdersByDateRange,
+    getTotalOrders,
+    getConfirmationRate,
+    getTodayRevenue,
+    getStatusDistribution,
+    getPerformanceData,
+    getArticleData,
+    getWeeklyData,
+    getOrdersByStatuss ,
 }
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>
