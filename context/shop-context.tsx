@@ -950,9 +950,9 @@ const filteredOrders = useMemo(() => {
 
     filtered = filtered.filter((order) => {
       const created =
-        typeof order?.createdAt?.toDate === "function"
-          ? order.createdAt.toDate()
-          : new Date(order?.createdAt);
+        typeof order?.updatedAt?.toDate === "function"
+          ? order.updatedAt.toDate()
+          : new Date(order?.updatedAt);
 
       if (!(created instanceof Date) || isNaN(created.getTime())) return false;
 
@@ -971,9 +971,9 @@ const filteredOrders = useMemo(() => {
 
     filtered = filtered.filter((order) => {
       const created =
-        typeof order?.createdAt?.toDate === "function"
-          ? order.createdAt.toDate()
-          : new Date(order?.createdAt);
+        typeof order?.updatedAt?.toDate === "function"
+          ? order.updatedAt.toDate()
+          : new Date(order?.updatedAt);
 
       if (!(created instanceof Date) || isNaN(created.getTime())) return false;
 
@@ -988,18 +988,18 @@ const filteredOrders = useMemo(() => {
     weekAgo.setDate(weekAgo.getDate() - 7);
     filtered = filtered.filter((order) => {
       const created =
-        typeof order?.createdAt?.toDate === "function"
-          ? order.createdAt.toDate()
-          : new Date(order?.createdAt);
+        typeof order?.updatedAt?.toDate === "function"
+          ? order.updatedAt.toDate()
+          : new Date(order?.updatedAt);
 
       return created >= weekAgo;
     });
   } else if (filters.dateFilter === "custom" && filters.dateRange) {
     filtered = filtered.filter((order) => {
       const created =
-        typeof order?.createdAt?.toDate === "function"
-          ? order.createdAt.toDate()
-          : new Date(order?.createdAt);
+        typeof order?.updatedAt?.toDate === "function"
+          ? order.updatedAt.toDate()
+          : new Date(order?.updatedAt);
 
       return (
         created >= filters.dateRange.from && created <= filters.dateRange.to
@@ -1019,16 +1019,16 @@ const filteredOrders = useMemo(() => {
 
   // Filter by article using product titles
   if (filters.article !== "all") {
-    const selectedProduct = products.find((p) => p.id === filters.article);
-    if (selectedProduct && selectedProduct.title) {
-      filtered = filtered.filter(
-        (order) =>
-          order.article &&
-          order.article
-            .toLowerCase()
-            .includes(selectedProduct.title.toLowerCase())
-      );
-    }
+
+ 
+   filtered = filtered.filter(
+  (order) =>
+    Array.isArray(order.articles) &&
+    order.articles.some(
+      (article) => String(article.product_id) === String(filters.article)
+    )
+);
+    
   }
 
   return filtered;

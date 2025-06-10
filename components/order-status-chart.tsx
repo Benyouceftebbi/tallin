@@ -34,19 +34,19 @@ interface OrderStatusChartProps {
 }
 
 export function OrderStatusChart({ type = "area" }: OrderStatusChartProps) {
-  const { orders, loading, getOrdersByStatus } = useShop()
+  const { filteredOrders, loading, getOrdersByStatuss } = useShop()
 
   const pieData = useMemo(() => {
     if (loading) return []
 
     return [
- { name: "En attente", value: getOrdersByStatus("en-attente").length, color: "#eab308" },
-      { name: "Confirmé", value: getOrdersByStatus("Confirmé").length, color: "#22c55e" },
-      { name: "En livraison", value: getOrdersByStatus("En livraison").length, color: "#3b82f6" },
-      { name: "Livré", value: getOrdersByStatus("Livrés").length, color: "#10b981" },
-      { name: "Retour", value: getOrdersByStatus("Retour").length, color: "#ef4444" },
+ { name: "En attente", value: getOrdersByStatuss("en-attente").length, color: "#eab308" },
+      { name: "Confirmé", value: getOrdersByStatuss("Confirmé").length, color: "#22c55e" },
+      { name: "En livraison", value: getOrdersByStatuss("En livraison").length, color: "#3b82f6" },
+      { name: "Livré", value: getOrdersByStatuss("Livrés").length, color: "#10b981" },
+      { name: "Retour", value: getOrdersByStatuss("Retour").length, color: "#ef4444" },
     ]
-  }, [orders, loading, getOrdersByStatus])
+  }, [filteredOrders, loading, getOrdersByStatuss])
 
   const areaData = useMemo(() => {
     if (loading) return []
@@ -59,7 +59,7 @@ export function OrderStatusChart({ type = "area" }: OrderStatusChartProps) {
     })
 
     return last7Days.map((date, index) => {
-      const dayOrders = orders.filter((order) => order.date === date)
+      const dayOrders = filteredOrders.filter((order) => order.date === date)
       const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
       const dayName = dayNames[new Date(date).getDay()]
 
@@ -72,7 +72,7 @@ export function OrderStatusChart({ type = "area" }: OrderStatusChartProps) {
         retour: dayOrders.filter((o) => o.status === "Retour").length,
       }
     })
-  }, [orders, loading])
+  }, [filteredOrders, loading])
 
   if (loading) {
     return <Skeleton className="h-[300px] w-full" />

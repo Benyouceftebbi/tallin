@@ -52,7 +52,8 @@ function convertShopifyOrderToCustomFormat(shopifyOrder) {
     source: shopifyOrder.source_name || "Shopify",
     statusHistory: [
     ],
-    createdAt: new Date()
+    createdAt: new Date(),
+    updatedAt: new Date()
   };
 
   // Process line items (articles)
@@ -495,7 +496,7 @@ async function updateTrackingDocs(
   const shopUpdate = {
     shippmentTrack: admin.firestore.FieldValue.arrayUnion(entry),
     lastStatus: entry.status,
-    lastUpdated:new Date(),
+    updatedAt:new Date(),
     status:entry.status==="delivered"?"Livrés":"En livraison"
   };
 
@@ -574,7 +575,7 @@ exports.processStatusUpdateTask = onMessagePublished(
             batch.update(shopRef, {
                 shippmentTrack: [initialEntry],
                 lastStatus: initialEntry.status,
-                lastUpdated:new Date(),
+                updatedAt:new Date(),
             });
             
             await batch.commit();
@@ -641,7 +642,7 @@ exports.processStatusUpdateTask = onMessagePublished(
                 await docRef.update({
                   shippmentTrack: updatedTracks,
                   lastStatus: event.data.status,
-                  lastUpdated:new Date()
+                  updatedAt:new Date()
                 });
               } else {
                 const entry = createShipmentTrackEntry(
@@ -662,7 +663,7 @@ exports.processStatusUpdateTask = onMessagePublished(
                 await docRef.update({
                   shippmentTrack: admin.firestore.FieldValue.arrayUnion(entry),
                   lastStatus: event.data.status,
-                  lastUpdated:new Date()
+                  updatedAt:new Date()
                 });
               }
             };

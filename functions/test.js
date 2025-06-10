@@ -1111,19 +1111,30 @@ async function updateReturnedOrders() {
   const batch = db.batch();
   let count = 0;
 
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const lastStatus = data.lastStatus;
+ snapshot.forEach(doc => {
+  const data = doc.data();
+  const lastStatus = data.lastStatus;
 
-    if (lastStatus === "returned-to-center" || lastStatus === "returning-to-center") {
-      const orderRef = db.collection("orders").doc(doc.id);
-      batch.update(orderRef, {
-        status: "Retour",
-        updatedAt: new Date(),
-      });
-      count++;
-    }
-  });
+  if (lastStatus === "returned-to-center" || lastStatus === "returning-to-center") {
+    const orderRef = db.collection("orders").doc(doc.id);
+
+    // Get last element of shippmentTrack
+    const track = Array.isArray(data.shippmentTrack) ? data.shippmentTrack : [];
+    const lastTrack = track[track.length - 1];
+
+    // Convert "YYYY-MM-DD HH:mm:ss" to Date
+    const updatedAt = lastTrack?.date
+      ? new Date(lastTrack.date.replace(" ", "T")) // "2025-06-09 08:37:26" -> "2025-06-09T08:37:26"
+      : new Date(); // fallback to current date if missing
+
+    batch.update(orderRef, {
+      status: "Retour",
+      updatedAt: updatedAt,
+    });
+
+    count++;
+  }
+});
 
   if (count > 0) {
     await batch.commit();
@@ -1134,7 +1145,7 @@ async function updateReturnedOrders() {
 }
 
 // Call the function
-updateReturnedOrders().catch(console.error);
+//updateReturnedOrders().catch(console.error);
 
 async function markDoubleConfirmedOrders() {
   const activeStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
@@ -1334,3 +1345,34 @@ async function getConfirmationStatusCounts() {
 
 // Example usage
 ///getConfirmationStatusCounts();
+async function updateMissingUpdatedAt() {
+  const ordersRef = db.collection("orders");
+  const snapshot = await ordersRef.get();
+
+  const batch = db.batch();
+  let count = 0;
+
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    const docRef = ordersRef.doc(doc.id);
+
+    if (!data.updatedAt && data.createdAt) {
+      const createdAt = data.createdAt instanceof Timestamp
+        ? data.createdAt
+        : Timestamp.fromDate(new Date(data.createdAt));
+
+      batch.update(docRef, { updatedAt: createdAt });
+      count++;
+    }
+  });
+
+  if (count > 0) {
+    await batch.commit();
+    console.log(`✅ updatedAt set for ${count} order(s).`);
+  } else {
+    console.log("ℹ️ No orders needed updating.");
+  }
+}
+
+//updateMissingUpdatedAt().catch(console.error);
+

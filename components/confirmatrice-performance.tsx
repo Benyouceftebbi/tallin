@@ -21,14 +21,14 @@ const chartConfig = {
 }
 
 export function ConfirmatricePerformance() {
-  const { workers, orders, loading } = useShop()
+  const { workers, filteredOrders, loading } = useShop()
 
   const performanceData = useMemo(() => {
     if (loading) return []
 
     return workers
       .map((worker) => {
-        const workerOrders = orders.filter((order) => order.confirmatrice === worker.name)
+        const workerOrders = filteredOrders.filter((order) => order.confirmatrice === worker.name)
         const confirmed = workerOrders.filter(
       (order) => order.status === "Confirmé" || order.status === "En livraison" || order.status === "Livrés",
         ).length
@@ -48,7 +48,7 @@ export function ConfirmatricePerformance() {
         }
       })
       .filter((worker) => worker.confirmed > 0 || worker.pending > 0)
-  }, [workers, orders, loading])
+  }, [workers, filteredOrders, loading])
 
   const topPerformer = useMemo(() => {
     if (performanceData.length === 0) return null
