@@ -109,7 +109,7 @@ const statusTranslations: Record<string, string> = {
   "Tentative échouée": "Tentative échouée", // already in French
   "en-route-to-region": "Vers Wilaya",
   "distribution-center": "Centre de distribution",
-  "ready-for-pickup": "Prêt pour retrait",
+  "ready-for-pickup": "En attente du client", // ✅ updated here
   "En alerte": "En alerte", // already in French
   "Vers Wilaya": "Vers Wilaya", // already in French
   "delivered": "Livré",

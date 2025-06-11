@@ -96,6 +96,7 @@ export function LivresTable() {
     note: true,
     lastUpdated: true,
     sendReminder: true,
+    articles: true,
   })
 
   // Toggle column visibility
