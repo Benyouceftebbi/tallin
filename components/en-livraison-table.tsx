@@ -103,7 +103,18 @@ type OrderWithTracking = Order & {
   currentTrackingNode?: TrackingNode
   trackingHistory?: TrackingHistory[]
 }
-
+const statusTranslations: Record<string, string> = {
+  "out-for-delivery": "Sorti en livraison",
+  "transfer": "Transfert",
+  "Tentative échouée": "Tentative échouée", // already in French
+  "en-route-to-region": "Vers Wilaya",
+  "distribution-center": "Centre de distribution",
+  "ready-for-pickup": "Prêt pour retrait",
+  "En alerte": "En alerte", // already in French
+  "Vers Wilaya": "Vers Wilaya", // already in French
+  "delivered": "Livré",
+  "in-preparation": "En préparation"
+};
 export function EnLivraisonTable() {
   const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, updateOrder, loading } = useShop()
   const [selectedRows, setSelectedRows] = useState<string[]>([])
@@ -1230,7 +1241,7 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                 <SelectContent className="bg-slate-900 border-slate-800">
                   <SelectItem value="all">Status</SelectItem>
                   {statuses.map((status,id) => (
-                    <SelectItem key={id} value={status}>{status}</SelectItem>
+                    <SelectItem key={id} value={status}>{statusTranslations[status]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -1385,7 +1396,7 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                       {visibleColumns.status && (
                         <td className="p-3 text-slate-300">
                           <Badge className="bg-amber-950/50 text-amber-400 border-amber-700" variant="outline">
-                            {order?.lastStatus || "En livraison"}
+                        {statusTranslations[order?.lastStatus] || "En livraison"}
                           </Badge>
                         </td>
                       )}
