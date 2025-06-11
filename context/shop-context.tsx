@@ -1033,12 +1033,37 @@ const filteredOrders = useMemo(() => {
 
   return filtered;
 }, [orders, filters, workers, products]);
-  const getOrdersByStatuss = (status: string, useFiltered = true) => {
-    const ordersToUse = useFiltered ? filteredOrders : orders
-    return ordersToUse.filter((order) => order.status === status)
+const getOrdersByStatuss = (status: string, useFiltered = true) => {
+  const ordersToUse = useFiltered ? filteredOrders : orders
+
+  const statusMap: Record<string, string[]> = {
+    "Échouées": ["Ne répond pas 1", "Ne répond pas 2", "Ne répond pas 3"],
+    // Add other special mappings here if needed
   }
 
+  if (statusMap[status]) {
+    return ordersToUse.filter(order =>
+      statusMap[status].includes(order.confirmationStatus)
+    )
+  }
 
+  return ordersToUse.filter(order => order.confirmationStatus === status)
+}
+
+const getConfirmationStatusCounts = (orders: any[]) => {
+  const counts: Record<string, number> = {};
+
+  orders.forEach(order => {
+    const status = order.confirmationStatus || "Inconnu";
+    counts[status] = (counts[status] || 0) + 1;
+  });
+
+  return counts;
+};
+
+// Example usage:
+const confirmationStatusCounts = getConfirmationStatusCounts(filteredOrders);
+console.log(",,",confirmationStatusCounts);
   const getOrdersByConfirmatrice = (confirmatrice: string) => {
     if (confirmatrice === "all") return filteredOrders
     return filteredOrders.filter((order) => order.confirmatrice === confirmatrice)
@@ -1187,6 +1212,16 @@ return revenueOrders.reduce((sum, order) => {
       }
     })
   }
+    const getDeliveryStats = () => {
+      const delivered = filteredOrders.filter((order) => order.status === "Livrés").length
+      const returned = filteredOrders.filter((order) => order.status === "Retour").length
+      const inProgress = filteredOrders.filter((order) => order.status === "En livraison").length
+      const total = filteredOrders.length
+      const deliveryRate = total > 0 ? (delivered / total) * 100 : 0
+      const returnRate = total > 0 ? (returned / total) * 100 : 0
+  
+      return { delivered, returned, inProgress, total, deliveryRate, returnRate }
+    }
 const value = {
   orders,
   inventory,
@@ -1246,6 +1281,7 @@ const value = {
     getArticleData,
     getWeeklyData,
     getOrdersByStatuss ,
+     getDeliveryStats
 }
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>

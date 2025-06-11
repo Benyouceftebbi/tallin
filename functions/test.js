@@ -1375,4 +1375,25 @@ async function updateMissingUpdatedAt() {
 }
 
 //updateMissingUpdatedAt().catch(console.error);
+async function updateAnnuleToAnnulé() {
+  const snapshot = await db
+    .collection("orders")
+    .where("confirmationStatus", "==", "annule")
+    .get();
 
+  if (snapshot.empty) {
+    console.log("No matching orders found.");
+    return;
+  }
+
+  const batch = db.batch();
+
+  snapshot.forEach(doc => {
+    const docRef = db.collection("orders").doc(doc.id);
+    batch.update(docRef, { confirmationStatus: "Annulé" });
+  });
+
+  await batch.commit();
+  console.log(`✅ Updated ${snapshot.size} order(s) from "annule" to "Annulé".`);
+}
+//updateAnnuleToAnnulé().catch(console.error);

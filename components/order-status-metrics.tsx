@@ -3,45 +3,51 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Clock, CheckCircle, Truck, Package, RotateCcw, TrendingUp, TrendingDown } from "lucide-react"
+import { Clock, CheckCircle, Truck, Package, RotateCcw, TrendingUp, TrendingDown, CalendarClock, AlertTriangle, XCircle, Copy } from "lucide-react"
 import { useShop } from "@/context/shop-context"
 
 const statusConfig = {
-  "en-attente": {
+  "Confirmé": {
+    label: "Confirmée",
+    icon: CheckCircle,
+    color: "bg-green-500",
+    bgColor: "bg-green-500/10",
+    borderColor: "border-green-500/20",
+  },
+  "Annulé": {
+    label: "Annulée",
+    icon: XCircle, // You can replace this with any appropriate icon
+    color: "bg-gray-500",
+    bgColor: "bg-gray-500/10",
+    borderColor: "border-gray-500/20",
+  },
+  "Échouées": {
+    label: "Échouée",
+    icon: AlertTriangle, // You can replace this with any appropriate icon
+    color: "bg-red-600",
+    bgColor: "bg-red-600/10",
+    borderColor: "border-red-600/20",
+  },
+  "En attente": {
     label: "En attente",
     icon: Clock,
     color: "bg-yellow-500",
     bgColor: "bg-yellow-500/10",
     borderColor: "border-yellow-500/20",
   },
- "Confirmé": {
-    label: "Confirmé",
-    icon: CheckCircle,
-    color: "bg-green-500",
-    bgColor: "bg-green-500/10",
-    borderColor: "border-green-500/20",
+  "Reporté": {
+    label: "Reportée",
+    icon: CalendarClock, // You can replace this with any appropriate icon
+    color: "bg-orange-500",
+    bgColor: "bg-orange-500/10",
+    borderColor: "border-orange-500/20",
   },
-  
-  "En livraison": {
-    label: "En livraison",
-    icon: Truck,
-    color: "bg-blue-500",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/20",
-  },
-  "Livrés": {
-    label: "Livré",
-    icon: Package,
-    color: "bg-emerald-500",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/20",
-  },
-  "Retour": {
-    label: "Retour",
-    icon: RotateCcw,
-    color: "bg-red-500",
-    bgColor: "bg-red-500/10",
-    borderColor: "border-red-500/20",
+  "Double": {
+    label: "Dupliquée",
+    icon: Copy, // You can replace this with any appropriate icon
+    color: "bg-indigo-500",
+    bgColor: "bg-indigo-500/10",
+    borderColor: "border-indigo-500/20",
   },
 }
 

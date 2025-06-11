@@ -169,6 +169,7 @@ useEffect(() => {
     lastUpdated: true,
     sendReminder: true,
     articles: true,
+    phone: true,
   })
 
   // Écouter les changements Firebase pour les nœuds de suivi
@@ -1183,79 +1184,6 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
         </div>
       </div>
 
-      {/* Filtres */}
-      <div className="flex flex-wrap gap-2 p-3 rounded-md border border-slate-800 bg-slate-900/50">
-        <div className="flex items-center">
-          <Filter className="h-4 w-4 mr-2 text-slate-400" />
-          <span className="text-sm text-slate-400 mr-2">Filtres:</span>
-        </div>
-
-        <Select value={wilayaFilter} onValueChange={setWilayaFilter}>
-          <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700">
-            <SelectValue placeholder="Wilaya" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all">Toutes les wilayas</SelectItem>
-            {wilayas.map((wilaya) => (
-              <SelectItem key={wilaya} value={wilaya}>
-                {wilaya}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={deliveryTypeFilter} onValueChange={setDeliveryTypeFilter}>
-          <SelectTrigger className="h-8 w-[150px] bg-slate-800/50 border-slate-700">
-            <SelectValue placeholder="Type de livraison" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all">Tous les types</SelectItem>
-            {deliveryTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={deliveryCompanyFilter} onValueChange={setDeliveryCompanyFilter}>
-          <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
-            <SelectValue placeholder="Société de livraison" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all">Toutes les sociétés</SelectItem>
-            {deliveryCompanies.map((company) => (
-              <SelectItem key={company} value={company}>
-                {company}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={trackingNodeFilter} onValueChange={setTrackingNodeFilter}>
-          <SelectTrigger className="h-8 w-[180px] bg-slate-800/50 border-slate-700">
-            <SelectValue placeholder="Nœud de suivi" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all">Tous les nœuds</SelectItem>
-            {trackingNodes.map((node) => (
-              <SelectItem key={node} value={node}>
-                {node}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={resetFilters}
-          className="h-8 border-slate-700 bg-slate-800/50 text-slate-400"
-        >
-          Réinitialiser
-        </Button>
-      </div>
-
       <div className="rounded-md border border-slate-800 bg-slate-900/50 backdrop-blur-xl">
         <div className="relative overflow-x-auto">
           <div className="max-h-[70vh] overflow-y-auto">
@@ -1293,6 +1221,7 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
             </th>
             {visibleColumns.trackingId && <th className="p-3 text-left text-slate-400">TrackingID</th>}
             {visibleColumns.recipient && <th className="p-3 text-left text-slate-400">Recipient</th>}
+                        {visibleColumns.phone && <th className="p-3 text-left text-slate-400">phone</th>}
             {visibleColumns.status && <th className="p-3 text-left text-slate-400">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-8 w-[130px] bg-slate-800/50 border-slate-700">
@@ -1415,12 +1344,43 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                         <td className="p-3 font-medium text-slate-300">{order.trackingId}</td>
                       )}
                       {visibleColumns.recipient && (
-                        <td className="p-3 text-slate-300">
-                          <div className="flex flex-col">
-                            <span>{order.name}</span>
-                            <span className="text-xs text-slate-400">{order.phone}</span>
+                         <td className="p-3 text-slate-300 group relative">
+                          <div >
+                            <span className="cursor-help">{order.name}</span>
+                         
+                                                      {order.confirmatrice && (
+                            <div className="absolute z-50 invisible group-hover:visible bg-slate-900 border border-slate-800 rounded-md p-3 shadow-lg w-80 mt-1 left-0">
+                              <h4 className="font-medium text-slate-300 mb-2">
+                                Historique de suivi par {order.confirmatrice}
+                              </h4>
+                              {getTrackingHistoryForConfirmatrice(order.confirmatrice).length > 0 ? (
+                                <div className="space-y-2 max-h-60 overflow-y-auto">
+                                  {getTrackingHistoryForConfirmatrice(order.confirmatrice).map((history) => (
+                                    <div key={history.id} className="border-b border-slate-800 pb-2">
+                                      <div className="flex items-center justify-between">
+                                        <Badge className={getTrackingNodeColor(history.trackingNode)} variant="outline">
+                                          {history.trackingNode}
+                                        </Badge>
+                                        <span className="text-xs text-slate-500">{history.date}</span>
+                                      </div>
+                                      {history.note && (
+                                        <div className="mt-1 text-sm text-slate-400 bg-slate-800/50 p-1 rounded">
+                                          {history.note}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-slate-500">Aucun historique de suivi</p>
+                              )}
+                            </div>
+                          )}
                           </div>
                         </td>
+                      )}
+                                            {visibleColumns.phone && (
+                        <td className="p-3 font-medium text-slate-300">{order.phone}</td>
                       )}
                       {visibleColumns.status && (
                         <td className="p-3 text-slate-300">
@@ -1546,35 +1506,8 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                       )}
                       {visibleColumns.confirmatrice && (
                         <td className="p-3 text-slate-300 group relative">
-                          <div className="cursor-help">{order.confirmatrice || "Non assigné"}</div>
-                          {order.confirmatrice && (
-                            <div className="absolute z-50 invisible group-hover:visible bg-slate-900 border border-slate-800 rounded-md p-3 shadow-lg w-80 mt-1 left-0">
-                              <h4 className="font-medium text-slate-300 mb-2">
-                                Historique de suivi par {order.confirmatrice}
-                              </h4>
-                              {getTrackingHistoryForConfirmatrice(order.confirmatrice).length > 0 ? (
-                                <div className="space-y-2 max-h-60 overflow-y-auto">
-                                  {getTrackingHistoryForConfirmatrice(order.confirmatrice).map((history) => (
-                                    <div key={history.id} className="border-b border-slate-800 pb-2">
-                                      <div className="flex items-center justify-between">
-                                        <Badge className={getTrackingNodeColor(history.trackingNode)} variant="outline">
-                                          {history.trackingNode}
-                                        </Badge>
-                                        <span className="text-xs text-slate-500">{history.date}</span>
-                                      </div>
-                                      {history.note && (
-                                        <div className="mt-1 text-sm text-slate-400 bg-slate-800/50 p-1 rounded">
-                                          {history.note}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-slate-500">Aucun historique de suivi</p>
-                              )}
-                            </div>
-                          )}
+                          <div >{order.confirmatrice || "Non assigné"}</div>
+
                         </td>
                       )}
                       {visibleColumns.preparateur && (

@@ -11,26 +11,68 @@ import { ConfirmatricePerformance } from "@/components/confirmatrice-performance
 import { ArticlePerformance } from "@/components/article-performance"
 
 import { Topbar } from "@/components/topbar"
-import { Filter, TrendingUp, AlertCircle } from "lucide-react"
+import { Filter, TrendingUp, AlertCircle, CheckCircle, Truck, Package, RotateCcw, TrendingDown, AlertTriangle } from "lucide-react"
 import { addDays } from "date-fns"
 import { useShop } from "@/context/shop-context"
 import { useAppContext } from "@/context/app-context"
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+const mockOrders = [
+  {
+    id: 1,
+    status: "confirmé",
+    deliveryStatus: "livré",
+    confirmatrice: "Sarah",
+    article: "Product A",
+    revenue: 2500,
+    date: "2024-01-15",
+  },
+  {
+    id: 2,
+    status: "annulé",
+    deliveryStatus: "retour",
+    confirmatrice: "Marie",
+    article: "Product B",
+    revenue: 0,
+    date: "2024-01-15",
+  },
+  {
+    id: 3,
+    status: "confirmé",
+    deliveryStatus: "en_cours",
+    confirmatrice: "Sarah",
+    article: "Product A",
+    revenue: 3000,
+    date: "2024-01-14",
+  },
+  {
+    id: 4,
+    status: "confirmé",
+    deliveryStatus: "livré",
+    confirmatrice: "Julie",
+    article: "Product C",
+    revenue: 1800,
+    date: "2024-01-14",
+  },
+  {
+    id: 5,
+    status: "en_attente",
+    deliveryStatus: "en_cours",
+    confirmatrice: "Marie",
+    article: "Product B",
+    revenue: 2200,
+    date: "2024-01-13",
+  },
+]
 export default function Dashboard() {
-  const { workers, loading, error, getConfirmationRate, getTodayRevenue, filters, setFilters } = useShop()
+  const { workers, loading, error, getConfirmationRate, getTodayRevenue, filters, setFilters,getDeliveryStats } = useShop()
+   const [activeProvider, setActiveProvider] = useState("confirmation")
 const {products}=useAppContext()
   const [dateRange, setDateRange] = useState({
     from: new Date(),
     to: addDays(new Date(), 7),
   })
 
-  const articles = [
-    { id: "all", name: "Tous les articles" },
-    { id: "phone", name: "Téléphones" },
-    { id: "laptop", name: "Ordinateurs portables" },
-    { id: "watch", name: "Montres" },
-    { id: "headphones", name: "Écouteurs" },
-  ]
 
   // Update filters when local state changes
   useEffect(() => {
@@ -62,6 +104,9 @@ const {products}=useAppContext()
     })
   }
 
+
+
+  const deliveryStats = getDeliveryStats()
   if (error) {
     return (
       <>
@@ -81,7 +126,7 @@ const {products}=useAppContext()
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -172,7 +217,21 @@ const {products}=useAppContext()
             </div>
           </CardContent>
         </Card>
-
+   <Tabs value={activeProvider} onValueChange={setActiveProvider} className="w-full">
+     <TabsList className="grid w-full grid-cols-2 bg-slate-800 border-slate-700">
+            <TabsTrigger
+              value="confirmation"
+              className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Statistiques de Confirmation
+            </TabsTrigger>
+            <TabsTrigger value="delivery" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+              <Truck className="h-4 w-4 mr-2" />
+              Statistiques de Livraisons
+            </TabsTrigger>
+          </TabsList>
+             <TabsContent value="confirmation" className="space-y-6">
         {/* Order Status Metrics */}
         <OrderStatusMetrics />
 
@@ -271,7 +330,112 @@ const {products}=useAppContext()
     
           </CardContent>
         </Card>
+        </TabsContent>
+                  <TabsContent value="delivery" className="space-y-6">
+
+
+            {/* Delivery Status Overview */}
+            <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="text-slate-100">Aperçu des statuts de livraison</CardTitle>
+                <CardDescription>Répartition des commandes par statut de livraison</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Package className="h-8 w-8 text-green-500" />
+                      <div>
+                        <p className="font-medium text-white">Livrées</p>
+                        <p className="text-sm text-slate-400">{deliveryStats.delivered} commandes</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+                      {deliveryStats.deliveryRate.toFixed(1)}%
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Truck className="h-8 w-8 text-blue-500" />
+                      <div>
+                        <p className="font-medium text-white">En cours</p>
+                        <p className="text-sm text-slate-400">{deliveryStats.inProgress} commandes</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
+                      {((deliveryStats.inProgress / deliveryStats.total) * 100).toFixed(1)}%
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <RotateCcw className="h-8 w-8 text-red-500" />
+                      <div>
+                        <p className="font-medium text-white">Retours</p>
+                        <p className="text-sm text-slate-400">{deliveryStats.returned} commandes</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-red-500/20 text-red-400">
+                      {deliveryStats.returnRate.toFixed(1)}%
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Delivery Performance Trends */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
+                <CardHeader>
+                  <CardTitle className="text-slate-100 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Tendance des livraisons
+                  </CardTitle>
+                  <CardDescription>Évolution du taux de livraison sur la période</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-center h-32 text-slate-400">
+                    Graphique des tendances de livraison
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
+                <CardHeader>
+                  <CardTitle className="text-slate-100 flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5" />
+                    Analyse des retours
+                  </CardTitle>
+                  <CardDescription>Raisons principales des retours</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-300">Client absent</span>
+                      <Badge variant="outline" className="text-slate-400">
+                        45%
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-300">Adresse incorrecte</span>
+                      <Badge variant="outline" className="text-slate-400">
+                        30%
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-300">Refus du colis</span>
+                      <Badge variant="outline" className="text-slate-400">
+                        25%
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-    </>
+    </div>
   )
 }
