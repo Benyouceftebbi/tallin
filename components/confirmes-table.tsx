@@ -262,8 +262,8 @@ const rawOrders = selectedRows.map((selectedId) => {
 if (order.isExchange && order.exchangeArticles?.length > 0) {
   exchangeProductTitles = order.exchangeArticles.flatMap((article) =>
     article.variants?.map((variant) => {
-      const color = variant.option1 || '';
-      const size = variant.option2 || '';
+      const color = variant.option1 || variant.color || "";
+      const size = variant.option2 ||  variant.size || "";
       const quantity = variant.quantity || '';
       const title = article.title || ''; // from articleExchange.title
 
