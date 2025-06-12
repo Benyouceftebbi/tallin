@@ -831,6 +831,15 @@ if (wilaya && type) {
     })
     return
   }
+  // ✅ Validate wilaya info exists
+if (!formData.wilaya || !formData.wilayaCode || !formData.wilayaName) {
+  toast({
+    title: "Informations manquantes",
+    description: "Veuillez sélectionner une wilaya valide avant de continuer.",
+    variant: "destructive",
+  })
+  return
+}
     if (errors.length > 0) {
       setValidationErrors(errors)
       toast({
