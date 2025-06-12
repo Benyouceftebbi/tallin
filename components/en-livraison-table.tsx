@@ -15,6 +15,7 @@ import {
   StickyNote,
   ChevronDown,
   MessageCircle,
+  RefreshCcw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -272,6 +273,7 @@ useEffect(() => {
 
     return () => unsubscribeNotes()
   }, [])
+  
 
   // Fonction pour sauvegarder le nœud de suivi dans Firebase
   const saveTrackingNodeToFirebase = async (orderId: string, node: TrackingNode) => {
@@ -737,7 +739,9 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
     },
     [notes],
   )
-
+const refreshPage = useCallback(() => {
+  window.location.reload()
+}, [])  
   if (loading) {
     return (
       <div className="space-y-4">
@@ -1000,39 +1004,21 @@ const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={moveToLivres}
-                  disabled={selectedRows.length === 0}
+                  onClick={refreshPage}
+             
                   className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
                 >
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  <span>Livrés</span>
+                  <RefreshCcw className="h-4 w-4 mr-2" />
+                  <span>Refresher</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Déplacer les commandes sélectionnées vers "Livrés"</p>
+                <p>Rafraîchir la page</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={moveToRetour}
-                  disabled={selectedRows.length === 0}
-                  className="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500"
-                >
-                  <PackageX className="h-4 w-4 mr-2" />
-                  <span>Retour</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Déplacer les commandes sélectionnées vers "Retour"</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

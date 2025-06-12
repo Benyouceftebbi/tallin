@@ -261,79 +261,94 @@ export function Topbar() {
                     </div>
                     {searchResults.map((order) => (
                       <div
-                        key={order.id}
-                        className="p-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700 last:border-b-0"
-                        onClick={() => {
-                          // Navigate to the appropriate table based on order status
-                          const statusRouteMap = {
-                            "en-attente": "/admin/commandes/en-attente",
-                            Confirmé: "/admin/commandes/confirmes",
-                            "En préparation": "/admin/commandes/en-preparation",
-                            Dispatcher: "/admin/commandes/dispatcher",
-                            "En livraison": "/admin/commandes/en-livraison",
-                            Livrés: "/admin/commandes/livres",
-                            Retour: "/admin/commandes/retour",
-                          }
+  key={order.id}
+  className="p-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700 last:border-b-0"
+  onClick={() => {
+    const statusRouteMap = {
+      "en-attente": "/admin/commandes/en-attente",
+      Confirmé: "/admin/commandes/confirmes",
+      "En préparation": "/admin/commandes/en-preparation",
+      Dispatcher: "/admin/commandes/dispatcher",
+      "En livraison": "/admin/commandes/en-livraison",
+      Livrés: "/admin/commandes/livres",
+      Retour: "/admin/commandes/retour",
+    }
 
-                          // Get the route based on order status, default to en-attente if not found
-                          const targetRoute =
-                            statusRouteMap[order.status] ||
-                            statusRouteMap[order.confirmationStatus] ||
-                            "/admin/commandes/en-attente"
+    const targetRoute =
+      statusRouteMap[order.status] ||
+      statusRouteMap[order.confirmationStatus] ||
+      "/admin/commandes/en-attente"
 
-                          // Create URL with search parameters to filter the table
-                          const searchParams = new URLSearchParams({
-                            searchId: order.idd,
-                            searchName: order.name,
-                            searchPhone: order.phone,
-                            searchTrackingId: order.trackingId || "",
-                            highlightOrder: order.idd,
-                          })
+    const searchParams = new URLSearchParams({
+      searchId: order.idd,
+      searchName: order.name,
+      searchPhone: order.phone,
+      searchTrackingId: order.trackingId || "",
+      highlightOrder: order.idd,
+    })
 
-                          // Navigate to the target route with filters
-                          router.push(`${targetRoute}?${searchParams.toString()}`)
+    router.push(`${targetRoute}?${searchParams.toString()}`)
 
-                          // Close search results
-                          setShowResults(false)
-                          setSearchQuery("")
-                        }}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="font-medium text-slate-200">{order.name}</div>
-                            <div className="text-sm text-slate-400">{order.phone}</div>
-                            <div className="text-xs text-slate-500">ID: {order.trackingId}</div>
-                          </div>
-<div className="flex justify-between items-start w-full">
-  {/* Empty left side to keep layout balanced */}
-  <div />
+    setShowResults(false)
+    setSearchQuery("")
+  }}
+>
+  <div className="flex justify-between items-start gap-4">
+    {/* Left side: Info split into two columns */}
+    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+      <div>
+        <div className="font-medium text-slate-200">{order.name}</div>
+        <div className="text-sm text-slate-400">{order.phone}</div>
+        <div className="text-xs text-slate-500">ID: {order.trackingId}</div>
+      </div>
 
-  {/* Right side: status + confirmationStatus stacked and right-aligned */}
-  <div className="flex flex-col items-end space-y-1">
-    <div
-      className={cn(
-        "text-xs px-2 py-1 rounded-full w-fit",
-        order.status === "Confirmé" && "bg-emerald-900 text-emerald-300",
-        order.status === "En préparation" && "bg-blue-900 text-blue-300",
-        order.status === "En livraison" && "bg-orange-900 text-orange-300",
-        order.status === "Livrés" && "bg-cyan-900 text-cyan-300",
-        order.status === "en-attente" && "bg-amber-900 text-amber-300",
-        order.status === "Dispatcher" && "bg-purple-900 text-purple-300",
-        order.status === "Retour" && "bg-rose-900 text-rose-300",
-      )}
-    >
-      {order.status}
+      <div className="space-y-0.5">
+        <div className="text-xs text-slate-200">
+          Créé le:{" "}
+          {order.createdAt?.toDate
+            ? new Date(order.createdAt.toDate()).toLocaleString("fr-FR")
+            : "Date inconnue"}
+        </div>
+
+        <div className="text-xs text-slate-200">
+          Confirmatrice: {order.confirmatrice || "admin"}
+        </div>
+
+        <div className="text-xs text-slate-200">
+          Articles:{" "}
+          {Array.isArray(order.articles)
+            ? order.articles.map((a) => a.product_name).join(", ")
+            : "Aucun"}
+        </div>
+      </div>
     </div>
 
-    {order.status === "en-attente" && order.confirmationStatus && (
-      <div className="text-xs text-slate-400 text-right">
-        État de confirmation: <span className="font-semibold">{order.confirmationStatus}</span>
+    {/* Right side: status + confirmationStatus */}
+    <div className="flex flex-col items-end space-y-1">
+      <div
+        className={cn(
+          "text-xs px-2 py-1 rounded-full w-fit",
+          order.status === "Confirmé" && "bg-emerald-900 text-emerald-300",
+          order.status === "En préparation" && "bg-blue-900 text-blue-300",
+          order.status === "En livraison" && "bg-orange-900 text-orange-300",
+          order.status === "Livrés" && "bg-cyan-900 text-cyan-300",
+          order.status === "en-attente" && "bg-amber-900 text-amber-300",
+          order.status === "Dispatcher" && "bg-purple-900 text-purple-300",
+          order.status === "Retour" && "bg-rose-900 text-rose-300"
+        )}
+      >
+        {order.status}
       </div>
-    )}
+
+      {order.status === "en-attente" && order.confirmationStatus && (
+        <div className="text-xs text-slate-400 text-right">
+          État de confirmation:{" "}
+          <span className="font-semibold">{order.confirmationStatus}</span>
+        </div>
+      )}
+    </div>
   </div>
 </div>
-                        </div>
-                      </div>
                     ))}
                   </div>
                 ) : (
