@@ -444,7 +444,7 @@ setCommunes((prevCommunes) =>
     }
 
     initializeOrderForm()
-  }, [order, getOrdersByStatus])
+  }, [order])
 console.log("ff",formData);
 
   // Mettre à jour les communes lorsque la wilaya change

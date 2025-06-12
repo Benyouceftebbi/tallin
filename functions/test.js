@@ -1145,7 +1145,7 @@ async function updateReturnedOrders() {
 }
 
 // Call the function
-//updateReturnedOrders().catch(console.error);
+updateReturnedOrders().catch(console.error);
 
 async function markDoubleConfirmedOrders() {
   const activeStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
