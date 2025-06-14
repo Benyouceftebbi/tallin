@@ -230,6 +230,16 @@ export function Topbar() {
       borderColor: "border-rose-800/30",
       hoverColor: "hover:border-rose-700",
     },
+        {
+      name: "Reporté",
+      path: "/admin/commandes/reporte",
+      count: statusCounts["Reporté"] || 0,
+      icon: Clock,
+      color: "text-rose-500",
+      bgColor: "bg-rose-950/30",
+      borderColor: "border-rose-800/30",
+      hoverColor: "hover:border-rose-700",
+    },
   ]
 
   return (
@@ -272,6 +282,8 @@ export function Topbar() {
       "En livraison": "/admin/commandes/en-livraison",
       Livrés: "/admin/commandes/livres",
       Retour: "/admin/commandes/retour",
+      "Reporté": "/admin/commandes/reporte",
+       "Annulé": "/admin/commandes/annule",
     }
 
     const targetRoute =
@@ -334,7 +346,9 @@ export function Topbar() {
           order.status === "Livrés" && "bg-cyan-900 text-cyan-300",
           order.status === "en-attente" && "bg-amber-900 text-amber-300",
           order.status === "Dispatcher" && "bg-purple-900 text-purple-300",
-          order.status === "Retour" && "bg-rose-900 text-rose-300"
+          order.status === "Retour" && "bg-rose-900 text-rose-300",
+          order.status === "Reporté" && "bg-rose-900 text-rose-300",
+          order.status === "Annulé" && "bg-red-900 text-red-300",
         )}
       >
         {order.status}

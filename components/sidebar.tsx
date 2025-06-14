@@ -89,6 +89,13 @@ const sidebarLinks = [
         href: "/admin/commandes/retour",
         color: "text-rose-700",
       },
+       {
+             title: "Reporté",
+            href: "/admin/commandes/reporte",
+            icon: Clock,
+            color: "text-rose-500",
+           
+          },
       {
         title: "Annule",
         icon: PackageX,
@@ -198,10 +205,17 @@ const workersidebarLinks =  [
         href: "/worker/commandes/retour",
         color: "text-rose-700",
       },
+             {
+             title: "Reporté",
+            href: "/worker/commandes/reporte",
+            icon: Clock,
+            color: "text-rose-500",
+           
+          },
       {
         title: "Annule",
         icon: PackageX,
-        href: "/admin/commandes/annule",
+        href: "/worker/commandes/annule",
         color: "text-rose-700",
       },
     ],

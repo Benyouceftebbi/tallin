@@ -24,7 +24,7 @@ import {
 } from "@/context/shop-context"
 import { useAppContext } from "@/context/app-context"
 import { toast } from "@/components/ui/use-toast"
-import { X, Plus, Trash2, AlertTriangle, Clock, Warehouse } from "lucide-react"
+import { X, Plus, Trash2, AlertTriangle, Clock, Warehouse, CalendarIcon, Calendar as Cal } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import {
   getAllWilayas,
@@ -38,6 +38,10 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/context/auth-context"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
+import { Calendar } from "./ui/calendar"
 
 // Types pour les articles
 type ArticleVariant = {
@@ -465,6 +469,9 @@ console.log("ff",formData);
 
       if (value === "Confirmé") {
         updated.status = "Confirmé"
+      }
+          if (value === "Reporté") {
+        updated.status = "Reporté"
       }
 
       return updated
@@ -1994,6 +2001,43 @@ if (!formData.wilaya || !formData.wilayaCode || !formData.wilayaName) {
                   </SelectContent>
                 </Select>
               </div>
+                      {formData.confirmationStatus === "Reporté" && (
+          <div className="space-y-2">
+            <Label htmlFor="reportDate" className="text-slate-200">
+              Date de report
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal bg-slate-800/50 border-slate-700 text-slate-100 hover:bg-slate-800 hover:text-slate-100"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.reportDate ? (
+                    format(formData.reportDate, "dd/MM/yyyy", { locale: fr })
+                  ) : (
+                    <span className="text-slate-400">Sélectionner une date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-slate-900 border-slate-800" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.reportDate}
+                  onSelect={(date) => handleChange("reportDate", date)}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                  className="bg-slate-900"
+                />
+              </PopoverContent>
+            </Popover>
+            {formData.reportDate && (
+              <p className="text-sm text-slate-400">
+                Reporté au: {format(formData.reportDate, "EEEE d MMMM yyyy", { locale: fr })}
+              </p>
+            )}
+          </div>
+        )}
             </div>
           </div>
         </div>

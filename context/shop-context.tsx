@@ -498,6 +498,7 @@ const hasOtherConfirmedOrder = snapshot.docs.some((docSnap) => {
       "en-livraison": 0,
       livres: 0,
       retour: 0,
+      "Reporté": 0,
     }
   
     orders.forEach((order) => {
