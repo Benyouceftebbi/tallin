@@ -285,7 +285,7 @@ useEffect(() => {
           orderId,
           currentNode: node,
           lastUpdated: serverTimestamp(),
-          updatedBy: "current-user", // Remplacer par l'utilisateur actuel
+          updatedBy: workerName || "admin", // Remplacer par l'utilisateur actuel
         },
         { merge: true },
       )
@@ -303,7 +303,7 @@ useEffect(() => {
         orderId,
         trackingNode: node,
         date: new Date().toLocaleString("fr-FR"),
-        author: "current-user", // Remplacer par l'utilisateur actuel
+        author: workerName || "admin", // Remplacer par l'utilisateur actuel
         note: note || null,
         timestamp: serverTimestamp(),
       })
@@ -321,7 +321,7 @@ useEffect(() => {
         orderId,
         text,
         date: new Date().toLocaleString("fr-FR"),
-        author: "current-user", // Remplacer par l'utilisateur actuel
+        author: workerName || "admin", // Remplacer par l'utilisateur actuel
         trackingNode: trackingNode || null,
         timestamp: serverTimestamp(),
       })
@@ -948,24 +948,29 @@ const refreshPage = useCallback(() => {
                   </div>
                 </div>
               )}
-              {selectedOrder.trackingHistory && selectedOrder.trackingHistory.length > 0 && (
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="text-slate-400">Historique de suivi</Label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {selectedOrder.trackingHistory.map((history) => (
-                      <div key={history.id} className="border border-slate-700 rounded p-2 bg-slate-800/30">
-                        <div className="flex items-center justify-between">
-                          <Badge className={getTrackingNodeColor(history.trackingNode)} variant="outline">
-                            {history.trackingNode}
-                          </Badge>
-                          <span className="text-xs text-slate-500">{history.date}</span>
-                        </div>
-                        {history.note && <div className="mt-1 text-sm text-slate-400">{history.note}</div>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+{selectedOrder.trackingHistory &&
+  selectedOrder.trackingHistory.length > 0 && (
+    <div className="space-y-2 md:col-span-2">
+      <Label className="text-slate-400">Historique de suivi</Label>
+      <div className="space-y-2 max-h-40 overflow-y-auto">
+        {selectedOrder.trackingHistory
+          .filter((history) => history.orderId === selectedOrder.id)
+          .map((history) => (
+            <div key={history.id} className="border border-slate-700 rounded p-2 bg-slate-800/30">
+              <div className="flex items-center justify-between">
+                <Badge className={getTrackingNodeColor(history.trackingNode)} variant="outline">
+                  {history.trackingNode}
+                </Badge>
+                <span className="text-xs text-slate-500">{history.date}</span>
+              </div>
+              {history.note && (
+                <div className="mt-1 text-sm text-slate-400">{history.note}</div>
               )}
+            </div>
+          ))}
+      </div>
+    </div>
+  )}
               {hasNote(selectedOrder.id) && (
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-slate-400">Note</Label>
@@ -1350,7 +1355,7 @@ const refreshPage = useCallback(() => {
                               <h4 className="font-medium text-slate-300 mb-2">
                                 Historique de suivi par {order.confirmatrice}
                               </h4>
-                              {getTrackingHistoryForConfirmatrice(order.confirmatrice).length > 0 ? (
+                              {getTrackingHistoryForConfirmatrice(order.confirmatrice).filter(h => h.orderId === order.id).length > 0 ? (
                                 <div className="space-y-2 max-h-60 overflow-y-auto">
                                   {getTrackingHistoryForConfirmatrice(order.confirmatrice).map((history) => (
                                     <div key={history.id} className="border-b border-slate-800 pb-2">
