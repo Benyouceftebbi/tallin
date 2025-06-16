@@ -1145,7 +1145,7 @@ async function updateReturnedOrders() {
 }
 
 // Call the function
-updateReturnedOrders().catch(console.error);
+//updateReturnedOrders().catch(console.error);
 
 async function markDoubleConfirmedOrders() {
   const activeStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
@@ -1397,3 +1397,52 @@ async function updateAnnuleToAnnulé() {
   console.log(`✅ Updated ${snapshot.size} order(s) from "annule" to "Annulé".`);
 }
 //updateAnnuleToAnnulé().catch(console.error);
+
+async function updateTrackingHistoryAuthors() {
+  const currentUser = "current-user"; // 👈 your target author value
+
+  const trackingHistorySnapshot = await db
+    .collection("trackingHistory")
+    .where("author", "==", currentUser)
+    .get();
+
+  if (trackingHistorySnapshot.empty) {
+    console.log("No trackingHistory entries with author === 'current-user'");
+    return;
+  }
+
+  for (const doc of trackingHistorySnapshot.docs) {
+    const data = doc.data();
+    const docId = doc.id;
+    const orderId = data.orderId;
+
+    if (!orderId) continue;
+
+    try {
+      const orderSnap = await db.collection("orders").doc(orderId).get();
+
+      if (!orderSnap.exists) {
+        console.log(`❌ Order not found: ${orderId}`);
+        continue;
+      }
+
+      const confirmatrice = orderSnap.data().confirmatrice;
+      if (!confirmatrice) {
+        console.log(`⚠️ No confirmatrice in order ${orderId}`);
+        continue;
+      }
+
+      await db.collection("trackingHistory").doc(docId).update({
+        author: confirmatrice,
+      });
+
+      console.log(`✅ Updated ${docId} author → ${confirmatrice}`);
+    } catch (err) {
+      console.error(`Error updating ${docId}:`, err);
+    }
+  }
+
+  console.log("✅ Done updating relevant trackingHistory documents.");
+}
+
+updateTrackingHistoryAuthors();

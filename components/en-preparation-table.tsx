@@ -15,6 +15,8 @@ import {
   Columns,
   X,
   Printer,
+  CameraOff,
+  Camera,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -56,6 +58,7 @@ import { PDFDocument } from 'pdf-lib';
 import { useAuth } from "@/context/auth-context"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
 import { HoverCard, HoverCardContent, HoverCardTrigger} from "./ui/hover-card"
+import Quagga from "quagga"
 // Liste des livreurs disponibles - définie en dehors du composant car elle ne change pas
 const deliverymen = [
   "Ahmed Benali",
@@ -753,6 +756,199 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
       setIsConfirmatriceModalOpen(false)
       setSelectedConfirmatrice("")
     }, [selectedRows, selectedConfirmatrice, updateOrder])
+
+    const [isCameraMode, setIsCameraMode] = useState(false)
+    const [isScanning, setIsScanning] = useState(false)
+    const [isInitializing, setIsInitializing] = useState(false)
+    const [lastScanned, setLastScanned] = useState<string | null>(null)
+    const [scanCount, setScanCount] = useState(0)
+    const [error, setError] = useState<string | null>(null)
+    const [detectedCode, setDetectedCode] = useState<string | null>(null)
+    const [barcodeFormat, setBarcodeFormat] = useState<string>("code_128")
+
+    const scannerRef = useRef<HTMLDivElement>(null)
+    const quaggaInitialized = useRef<boolean>(false)
+    const initializationInProgress = useRef<boolean>(false)
+  
+    const barcodeFormats = [
+      { value: "code_128", label: "Code 128" },
+      { value: "code_39", label: "Code 39" },
+      { value: "code_93", label: "Code 93" },
+      { value: "ean", label: "EAN" },
+      { value: "ean_8", label: "EAN-8" },
+      { value: "upc", label: "UPC" },
+    ]
+  
+    const validateBarcodeFormat = (code: string): boolean => {
+      // Check if the code matches the yal-XXXXXX format
+      const regex = /^yal-[A-Z0-9]{6}$/i
+      return regex.test(code)
+    }
+
+  
+
+    
+  
+
+  
+    const startScanner = useCallback(async () => {
+      // Prevent multiple simultaneous initializations
+      if (initializationInProgress.current || quaggaInitialized.current) {
+        return
+      }
+  
+      if (!scannerRef.current) {
+        setError("Élément scanner non trouvé")
+        return
+      }
+  
+      try {
+        initializationInProgress.current = true
+        setIsInitializing(true)
+        setError(null)
+  
+        // Clean up any existing Quagga instance
+        if (quaggaInitialized.current) {
+          Quagga.stop()
+          quaggaInitialized.current = false
+        }
+  
+        // Wait a bit to ensure cleanup is complete
+        await new Promise((resolve) => setTimeout(resolve, 100))
+  
+        return new Promise<void>((resolve, reject) => {
+          Quagga.init(
+            {
+              inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: scannerRef.current,
+                constraints: {
+                  facingMode: "environment",
+                  width: { min: 450, ideal: 640 },
+                  height: { min: 300, ideal: 480 },
+                  aspectRatio: { min: 1, max: 2 },
+                },
+              },
+              locator: {
+                patchSize: "medium",
+                halfSample: true,
+              },
+              numOfWorkers: navigator.hardwareConcurrency || 2,
+              frequency: 10,
+              decoder: {
+                readers: [`${barcodeFormat}_reader`],
+                debug: {
+                  drawBoundingBox: true,
+                  showFrequency: false,
+                  drawScanline: true,
+                  showPattern: false,
+                },
+              },
+              locate: true,
+            },
+            (err) => {
+              initializationInProgress.current = false
+              setIsInitializing(false)
+  
+              if (err) {
+                console.error("Error initializing Quagga:", err)
+                setError("Erreur d'initialisation du scanner. Veuillez réessayer.")
+                setIsCameraMode(false)
+                reject(err)
+                return
+              }
+  
+              try {
+                quaggaInitialized.current = true
+                Quagga.start()
+                setIsScanning(true)
+                resolve()
+              } catch (startError) {
+                console.error("Error starting Quagga:", startError)
+                setError("Erreur de démarrage du scanner.")
+                reject(startError)
+              }
+            },
+          )
+  
+          // Set up barcode detection handler
+          Quagga.onDetected((result) => {
+            if (result && result.codeResult && result.codeResult.code) {
+              const code = result.codeResult.code
+              setDetectedCode(code)
+              processBarcode(code)
+  
+              // Brief pause after successful scan to prevent multiple scans
+              if (quaggaInitialized.current) {
+                Quagga.pause()
+                setTimeout(() => {
+                  setDetectedCode(null)
+                  if (isScanning && quaggaInitialized.current) {
+                    try {
+                      Quagga.start()
+                    } catch (restartError) {
+                      console.error("Error restarting scanner:", restartError)
+                    }
+                  }
+                }, 2000)
+              }
+            }
+          })
+        })
+      } catch (error) {
+        initializationInProgress.current = false
+        setIsInitializing(false)
+        console.error("Scanner initialization failed:", error)
+        setError("Impossible d'initialiser le scanner. Vérifiez les permissions de la caméra.")
+      }
+    }, [barcodeFormat, isScanning, processBarcode])
+  
+    const stopScanner = useCallback(() => {
+      try {
+        if (quaggaInitialized.current) {
+          Quagga.stop()
+          quaggaInitialized.current = false
+        }
+        setIsScanning(false)
+        setDetectedCode(null)
+        setIsInitializing(false)
+        initializationInProgress.current = false
+      } catch (error) {
+        console.error("Error stopping scanner:", error)
+      }
+    }, [])
+  
+    const toggleCameraMode = async () => {
+      if (isCameraMode) {
+        stopScanner()
+        setIsCameraMode(false)
+      } else {
+        setIsCameraMode(true)
+        // Start scanner after state update
+        setTimeout(() => {
+          if (!initializationInProgress.current) {
+            startScanner()
+          }
+        }, 100)
+      }
+    }
+
+  
+    // Cleanup on unmount
+    useEffect(() => {
+      return () => {
+        stopScanner()
+      }
+    }, [stopScanner])
+  
+    // Handle camera mode changes
+    useEffect(() => {
+      if (isCameraMode && !quaggaInitialized.current && !initializationInProgress.current) {
+        startScanner()
+      }
+    }, [isCameraMode, startScanner])
+  
   if (loading) {
     return (
       <div className="space-y-4">
@@ -1001,8 +1197,67 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                   }}
                 />
               </div>
+              <Button
+          onClick={toggleCameraMode}
+          variant={isCameraMode ? "destructive" : "outline"}
+          size="icon"
+          className="shrink-0"
+          disabled={isInitializing}
+        >
+          {isCameraMode ? <CameraOff className="h-4 w-4" /> : <Camera className="h-4 w-4" />}
+        </Button>
             </div>
+            {isCameraMode && (
+        <div className="mb-4 relative">
+          <div
+            ref={scannerRef}
+            className="relative bg-black rounded-lg overflow-hidden"
+            style={{ height: "300px", position: "relative" }}
+          >
+            {/* Loading overlay */}
+            {isInitializing && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-30">
+                <div className="text-white text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                  <p className="text-sm">Initialisation de la caméra...</p>
+                </div>
+              </div>
+            )}
 
+            {/* Barcode scanning overlay - horizontal line for barcode scanning */}
+            {!isInitializing && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-emerald-500 transform -translate-y-1/2 z-10 animate-pulse"></div>
+                <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 h-16 border-t-2 border-b-2 border-emerald-500/30"></div>
+
+                {/* Format reminder */}
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+                  <div className="bg-black/70 text-white px-3 py-1 rounded-full text-xs">Format: yal-XXXXXX</div>
+                </div>
+              </div>
+            )}
+
+            {/* Status indicator */}
+            {!isInitializing && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+                <div className="bg-black/70 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {detectedCode ? (
+                    <>
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      Code détecté: {detectedCode}
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                      Recherche de codes-barres yal-XXXXXX...
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
             {scannedOrders.length > 0 && (
               <div className="border border-slate-800 rounded-md overflow-hidden">
                 <ScrollArea className="h-[200px]">
@@ -1016,7 +1271,7 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                         >
                           <div className="flex-1">
                             <div className="flex items-center">
-                              <span className="font-medium text-slate-300">{order.id}</span>
+                              <span className="font-medium text-slate-300">{order.trackingId}</span>
                               <span className="mx-2 text-slate-500">|</span>
                               <span className="text-slate-400">{order.name}</span>
                             </div>
