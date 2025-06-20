@@ -15,13 +15,7 @@ import { PlusCircle, Save, Trash, Search, Loader2, ChevronLeft, ChevronRight, Wa
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "@/components/ui/use-toast"
-import {
-  useAppContext,
-  type Product,
-  type ProductVariant,
-  type ProductOption,
-  type ProductImage,
-} from "@/context/app-context"
+import { useAppContext, type Product, type ProductOption, type ProductImage } from "@/context/app-context"
 import { useDebounce } from "@/hooks/use-debounce"
 import { type Depot, DepotsManagement } from "../invoices/depots-management"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
@@ -36,6 +30,7 @@ type VariantCombination = {
   inventory_quantity: number
   sku: string
   image: string
+  depots?: any
 }
 
 // Simplified product depot structure
@@ -82,6 +77,12 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
     depots: existingProduct?.depots || [],
   })
 
+  // Add these new state variables after the existing product state
+  const [canGoOutOfStock, setCanGoOutOfStock] = useState<boolean>(existingProduct?.canGoOutOfStock ?? true)
+  const [minimumAlertQuantity, setMinimumAlertQuantity] = useState<number>(existingProduct?.minimumAlertQuantity ?? 10)
+  const [generalVariantPrice, setGeneralVariantPrice] = useState<string>(existingProduct?.variants[0]?.price ?? "0.00")
+  const [hasMultipleDepots, setHasMultipleDepots] = useState<boolean>((existingProduct?.depots?.length || 0) > 1)
+
   // Initialize options state with data from product
   const [options, setOptions] = useState<ProductOption[]>(
     existingProduct?.options || [
@@ -125,6 +126,9 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
   const debouncedVariantSearch = useDebounce(variantSearchTerm, 300)
   const [variantPage, setVariantPage] = useState(1)
   const variantsPerPage = 50
+
+  // Add these state variables after the existing variant search and pagination state
+  const [optionFilters, setOptionFilters] = useState<Record<string, string>>({})
 
   // State for depot management
   const [productDepots, setProductDepots] = useState<ProductDepot[]>(existingProduct?.depots || [])
@@ -212,11 +216,14 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
           status: product.status,
           tags: product.tags,
           depots: product.depots || [],
-          ...product
+          ...product,
         })
         setOptions(product.options)
         setVariantCombinations(product.variants || [])
         setProductDepots(product.depots || [])
+        setCanGoOutOfStock(product.canGoOutOfStock ?? true)
+        setMinimumAlertQuantity(product.minimumAlertQuantity ?? 10)
+        setHasMultipleDepots(product.hasMultipleDepots ?? (product.depots?.length || 0) > 1)
       }
     }
   }, [productId, products, convertToVariantCombinations])
@@ -408,32 +415,32 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
   const removeVariantCombination = useCallback((id: string) => {
     setVariantCombinations((prev) => prev.filter((combo) => combo.id !== id))
   }, [])
-const updateVariantCombination = useCallback(
-  (id: string, field: keyof VariantCombination | "depot_quantity", value: any) => {
-    setVariantCombinations((prev) =>
-      prev.map((combo) => {
-        if (combo.id !== id) return combo;
+  const updateVariantCombination = useCallback(
+    (id: string, field: keyof VariantCombination | "depot_quantity", value: any) => {
+      setVariantCombinations((prev) =>
+        prev.map((combo) => {
+          if (combo.id !== id) return combo
 
-        if (field === "depot_quantity") {
-          const updatedDepots = [...(combo.depots || [])];
-          if (!updatedDepots[0]) {
-            updatedDepots[0] = { id: "default", quantity: value }; // fallback if depot missing
-          } else {
-            updatedDepots[0] = {
-              ...updatedDepots[0],
-              quantity: value,
-            };
+          if (field === "depot_quantity") {
+            const updatedDepots = [...(combo.depots || [])]
+            if (!updatedDepots[0]) {
+              updatedDepots[0] = { id: "default", quantity: value } // fallback if depot missing
+            } else {
+              updatedDepots[0] = {
+                ...updatedDepots[0],
+                quantity: value,
+              }
+            }
+
+            return { ...combo, depots: updatedDepots }
           }
 
-          return { ...combo, depots: updatedDepots };
-        }
-
-        return { ...combo, [field]: value };
-      })
-    );
-  },
-  []
-);
+          return { ...combo, [field]: value }
+        }),
+      )
+    },
+    [],
+  )
 
   const handleUploadImage = useCallback(
     (comboId: string) => {
@@ -457,22 +464,45 @@ const updateVariantCombination = useCallback(
     [updateVariantCombination],
   )
 
-  // Filter variants based on search term
-  const filteredVariants = useMemo(() => {
-    if (!debouncedVariantSearch) return variantCombinations
+  // Add this function after the existing callback functions
+  const clearAllFilters = useCallback(() => {
+    setVariantSearchTerm("")
+    setOptionFilters({})
+  }, [])
 
-    const searchLower = debouncedVariantSearch.toLowerCase()
-    return variantCombinations.filter(
-      (variant) =>
-        variant.option1?.toLowerCase().includes(searchLower) ||
-        false ||
-        variant.option2?.toLowerCase().includes(searchLower) ||
-        false ||
-        variant.option3?.toLowerCase().includes(searchLower) ||
-        false ||
-        variant.sku.toLowerCase().includes(searchLower),
-    )
-  }, [variantCombinations, debouncedVariantSearch])
+  // Replace the existing filteredVariants useMemo with this enhanced version
+  const filteredVariants = useMemo(() => {
+    let filtered = variantCombinations
+
+    // Apply search filter
+    if (debouncedVariantSearch) {
+      const searchLower = debouncedVariantSearch.toLowerCase()
+      filtered = filtered.filter(
+        (variant) =>
+          variant.option1?.toLowerCase().includes(searchLower) ||
+          variant.option2?.toLowerCase().includes(searchLower) ||
+          variant.option3?.toLowerCase().includes(searchLower) ||
+          variant.sku.toLowerCase().includes(searchLower),
+      )
+    }
+
+    // Apply option filters
+    Object.entries(optionFilters).forEach(([optionId, filterValue]) => {
+      if (filterValue && filterValue !== "all") {
+        const option = options.find((o) => o.id === optionId)
+        if (option) {
+          filtered = filtered.filter((variant) => {
+            if (option.position === 1) return variant.option1 === filterValue
+            if (option.position === 2) return variant.option2 === filterValue
+            if (option.position === 3) return variant.option3 === filterValue
+            return true
+          })
+        }
+      }
+    })
+
+    return filtered
+  }, [variantCombinations, debouncedVariantSearch, optionFilters, options])
 
   // Paginate variants
   const paginatedVariants = useMemo(() => {
@@ -539,16 +569,22 @@ const updateVariantCombination = useCallback(
 
   const handleUpdateDepotPriority = useCallback(
     (index: number, priority: "principale" | "secondaire" | "tertiaire") => {
-      setProductDepots(
-        productDepots.map((pd, i) => {
+      setProductDepots((prevDepots) => {
+        const updatedDepots = prevDepots.map((pd, i) => {
           if (i === index) {
             return { ...pd, priority }
           }
           return pd
-        }),
-      )
+        })
+
+        // Sort depots so primary ones come first
+        return updatedDepots.sort((a, b) => {
+          const priorityOrder = { principale: 0, secondaire: 1, tertiaire: 2 }
+          return priorityOrder[a.priority] - priorityOrder[b.priority]
+        })
+      })
     },
-    [productDepots],
+    [],
   )
 
   const handleUpdateDepotQuantity = useCallback(
@@ -570,10 +606,25 @@ const updateVariantCombination = useCallback(
     setIsSaving(true)
 
     try {
+      // Sort depots by priority before saving
+      const sortedDepots = [...productDepots].sort((a, b) => {
+        const priorityOrder = { principale: 0, secondaire: 1, tertiaire: 2 }
+        return priorityOrder[a.priority] - priorityOrder[b.priority]
+      })
 
+      // Update each variant's depots array with sorted depots
+      const updatedVariantCombinations = variantCombinations.map((combo) => ({
+        ...combo,
+        depots: sortedDepots.map((depot) => ({
+          id: depot.id,
+          name: depot.name,
+          priority: depot.priority,
+          quantity: combo.depots?.find((d) => d.id === depot.id)?.quantity || 0,
+        })),
+      }))
 
       // Create images for each variant
-      const updatedImages: ProductImage[] = variantCombinations.map((combo, index) => {
+      const updatedImages: ProductImage[] = updatedVariantCombinations.map((combo, index) => {
         return {
           id: `img-${combo.id}`,
           src: combo.image,
@@ -583,7 +634,7 @@ const updateVariantCombination = useCallback(
         }
       })
 
-      // Create updated product
+      // Create updated product with new fields
       const updatedProduct: Product = {
         id: product.id || `product-${Date.now()}`,
         title: product.title,
@@ -592,50 +643,38 @@ const updateVariantCombination = useCallback(
         product_type: product.product_type,
         status: product.status,
         tags: product.tags,
-        variants: variantCombinations,
+        variants: updatedVariantCombinations,
         options: options,
         images: updatedImages,
         image: updatedImages[0],
-        depots: productDepots,
+        depots: sortedDepots,
+        canGoOutOfStock,
+        minimumAlertQuantity,
+        hasMultipleDepots,
       }
-      //console.log("upd",updatedVariants);
-      
-      //  Update products in context
+
+      // Update Firebase for each variant with sorted depots
       if (productId) {
-        // Update existing product
-    
-         for (const combo of variantCombinations) {
-      const variantRef = doc(
-        db,
-        "Products",
-        updatedProduct.id.toString(),
-        "variants",
-        combo.id.toString()
-      );
+        for (const combo of updatedVariantCombinations) {
+          const variantRef = doc(db, "Products", updatedProduct.id.toString(), "variants", combo.id.toString())
 
-      const variantSnap = await getDoc(variantRef);
-      if (!variantSnap.exists()) continue;
+          const variantSnap = await getDoc(variantRef)
+          if (!variantSnap.exists()) continue
 
-      const variantData = variantSnap.data();
-      const depots = Array.isArray(variantData.depots) ? [...variantData.depots] : [];
+          // Update variant with sorted depots (primary first)
+          await updateDoc(variantRef, {
+            depots: combo.depots,
+          })
+        }
 
-      if (depots.length > 0) {
-        depots[0].quantity = combo.depots?.[0]?.quantity ?? 0;
-
-        await updateDoc(variantRef, {
-          depots,
-        });
-      }
-    }
-   setProducts(products.map((p) => (p.id === productId ? updatedProduct : p)))
+        setProducts(products.map((p) => (p.id === productId ? updatedProduct : p)))
       } else {
-        // Add new product
         setProducts([...products, updatedProduct])
       }
 
       toast({
         title: "Product Saved",
-        description: `${product.title} has been saved successfully.`,
+        description: `${product.title} has been saved successfully with updated depot configuration.`,
       })
 
       onOpenChange(false)
@@ -730,10 +769,89 @@ const updateVariantCombination = useCallback(
                       onChange={(e) => handleInputChange("tags", e.target.value)}
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="canGoOutOfStock">Stock Management</Label>
+                      <Select
+                        value={canGoOutOfStock.toString()}
+                        onValueChange={(value) => setCanGoOutOfStock(value === "true")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select stock option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">Can go out of stock</SelectItem>
+                          <SelectItem value="false">Always in stock</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="minimumAlert">Minimum Alert Quantity</Label>
+                      <Input
+                        id="minimumAlert"
+                        type="number"
+                        min="0"
+                        placeholder="Enter minimum alert quantity"
+                        value={minimumAlertQuantity}
+                        onChange={(e) => setMinimumAlertQuantity(Number.parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="generalPrice">General Variants Price (applies to all variants)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="generalPrice"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={generalVariantPrice}
+                        onChange={(e) => setGeneralVariantPrice(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          if (generalVariantPrice && Number.parseFloat(generalVariantPrice) > 0) {
+                            setVariantCombinations((prev) =>
+                              prev.map((combo) => ({ ...combo, price: generalVariantPrice })),
+                            )
+                            toast({
+                              title: "Prices Updated",
+                              description: `All variant prices set to ${generalVariantPrice}`,
+                            })
+                          }
+                        }}
+                      >
+                        Apply to All Variants
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 <Separator />
 
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Depot Configuration</h3>
+                  <div className="space-y-2">
+                    <Label>Depot Setup</Label>
+                    <Select
+                      value={hasMultipleDepots.toString()}
+                      onValueChange={(value) => setHasMultipleDepots(value === "true")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select depot configuration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="false">Single Depot</SelectItem>
+                        <SelectItem value="true">Multiple Depots</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Separator />
                 {/* Depot Management Section - Simplified */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -907,7 +1025,48 @@ const updateVariantCombination = useCallback(
                       <TabsTrigger value="table">Table View</TabsTrigger>
                       <TabsTrigger value="individual">Individual View</TabsTrigger>
                     </TabsList>
+                    {/* Replace the TabsContent "table" section with this enhanced version that includes option filters: */}
                     <TabsContent value="table" className="space-y-4 pt-4">
+                      {/* Option Filters */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-medium">Filter by Options</h4>
+                          <Button type="button" variant="ghost" size="sm" onClick={clearAllFilters} className="text-xs">
+                            Clear All Filters
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {options.map((option) => (
+                            <div key={option.id} className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">{option.name}</Label>
+                              <Select
+                                value={optionFilters[option.id] || "all"}
+                                onValueChange={(value) =>
+                                  setOptionFilters((prev) => ({
+                                    ...prev,
+                                    [option.id]: value,
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="h-8">
+                                  <SelectValue placeholder={`All ${option.name}`} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All {option.name}</SelectItem>
+                                  {option.values.map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <Separator />
+
                       <div className="rounded-md border">
                         <Table>
                           <TableHeader>
@@ -925,8 +1084,11 @@ const updateVariantCombination = useCallback(
                           <TableBody>
                             {paginatedVariants.length === 0 ? (
                               <TableRow>
-                                <TableCell colSpan={options.length + 4} className="h-24 text-center">
-                                  No variants found.
+                                <TableCell colSpan={options.length + 5} className="h-24 text-center">
+                                  {Object.values(optionFilters).some((filter) => filter && filter !== "all") ||
+                                  debouncedVariantSearch
+                                    ? "No variants match the current filters."
+                                    : "No variants found."}
                                 </TableCell>
                               </TableRow>
                             ) : (
@@ -974,14 +1136,18 @@ const updateVariantCombination = useCallback(
                                     />
                                   </TableCell>
                                   <TableCell>
-                                   <Input
-  type="number"
-  value={combo?.depots?.[0]?.quantity ?? 0}
-  onChange={(e) =>
-    updateVariantCombination(combo.id, "depot_quantity", Number.parseInt(e.target.value))
-  }
-  className="w-16"
-/>
+                                    <Input
+                                      type="number"
+                                      value={combo?.depots?.[0]?.quantity ?? 0}
+                                      onChange={(e) =>
+                                        updateVariantCombination(
+                                          combo.id,
+                                          "depot_quantity",
+                                          Number.parseInt(e.target.value),
+                                        )
+                                      }
+                                      className="w-16"
+                                    />
                                   </TableCell>
                                   <TableCell>
                                     <Input
@@ -1025,7 +1191,7 @@ const updateVariantCombination = useCallback(
                       {totalVariantPages > 1 && (
                         <div className="flex items-center justify-between">
                           <div className="text-sm text-muted-foreground">
-                            Page {variantPage} of {totalVariantPages}
+                            Page {variantPage} of {totalVariantPages} ({filteredVariants.length} variants)
                           </div>
                           <div className="flex items-center space-x-2">
                             <Button
@@ -1109,14 +1275,14 @@ const updateVariantCombination = useCallback(
 
                             <div className="space-y-2">
                               <Label>Inventory Quantity</Label>
-                 <Input
-  type="number"
-  value={combo?.depots?.[0]?.quantity ?? 0}
-  onChange={(e) =>
-    updateVariantCombination(combo.id, "depot_quantity", Number.parseInt(e.target.value))
-  }
-  className="w-16"
-/>
+                              <Input
+                                type="number"
+                                value={combo?.depots?.[0]?.quantity ?? 0}
+                                onChange={(e) =>
+                                  updateVariantCombination(combo.id, "depot_quantity", Number.parseInt(e.target.value))
+                                }
+                                className="w-16"
+                              />
                             </div>
 
                             <div className="space-y-2">

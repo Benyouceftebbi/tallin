@@ -1445,4 +1445,25 @@ async function updateTrackingHistoryAuthors() {
   console.log("✅ Done updating relevant trackingHistory documents.");
 }
 
-updateTrackingHistoryAuthors();
+async function updateVariantPrices(productId) {
+  const productRef = db.collection('Products').doc(productId);
+  const variantsRef = productRef.collection('variants');
+
+  const snapshot = await variantsRef.get();
+
+  if (snapshot.empty) {
+    console.log(`No variants found for product ID: ${productId}`);
+    return;
+  }
+
+  const batch = db.batch();
+
+  snapshot.forEach(doc => {
+    const variantRef = doc.ref;
+    batch.update(variantRef, { price: "3200.00" });
+  });
+
+  await batch.commit();
+  console.log(`Updated prices of ${snapshot.size} variants to "3200.00"`);
+}
+//updateVariantPrices("9659388920086").catch(console.error);
