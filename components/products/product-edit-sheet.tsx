@@ -485,12 +485,16 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
           variant.sku.toLowerCase().includes(searchLower),
       )
     }
-
+    console.log(optionFilters);
+    
     // Apply option filters
     Object.entries(optionFilters).forEach(([optionId, filterValue]) => {
       if (filterValue && filterValue !== "all") {
-        const option = options.find((o) => o.id === optionId)
+        const option = options.find((o) => o.values.includes(filterValue))
+
+        
         if (option) {
+                  console.log("Filtering by option:", option);
           filtered = filtered.filter((variant) => {
             if (option.position === 1) return variant.option1 === filterValue
             if (option.position === 2) return variant.option2 === filterValue
