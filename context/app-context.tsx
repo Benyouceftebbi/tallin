@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import type { Pack } from "@/components/invoices/packs-management"
 import { db } from "@/lib/firebase"
-import { collection, collectionGroup, getDocs, onSnapshot } from "firebase/firestore"
+import { collection, collectionGroup, getDocs, limit, onSnapshot, query } from "firebase/firestore"
 
 // Types for Shopify-like product structure
 export type ProductOption = {
@@ -652,7 +652,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const loadData = async () => {
       try {
         // Fetch all products from the 'Products' collection
-        const productRef = collection(db, 'Products');
+        const productRef = query(collection(db, 'Products'),limit(10));
         const snapshot = await getDocs(productRef);
     
         // Array to hold the final inventory data
@@ -677,19 +677,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...productData,  // Spread the product data
             id: productId,   // Add the product ID
             variants, 
-            depots: [ {
-              id: "depot1",
-              name: "Dépôt A",
-              location: "Zone Industrielle, Alger",
-              manager: "Mohamed Ali",
-              capacity: "5000 m²",
-              status: "active",
-              priority: "principale",
-              quantity: 500,
-              productId: "prod1",
-              productName: "T-Shirt",
-            },
-            ],       // Add the variants array
+            depots: [],       // Add the variants array
           };
     
           // Push the combined product data and variants to the inventory

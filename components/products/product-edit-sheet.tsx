@@ -131,76 +131,14 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
   const [optionFilters, setOptionFilters] = useState<Record<string, string>>({})
 
   // State for depot management
-  const [productDepots, setProductDepots] = useState<ProductDepot[]>(existingProduct?.depots || [])
+  const [productDepots, setProductDepots] = useState<ProductDepot[]>(existingProduct?.variants[0].depots || [])
   const [isDepotsOpen, setIsDepotsOpen] = useState(false)
+console.log("pr",productDepots);
 
   // Loading state
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingVariants, setIsGeneratingVariants] = useState(false)
 
-  // Sample depots for demonstration
-  const [availableDepots, setAvailableDepots] = useState<Depot[]>([
-    {
-      id: "depot1",
-      name: "Dépôt A",
-      location: "Zone Industrielle, Alger",
-      manager: "Mohamed Ali",
-      capacity: "5000 m²",
-      status: "active",
-      priority: "principale",
-      quantity: 500,
-    },
-    {
-      id: "depot2",
-      name: "Dépôt B",
-      location: "Centre Ville, Oran",
-      manager: "Karim Benzema",
-      capacity: "2500 m²",
-      status: "active",
-      priority: "principale",
-      quantity: 300,
-    },
-    {
-      id: "depot3",
-      name: "Dépôt C",
-      location: "Port, Annaba",
-      manager: "Sofiane Feghouli",
-      capacity: "3000 m²",
-      status: "maintenance",
-      priority: "principale",
-      quantity: 400,
-    },
-    {
-      id: "depot4",
-      name: "Dépôt A2",
-      location: "Zone Industrielle, Alger",
-      manager: "Ahmed Benali",
-      capacity: "2000 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 200,
-    },
-    {
-      id: "depot5",
-      name: "Dépôt B2",
-      location: "Centre Ville, Oran",
-      manager: "Yacine Brahimi",
-      capacity: "1500 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 150,
-    },
-    {
-      id: "depot6",
-      name: "Dépôt C2",
-      location: "Port, Annaba",
-      manager: "Riyad Mahrez",
-      capacity: "1800 m²",
-      status: "active",
-      priority: "secondaire",
-      quantity: 180,
-    },
-  ])
 
   // Update product state when productId changes
   useEffect(() => {
@@ -426,13 +364,17 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
             if (!updatedDepots[0]) {
               updatedDepots[0] = { id: "default", quantity: value } // fallback if depot missing
             } else {
+              console.log("Updating depot quantity for combo:", combo.id, "to", value);
+              
               updatedDepots[0] = {
                 ...updatedDepots[0],
                 quantity: value,
               }
             }
+            // Update the first depot's quantity
 
-            return { ...combo, depots: updatedDepots }
+            
+            return { ...combo,quantity: value, depots: updatedDepots,"depot_quantity": value }
           }
 
           return { ...combo, [field]: value }
@@ -545,7 +487,7 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
       const newProductDepot: ProductDepot = {
         id: depot.id,
         name: depot.name,
-        priority: depot.priority || "principale",
+        priority: depot.priority ||depot.type || "principale",
         quantity: 0,
       }
 
@@ -615,6 +557,7 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
         const priorityOrder = { principale: 0, secondaire: 1, tertiaire: 2 }
         return priorityOrder[a.priority] - priorityOrder[b.priority]
       })
+console.log("sortedDepots", sortedDepots);
 
       // Update each variant's depots array with sorted depots
       const updatedVariantCombinations = variantCombinations.map((combo) => ({
@@ -622,8 +565,8 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
         depots: sortedDepots.map((depot) => ({
           id: depot.id,
           name: depot.name,
-          priority: depot.priority,
-          quantity: combo.depots?.find((d) => d.id === depot.id)?.quantity || 0,
+          priority: depot.priority || depot.type,
+          quantity: combo?.depots?.[0]?.quantity || 0,
         })),
       }))
 
@@ -651,15 +594,16 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
         options: options,
         images: updatedImages,
         image: updatedImages[0],
-        depots: sortedDepots,
         canGoOutOfStock,
         minimumAlertQuantity,
         hasMultipleDepots,
       }
 
       // Update Firebase for each variant with sorted depots
-      if (productId) {
+     if (productId) {
         for (const combo of updatedVariantCombinations) {
+          console.log("combo", combo);
+          
           const variantRef = doc(db, "Products", updatedProduct.id.toString(), "variants", combo.id.toString())
 
           const variantSnap = await getDoc(variantRef)
@@ -675,6 +619,7 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
       } else {
         setProducts([...products, updatedProduct])
       }
+console.log(updatedVariantCombinations[0],updatedVariantCombinations[1],updatedVariantCombinations[2]);
 
       toast({
         title: "Product Saved",
@@ -886,12 +831,12 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {productDepots.map((depot, index) => (
-                            <TableRow key={depot.id}>
-                              <TableCell className="font-medium">{depot.name}</TableCell>
+                          {productDepots?.map((depot, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{depot?.name}</TableCell>
                               <TableCell>
                                 <Select
-                                  value={depot.priority}
+                                  value={depot?.priority}
                                   onValueChange={(value) =>
                                     handleUpdateDepotPriority(index, value as "principale" | "secondaire" | "tertiaire")
                                   }
@@ -910,7 +855,7 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
                                 <Input
                                   type="number"
                                   min="0"
-                                  value={depot.quantity}
+                                  value={depot?.quantity}
                                   onChange={(e) =>
                                     handleUpdateDepotQuantity(index, Number.parseInt(e.target.value) || 0)
                                   }

@@ -740,7 +740,7 @@ useEffect(()=>{
 
 useEffect(() => {
   const ordersQuery = query(
-    collection(db, 'orders'),
+    collection(db, 'orders'),limit(10),
     orderBy('createdAt', 'desc')
   );
 
