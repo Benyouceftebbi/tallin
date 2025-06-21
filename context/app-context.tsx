@@ -666,7 +666,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const productId = productDoc.id;  // Get the product ID to query the variants subcollection
     
           // Fetch the variants subcollection for each product
-          const variantsRef = query(collection(db, 'Products', productId, 'variants'),limit(10));
+          const variantsRef = collection(db, 'Products', productId, 'variants');
           const variantsSnapshot = await getDocs(variantsRef);
     
           // Get all variants for this product
