@@ -568,7 +568,7 @@ const moveBack = useCallback(async () => {
 
       if (order) {
         // Vérifier si la commande a déjà été scannée
-        if (scannedOrders.some((o) => o.id === order.trackingId)) {
+        if (scannedOrders.some((o) => o.trackingId === order.trackingId)) {
           toast({
             title: "Commande déjà scannée",
             description: `La commande ${order.trackingId} a déjà été scannée dans cette session.`,
