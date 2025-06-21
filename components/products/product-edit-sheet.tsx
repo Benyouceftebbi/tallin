@@ -55,6 +55,7 @@ export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditS
     () => (productId ? products.find((p) => p.id === productId) : null),
     [productId, products],
   )
+console.log("existingProduct", existingProduct);
 
   // Initialize product state with data from context or empty values
   const [product, setProduct] = useState<{
@@ -615,9 +616,9 @@ console.log("sortedDepots", sortedDepots);
           })
         }
 
-        setProducts(products.map((p) => (p.id === productId ? updatedProduct : p)))
+        //setProducts(products.map((p) => (p.id === productId ? updatedProduct : p)))
       } else {
-        setProducts([...products, updatedProduct])
+        //setProducts([...products, updatedProduct])
       }
 console.log(updatedVariantCombinations[0],updatedVariantCombinations[1],updatedVariantCombinations[2]);
 
