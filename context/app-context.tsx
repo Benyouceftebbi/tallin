@@ -652,7 +652,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const loadData = async () => {
       try {
         // Fetch all products from the 'Products' collection
-        const productRef = query(collection(db, 'Products'),limit(10));
+        const productRef =collection(db, 'Products');
         const snapshot = await getDocs(productRef);
     
         // Array to hold the final inventory data
