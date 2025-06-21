@@ -20,6 +20,7 @@ import { useDebounce } from "@/hooks/use-debounce"
 import { type Depot, DepotsManagement } from "../invoices/depots-management"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { de } from "date-fns/locale"
 
 type VariantCombination = {
   id: string
@@ -49,41 +50,40 @@ interface ProductEditSheetProps {
 
 export function ProductEditSheet({ open, onOpenChange, productId }: ProductEditSheetProps) {
   const { products, setProducts } = useAppContext()
+const existingProduct = useMemo(
+  () => (productId ? products.find((p) => p.id === productId) : null),
+  [productId, products],
+)
 
-  // Find the product from the context if productId is provided
-  const existingProduct = useMemo(
-    () => (productId ? products.find((p) => p.id === productId) : null),
-    [productId, products],
-  )
-console.log("existingProduct", existingProduct);
+// Initialize product state
+const [product, setProduct] = useState<{
+  id: string
+  title: string
+  body_html: string
+  vendor: string
+  product_type: string
+  status: string
+  tags: string
+  depots?: ProductDepot[]
+}>({
+  id: "",
+  title: "",
+  body_html: "",
+  vendor: "",
+  product_type: "",
+  status: "active",
+  tags: "",
+  depots: [],
+})
 
-  // Initialize product state with data from context or empty values
-  const [product, setProduct] = useState<{
-    id: string
-    title: string
-    body_html: string
-    vendor: string
-    product_type: string
-    status: string
-    tags: string
-    depots?: ProductDepot[]
-  }>({
-    id: existingProduct?.id || "",
-    title: existingProduct?.title || "",
-    body_html: existingProduct?.body_html || "",
-    vendor: existingProduct?.vendor || "",
-    product_type: existingProduct?.product_type || "",
-    status: existingProduct?.status || "active",
-    tags: existingProduct?.tags || "",
-    depots: existingProduct?.depots || [],
-  })
 
-  // Add these new state variables after the existing product state
-  const [canGoOutOfStock, setCanGoOutOfStock] = useState<boolean>(existingProduct?.canGoOutOfStock ?? true)
-  const [minimumAlertQuantity, setMinimumAlertQuantity] = useState<number>(existingProduct?.minimumAlertQuantity ?? 10)
-  const [generalVariantPrice, setGeneralVariantPrice] = useState<string>(existingProduct?.variants[0]?.price ?? "0.00")
-  const [hasMultipleDepots, setHasMultipleDepots] = useState<boolean>((existingProduct?.depots?.length || 0) > 1)
-
+// Initialize other states
+const [canGoOutOfStock, setCanGoOutOfStock] = useState(true)
+const [minimumAlertQuantity, setMinimumAlertQuantity] = useState(10)
+const [generalVariantPrice, setGeneralVariantPrice] = useState("0.00")
+const [hasMultipleDepots, setHasMultipleDepots] = useState(false)
+const [variantCombinations, setVariantCombinations] = useState<VariantCombination[]>([])
+const [productDepots, setProductDepots] = useState<ProductDepot[]>([])
   // Initialize options state with data from product
   const [options, setOptions] = useState<ProductOption[]>(
     existingProduct?.options || [
@@ -95,77 +95,80 @@ console.log("existingProduct", existingProduct);
       },
     ],
   )
+// Refactored pure function
+const convertToVariantCombinations = useCallback((product: typeof existingProduct) => {
+  if (!product || !product.variants) return []
 
-  // Convert product variants to variant combinations format
-  const convertToVariantCombinations = useCallback(() => {
-    if (!existingProduct || !existingProduct.variants) return []
+  return product.variants.map((variant) => {
+    const variantImage = product.images.find((img) => img.variant_ids.includes(variant.id))
+    return {
+      id: variant.id,
+      option1: variant.option1,
+      option2: variant.option2,
+      option3: variant.option3,
+      price: variant.price,
+      inventory_quantity: variant.inventory_quantity,
+      sku: variant.sku,
+      image: variantImage?.src || "/placeholder.svg",
+      depots: variant.depots || [],
+    }
+  })
+}, [])
 
-    return existingProduct.variants.map((variant) => {
-      // Find the image for this variant
-      const variantImage = existingProduct.images.find((img) => img.variant_ids.includes(variant.id))
+// Update states when product is loaded
+useEffect(() => {
+  if (!existingProduct) return;
 
-      return {
-        id: variant.id,
-        option1: variant.option1,
-        option2: variant.option2,
-        option3: variant.option3,
-        price: variant.price,
-        inventory_quantity: variant.inventory_quantity,
-        sku: variant.sku,
-        image: variantImage?.src || "/placeholder.svg",
-      }
-    })
-  }, [existingProduct])
+  // Prevent re-setting state if it's already set to this product
+  if (existingProduct.id === product.id) return;
 
-  // Initialize variant combinations with data from product
-  const [variantCombinations, setVariantCombinations] = useState<VariantCombination[]>(
-    existingProduct ? convertToVariantCombinations() : [],
-  )
+  console.log("Loading existing product:", existingProduct);
 
-  // State for variant filtering and pagination
-  const [variantSearchTerm, setVariantSearchTerm] = useState("")
-  const debouncedVariantSearch = useDebounce(variantSearchTerm, 300)
-  const [variantPage, setVariantPage] = useState(1)
-  const variantsPerPage = 50
+  setProduct({
+    id: existingProduct.id,
+    title: existingProduct.title,
+    body_html: existingProduct.body_html,
+    vendor: existingProduct.vendor,
+    product_type: existingProduct.product_type,
+    status: existingProduct.status || "active",
+    tags: existingProduct.tags,
+    depots: existingProduct.depots || [],
+  });
 
-  // Add these state variables after the existing variant search and pagination state
-  const [optionFilters, setOptionFilters] = useState<Record<string, string>>({})
+  setCanGoOutOfStock(existingProduct.canGoOutOfStock ?? true);
+  setMinimumAlertQuantity(existingProduct.minimumAlertQuantity ?? 10);
+  setGeneralVariantPrice(existingProduct.variants?.[0]?.price ?? "0.00");
+  setHasMultipleDepots((existingProduct.depots?.length || 0) > 1);
+  setVariantCombinations(convertToVariantCombinations(existingProduct));
+  setProductDepots(existingProduct.variants?.[0]?.depots || []);
 
-  // State for depot management
-  const [productDepots, setProductDepots] = useState<ProductDepot[]>(existingProduct?.variants[0].depots || [])
+  setOptions(
+    existingProduct.options || {
+      id: `option-${Date.now()}-1`,
+      name: "Couleur",
+      position: 1,
+      values: ["Default"],
+    }
+  );
+}, [existingProduct]);
+
+
+// Variant filtering & pagination
+const [variantSearchTerm, setVariantSearchTerm] = useState("")
+const debouncedVariantSearch = useDebounce(variantSearchTerm, 300)
+const [variantPage, setVariantPage] = useState(1)
+const variantsPerPage = 50
+const [optionFilters, setOptionFilters] = useState<Record<string, string>>({})
   const [isDepotsOpen, setIsDepotsOpen] = useState(false)
-console.log("pr",productDepots);
+
 
   // Loading state
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingVariants, setIsGeneratingVariants] = useState(false)
 
 
-  // Update product state when productId changes
-  useEffect(() => {
-    if (productId) {
-      const product = products.find((p) => p.id === productId)
-      if (product) {
-        setProduct({
-          id: product.id,
-          title: product.title,
-          body_html: product.body_html,
-          vendor: product.vendor,
-          product_type: product.product_type,
-          status: product.status,
-          tags: product.tags,
-          depots: product.depots || [],
-          ...product,
-        })
-        setOptions(product.options)
-        setVariantCombinations(product.variants || [])
-        setProductDepots(product.depots || [])
-        setCanGoOutOfStock(product.canGoOutOfStock ?? true)
-        setMinimumAlertQuantity(product.minimumAlertQuantity ?? 10)
-        setHasMultipleDepots(product.hasMultipleDepots ?? (product.depots?.length || 0) > 1)
-      }
-    }
-  }, [productId, products, convertToVariantCombinations])
+
+
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -365,7 +368,7 @@ console.log("pr",productDepots);
             if (!updatedDepots[0]) {
               updatedDepots[0] = { id: "default", quantity: value } // fallback if depot missing
             } else {
-              console.log("Updating depot quantity for combo:", combo.id, "to", value);
+
               
               updatedDepots[0] = {
                 ...updatedDepots[0],
@@ -428,8 +431,7 @@ console.log("pr",productDepots);
           variant.sku.toLowerCase().includes(searchLower),
       )
     }
-    console.log(optionFilters);
-    
+
     // Apply option filters
     Object.entries(optionFilters).forEach(([optionId, filterValue]) => {
       if (filterValue && filterValue !== "all") {
@@ -437,7 +439,7 @@ console.log("pr",productDepots);
 
         
         if (option) {
-                  console.log("Filtering by option:", option);
+  
           filtered = filtered.filter((variant) => {
             if (option.position === 1) return variant.option1 === filterValue
             if (option.position === 2) return variant.option2 === filterValue
@@ -558,7 +560,7 @@ console.log("pr",productDepots);
         const priorityOrder = { principale: 0, secondaire: 1, tertiaire: 2 }
         return priorityOrder[a.priority] - priorityOrder[b.priority]
       })
-console.log("sortedDepots", sortedDepots);
+
 
       // Update each variant's depots array with sorted depots
       const updatedVariantCombinations = variantCombinations.map((combo) => ({
@@ -600,10 +602,11 @@ console.log("sortedDepots", sortedDepots);
         hasMultipleDepots,
       }
 
+
       // Update Firebase for each variant with sorted depots
      if (productId) {
         for (const combo of updatedVariantCombinations) {
-          console.log("combo", combo);
+
           
           const variantRef = doc(db, "Products", updatedProduct.id.toString(), "variants", combo.id.toString())
 
@@ -620,7 +623,7 @@ console.log("sortedDepots", sortedDepots);
       } else {
         //setProducts([...products, updatedProduct])
       }
-console.log(updatedVariantCombinations[0],updatedVariantCombinations[1],updatedVariantCombinations[2]);
+
 
       toast({
         title: "Product Saved",

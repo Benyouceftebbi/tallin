@@ -652,7 +652,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const loadData = async () => {
       try {
         // Fetch all products from the 'Products' collection
-        const productRef =collection(db, 'Products');
+        const productRef =
+        collection(db, 'Products')
+        ;
         const snapshot = await getDocs(productRef);
     
         // Array to hold the final inventory data
@@ -664,7 +666,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const productId = productDoc.id;  // Get the product ID to query the variants subcollection
     
           // Fetch the variants subcollection for each product
-          const variantsRef = collection(db, 'Products', productId, 'variants');
+          const variantsRef = query(collection(db, 'Products', productId, 'variants'),limit(10));
           const variantsSnapshot = await getDocs(variantsRef);
     
           // Get all variants for this product
