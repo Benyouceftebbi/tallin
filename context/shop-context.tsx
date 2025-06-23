@@ -356,15 +356,33 @@ const hasOtherConfirmedOrder = snapshot.docs.some((docSnap) => {
         finalUpdate.confirmationStatus = "Confirmé Double";
       }
     }
-    console.log("final",finalUpdate);
+       // 🛑 Check for rupture and override status if needed
+const hasRupture = updatedOrder.articles?.some((article) =>
+  article.isRepture
+);
+console.log("has", hasRupture);
+
+if (hasRupture) {
+  finalUpdate.ruptureStatus = true;
+  finalUpdate.status = "Repture"; // Force status to "Repture"
+}
+
+
+
+
+
+// ✅ Optional: Ensure "Repture" takes precedence
+if (finalUpdate.ruptureStatus) {
+  finalUpdate.status = "Repture";
+}
     
 
     // 🕒 Add/update updatedAt timestamp
-    await updateDoc(orderRef, {
+    
+        await updateDoc(orderRef, {
       ...finalUpdate,
       updatedAt: new Date(),
     });
-
     // 🔄 Update UI state
     setOrders((prev) =>
       prev.map((order) =>

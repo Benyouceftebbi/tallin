@@ -96,6 +96,13 @@ const sidebarLinks = [
             color: "text-rose-500",
            
           },
+               {
+             title: "Repture",
+            href: "/admin/commandes/repture",
+            icon: Clock,
+            color: "text-rose-500",
+           
+          },
       {
         title: "Annule",
         icon: PackageX,

@@ -352,7 +352,59 @@ exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", asy
   await batch.commit();
 });
 
+exports.onVariantQuantityChange = onDocumentUpdated(
+  "products/{productId}/variants/{variantId}",
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after) return;
 
+    const prevQty = before.depots?.[0]?.quantity ?? 0;
+    const newQty = after.depots?.[0]?.quantity ?? 0;
+
+    if (newQty <= prevQty || newQty <= 0) return;
+
+    const variantId = event.params.variantId;
+
+    // Get all orders with status "Repture"
+    const ordersSnap = await db
+      .collection("orders")
+      .where("status", "==", "Repture")
+      .get();
+
+    const batch = db.batch();
+
+    ordersSnap.forEach((doc) => {
+      const order = doc.data();
+      const updatedArticles = order.articles?.map((article) => {
+          const articleVariantId = String(article.variant_id); // ensure string comparison
+        if (
+        articleVariantId === variantId &&
+          article.quantity <= newQty &&
+          article.isRepture
+        ) {
+          article.isRepture = false;
+          return article;
+        }
+        return article;
+      });
+
+      const hadRepture = order.articles?.some((a) => a.isRepture);
+
+      // If the current order no longer has any isRepture items → update status
+      if (!hadRepture) {
+        batch.update(doc.ref, {
+          articles: updatedArticles,
+          status: "Confirmé",
+          ruptureStatus: false,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+    });
+
+    await batch.commit();
+  }
+);
 
 // Status mappings moved outside function for better performance
 const STATUS_MAPPINGS = {

@@ -328,11 +328,7 @@ export function OrderEditModal({ open, onOpenChange, order, isNew = false, confi
           ? (variant.depot[0]?.quantity ?? 0)
           : (variant.depot?.quantity ?? 0)
 
-        if (variant.quantity > availableStock && availableStock > 0) {
-          errors.push(
-            `Stock insuffisant pour ${article.name} (${variant.size}, ${variant.color}). Disponible: ${availableStock}, Demandé: ${variant.quantity}`,
-          )
-        }
+        
       })
     })
 
@@ -921,6 +917,9 @@ if (!formData.wilaya || !formData.wilayaCode || !formData.wilayaName) {
               (Array.isArray(variant.depot)
                 ? variant.depot[0]?.name
                 : variant.depot?.name),
+            isRepture: (Array.isArray(variant.depot)
+                ? variant.depot[0]?.quantity
+                : variant.depot?.quantity) < variant.quantity,
           }
         }),
       ),
@@ -943,15 +942,15 @@ if (!formData.wilaya || !formData.wilayaCode || !formData.wilayaName) {
         }),
       createdAt: isNew ? new Date() : updatedFormData.createdAt,
     }
-    console.log(updatedFormData);
-    
+    //console.log(updatedFormData);
+          console.log("aaaaaaa",enrichedFormData)
     if (isNew) {
       addOrder({
         ...enrichedFormData,
         confirmatrice: workerName ? workerName : "",
       })
   
-      console.log(enrichedFormData)
+
   
       toast({
         title: "Commande ajoutée",
