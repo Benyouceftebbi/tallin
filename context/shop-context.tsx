@@ -285,37 +285,43 @@ async function deleteDepot(id: string): Promise<void> {
   }
 }
 
-  const addOrder = async (order: Order) => {
-    try {
-      // Add timestamp if not provided
-      const orderWithTimestamp = {
-        ...order,
-        createdAt: order.createdAt || new Date(),
-        updatedAt: new Date(),
-      }
+const addOrder = async (order: Order) => {
+  try {
+    // Add timestamp
+    const now = new Date();
+    const orderWithTimestamp = {
+      ...order,
+      createdAt: order.createdAt || now,
+      updatedAt: now,
+    };
 
-      // Add to Firestore
-      const orderRef = collection(db, "orders")
-      const docRef = await addDoc(orderRef, orderWithTimestamp)
+    // Check if any article has isRepture: true
+    const hasRupture = orderWithTimestamp.articles?.some(
+      (article) => article.isRepture
+    );
 
-      // Add the document ID to the order object if it doesn't have one
-      const newOrder = {
-        ...orderWithTimestamp,
-        id:  docRef.id,
-        idd:  docRef.id, // Ensure id and idd are the same
-      }
-
-      // Update local state
-      //setOrders((prev) => [...prev, newOrder])
-
-      console.log(`Order added with ID: ${newOrder.id}`)
-      return newOrder.id
-    } catch (error) {
-      console.error("Error adding order:", error)
-      throw error
+    if (hasRupture) {
+      orderWithTimestamp.ruptureStatus = true;
+      orderWithTimestamp.status = "Repture";
     }
-  }
 
+    // Add to Firestore
+    const orderRef = collection(db, "orders");
+    const docRef = await addDoc(orderRef, orderWithTimestamp);
+
+    const newOrder = {
+      ...orderWithTimestamp,
+      id: docRef.id,
+      idd: docRef.id,
+    };
+
+    console.log(`✅ Order added with ID: ${newOrder.id}`);
+    return newOrder.id;
+  } catch (error) {
+    console.error("❌ Error adding order:", error);
+    throw error;
+  }
+};
 const updateOrder = async (id: string, updatedOrder: Partial<Order>) => {
   try {
     const orderRef = doc(db, "orders", id);
