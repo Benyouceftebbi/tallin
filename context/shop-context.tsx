@@ -1088,7 +1088,7 @@ const getOrdersByStatuss = (status: string, useFiltered = true) => {
     )
   }
 
-  return ordersToUse.filter(order => order.confirmationStatus === status)
+  return ordersToUse.filter(order => order.confirmationStatus === status || order.status === status)
 }
 
 const getConfirmationStatusCounts = (orders: any[]) => {

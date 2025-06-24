@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Clock, CheckCircle, Truck, Package, RotateCcw, TrendingUp, TrendingDown, CalendarClock, AlertTriangle, XCircle, Copy } from "lucide-react"
+import { Clock, CheckCircle, Truck, Package, RotateCcw, TrendingUp, TrendingDown, CalendarClock, AlertTriangle, XCircle, Copy, Ban } from "lucide-react"
 import { useShop } from "@/context/shop-context"
 
 const statusConfig = {
@@ -48,6 +48,13 @@ const statusConfig = {
     color: "bg-indigo-500",
     bgColor: "bg-indigo-500/10",
     borderColor: "border-indigo-500/20",
+  },
+    "Repture": {
+    label: "Repture",
+    icon: Ban, // You can replace this with any appropriate icon
+    color: "bg-orange-500",
+    bgColor: "bg-orange-500/10",
+    borderColor: "border-orange-500/20",
   },
 }
 

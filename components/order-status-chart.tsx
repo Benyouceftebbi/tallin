@@ -45,6 +45,7 @@ export function OrderStatusChart({ type = "area" }: OrderStatusChartProps) {
       { name: "En livraison", value: getOrdersByStatuss("En livraison").length, color: "#3b82f6" },
       { name: "Livré", value: getOrdersByStatuss("Livrés").length, color: "#10b981" },
       { name: "Retour", value: getOrdersByStatuss("Retour").length, color: "#ef4444" },
+      { name: "Repture", value: getOrdersByStatuss("Repture").length, color: "#ef4444" },
     ]
   }, [filteredOrders, loading, getOrdersByStatuss])
 
