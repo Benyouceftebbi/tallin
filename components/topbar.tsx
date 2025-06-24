@@ -16,6 +16,7 @@ import {
   Clock,
   Download,
   RefreshCw,
+  Ban,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -240,6 +241,16 @@ export function Topbar() {
       borderColor: "border-rose-800/30",
       hoverColor: "hover:border-rose-700",
     },
+            {
+      name: "Repture",
+      path: "/admin/commandes/repture",
+      count: statusCounts["Repture"] || 0,
+      icon:Ban,
+      color: "text-rose-500",
+      bgColor: "bg-rose-950/30",
+      borderColor: "border-rose-800/30",
+      hoverColor: "hover:border-rose-700",
+    },
   ]
 
   return (
@@ -284,6 +295,7 @@ export function Topbar() {
       Retour: "/admin/commandes/retour",
       "Reporté": "/admin/commandes/reporte",
        "Annulé": "/admin/commandes/annule",
+         "Repture": "/admin/commandes/repture",
     }
 
     const targetRoute =
@@ -349,6 +361,7 @@ export function Topbar() {
           order.status === "Retour" && "bg-rose-900 text-rose-300",
           order.status === "Reporté" && "bg-rose-900 text-rose-300",
           order.status === "Annulé" && "bg-red-900 text-red-300",
+            order.status === "Repture" && "bg-red-900 text-red-300",
         )}
       >
         {order.status}

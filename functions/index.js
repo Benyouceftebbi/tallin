@@ -6,7 +6,8 @@
  *
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
-const { onRequest,HttpsError,onCall } = require("firebase-functions/v2/https");
+const { onRequest, onCall } = require("firebase-functions/v2/https");
+const { HttpsError } = require("firebase-functions/v2");
 const { onDocumentCreated,onDocumentUpdated}=require("firebase-functions/v2/firestore") ;
 const logger = require("firebase-functions/logger");
 const { getFirestore }= require("firebase-admin/firestore");
@@ -351,9 +352,8 @@ exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", asy
 
   await batch.commit();
 });
-
-exports.onVariantQuantityChange = onDocumentUpdated(
-  "products/{productId}/variants/{variantId}",
+  exports.onVariantQuantityChange = onDocumentUpdated(
+  "Products/{productId}/variants/{variantId}",
   async (event) => {
     const before = event.data?.before.data();
     const after = event.data?.after.data();
@@ -397,7 +397,7 @@ exports.onVariantQuantityChange = onDocumentUpdated(
           articles: updatedArticles,
           status: "Confirmé",
           ruptureStatus: false,
-          updatedAt: FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
     });
@@ -405,6 +405,7 @@ exports.onVariantQuantityChange = onDocumentUpdated(
     await batch.commit();
   }
 );
+
 
 // Status mappings moved outside function for better performance
 const STATUS_MAPPINGS = {
@@ -838,70 +839,6 @@ exports.statusUpdate2 = onRequest(async (req, res) => {
 
 
 
-export const trackYalidineOrders = onCall(async ({data,auth}) => {
-  try {
-    const orders= data.orders;
-    const API_URL = "https://api.yalidine.app/v1/parcels"; // Adjust if different
-    if (!orders || !Array.isArray(orders)) {
-      throw new Error("Invalid orders array.");
-    }
-
-    const BATCH_SIZE = 50;
-    const ordersWithTracking = orders.filter(order => order.trackingId);
-
-    for (let i = 0; i < ordersWithTracking.length; i += BATCH_SIZE) {
-      const batch = ordersWithTracking.slice(i, i + BATCH_SIZE);
-
-      // Group by API credentials in case different orders use different keys
-      const groupedByApiKey = batch.reduce((acc, order) => {
-        const key = `${order.apiKey}:${order.apiToken}`;
-        acc[key] = acc[key] || [];
-        acc[key].push(order);
-        return acc;
-      }, {});
-
-      for (const key in groupedByApiKey) {
-        const [apiKey, apiToken] = key.split(":");
-        const group = groupedByApiKey[key];
-        const trackingParams = group.map(o => o.trackingId).join(",");
-
-        try {
-          const response = await axios.get(`${API_URL}?tracking=${trackingParams}`, {
-            headers: {
-              "X-API-ID": apiKey,
-              "X-API-TOKEN": apiToken,
-            },
-          });
-
-          const yalidineParcels = response.data.data;
-
-          for (const parcel of yalidineParcels) {
-            const translatedStatus = STATUS_TRANSLATIONS[parcel.last_status];
-            const originalOrder = group.find(o => o.trackingId === parcel.tracking);
-
-            if (!originalOrder) continue;
-
-            if (translatedStatus && translatedStatus !== originalOrder.lastStatus) {
-              console.log(`📦 Tracking ${parcel.tracking} changed: ${originalOrder.lastStatus} → ${translatedStatus}`);
-              // 👉 Do your update logic here (e.g., update Firestore)
-            } else {
-              console.log(`✅ Tracking ${parcel.tracking} is up to date.`);
-            }
-          }
-
-        } catch (err) {
-          console.error("❌ Error fetching Yalidine data:", err.response?.data || err.message);
-        }
-      }
-    }
-
-    return { success: true };
-
-  } catch (err) {
-    console.error("❌ Function error:", err);
-    throw new functions.https.HttpsError("internal", err.message);
-  }
-});
 
 
 
@@ -1260,3 +1197,4 @@ exports.onOrderStatusUnconfirmed =onDocumentUpdated("orders/{orderId}", async (e
     await batch.commit();
     console.log("✅ Depot quantities restored due to status reverting to en-attente");
   });
+  

@@ -27,6 +27,7 @@ import {
   FileText,
   BarChart2,
   LogOut,
+  Ban,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -99,7 +100,7 @@ const sidebarLinks = [
                {
              title: "Repture",
             href: "/admin/commandes/repture",
-            icon: Clock,
+            icon: Ban,
             color: "text-rose-500",
            
           },
@@ -216,6 +217,13 @@ const workersidebarLinks =  [
              title: "Reporté",
             href: "/worker/commandes/reporte",
             icon: Clock,
+            color: "text-rose-500",
+           
+          },
+            {
+             title: "Repture",
+            href: "/worker/commandes/repture",
+            icon: Ban,
             color: "text-rose-500",
            
           },

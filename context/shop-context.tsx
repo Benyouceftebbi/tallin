@@ -761,7 +761,6 @@ useEffect(()=>{
     unsubscribeDeliveryMen()
   }
 },[])
-
 useEffect(() => {
   const ordersQuery = query(
     collection(db, 'orders'),
@@ -771,30 +770,47 @@ useEffect(() => {
   const unsubscribe = onSnapshot(
     ordersQuery,
     (snapshot) => {
-      const addedOrders = snapshot.docChanges()
-        .filter(change => change.type === "added")
-        .map(change => ({
-          ...change.doc.data(),
-          id: change.doc.id,
-          idd: change.doc.data().id,
-        })) as Order[];
+      setOrders(prevOrders => {
+        let updatedOrders = [...prevOrders];
 
-      if (addedOrders.length > 0) {
-        setOrders(prev => {
-          // Merge and sort the result by createdAt descending
-          const merged = [...prev, ...addedOrders];
+        snapshot.docChanges().forEach(change => {
+          const newData = change.doc.data() as Order;
+          const docId = change.doc.id;
 
-          return merged.sort((a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
+          if (change.type === "added") {
+            const exists = updatedOrders.some(order => order.id === docId);
+            if (!exists) {
+              updatedOrders.push({ ...newData, id: docId });
+            }
+          }
+
+          if (change.type === "modified") {
+            const index = updatedOrders.findIndex(order => order.id === docId);
+            const previousOrder = updatedOrders[index];
+
+            if (
+              previousOrder?.status === "Repture" &&
+              newData.status === "Confirmé"
+            ) {
+              console.log("✅ Order", docId, "status changed from Repture to Confirmé");
+
+              // ✅ Only update if Repture -> Confirmé
+              updatedOrders[index] = { ...previousOrder, ...newData };
+            }
+
+            // ❌ Ignore all other modifications
+          }
         });
-      }
+
+        return updatedOrders.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
     },
     (error) => {
       console.error("Error with order listener:", error);
     }
   );
-  
 
   return () => unsubscribe();
 }, []);
