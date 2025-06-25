@@ -21,6 +21,7 @@ import { type Depot, DepotsManagement } from "../invoices/depots-management"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { de } from "date-fns/locale"
+import { generatePDF } from "./product"
 
 type VariantCombination = {
   id: string
@@ -968,7 +969,10 @@ const [optionFilters, setOptionFilters] = useState<Record<string, string>>({})
                       Add Variant
                     </Button>
                   </div>
-
+     <Button type="button" variant="outline" onClick={()=>generatePDF({name:product.title, variants:variantCombinations,option1:options[0].name,option2:options[1].name})} className="w-full mt-2">
+                  
+                      📄 Générer le PDF d'inventaire
+                    </Button>
                   <Tabs defaultValue="table" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="table">Table View</TabsTrigger>
