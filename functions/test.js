@@ -30,7 +30,7 @@ const addDepotsToBackend = async ()=> {
       priority: "principale",
       type: "principale",
       quantity: 500,
-      productId: "prod1",
+      product_id: "prod1",
       productName: "T-Shirt",
     },
     {
@@ -1145,7 +1145,7 @@ async function updateReturnedOrders() {
 }
 
 // Call the function
-updateReturnedOrders().catch(console.error);
+//updateReturnedOrders().catch(console.error);
 
 async function markDoubleConfirmedOrders() {
   const activeStatuses = ["Confirmé", "En préparation", "Dispatcher", "En livraison"]
@@ -1467,3 +1467,85 @@ async function updateVariantPrices(productId) {
   console.log(`Updated prices of ${snapshot.size} variants to "3200.00"`);
 }
 //updateVariantPrices("9659388920086").catch(console.error);
+async function checkAndConfirmOrders() {
+  const ordersSnap = await db.collection("orders").where("status", "==", "Repture").get();
+
+  if (ordersSnap.empty) {
+    console.log("No orders with status Repture.");
+    return;
+  }
+
+  for (const doc of ordersSnap.docs) {
+    const order = doc.data();
+    const orderId = doc.id;
+    const articles = order.articles || [];
+
+    let allArticlesHaveEnoughStock = true;
+    const variantRefs = [];
+    const stockDeductions = [];
+
+    // First pass: check all quantities
+    for (const article of articles) {
+      const { product_id, variant_id, quantity } = article;
+
+      if (!product_id || !variant_id || !quantity) {
+        allArticlesHaveEnoughStock = false;
+        break;
+      }
+
+      const variantRef = db
+        .collection("Products")
+        .doc(product_id)
+        .collection("variants")
+        .doc(String(variant_id));
+
+      const variantSnap = await variantRef.get();
+
+      if (!variantSnap.exists) {
+        allArticlesHaveEnoughStock = false;
+        break;
+      }
+
+      const variant = variantSnap.data();
+      const currentQty = variant.depots?.[0]?.quantity || 0;
+
+      if (currentQty < quantity) {
+        allArticlesHaveEnoughStock = false;
+        break;
+      }
+
+      variantRefs.push(variantRef);
+      stockDeductions.push({ quantityToDeduct: quantity });
+    }
+
+    // Second pass: confirm and deduct stock in transaction
+    if (allArticlesHaveEnoughStock) {
+      await db.runTransaction(async (transaction) => {
+        // Deduct stock from each variant
+        for (let i = 0; i < variantRefs.length; i++) {
+          const ref = variantRefs[i];
+          const snap = await transaction.get(ref);
+          const data = snap.data();
+          const currentQty = data.depots?.[0]?.quantity || 0;
+          const newQty = Math.max(currentQty - stockDeductions[i].quantityToDeduct, 0);
+
+          const updatedDepots = [...(data.depots || [])];
+          updatedDepots[0].quantity = newQty;
+
+          transaction.update(ref, { depots: updatedDepots });
+        }
+
+        // Update order status
+        transaction.update(db.collection("orders").doc(orderId), {
+          status: "Confirmé",
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+
+      console.log(`✅ Order ${orderId} confirmed and stock updated.`);
+    } else {
+      console.log(`❌ Order ${orderId} still has insufficient stock.`);
+    }
+  }
+}
+//checkAndConfirmOrders().catch(console.error);

@@ -856,15 +856,11 @@ const [optionFilters, setOptionFilters] = useState<Record<string, string>>({})
                                 </Select>
                               </TableCell>
                               <TableCell>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  value={depot?.quantity}
-                                  onChange={(e) =>
-                                    handleUpdateDepotQuantity(index, Number.parseInt(e.target.value) || 0)
-                                  }
-                                  className="w-20"
-                                />
+                               <span className="w-20 inline-block text-center">
+  {variantCombinations.reduce((total, variant) => {
+    return total + (variant.depots?.[0]?.quantity || 0);
+  }, 0)}
+</span>
                               </TableCell>
                               <TableCell>
                                 <Button
