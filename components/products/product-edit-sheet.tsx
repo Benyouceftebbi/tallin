@@ -969,7 +969,7 @@ const [optionFilters, setOptionFilters] = useState<Record<string, string>>({})
                       Add Variant
                     </Button>
                   </div>
-     <Button type="button" variant="outline" onClick={()=>generatePDF({name:product.title, variants:variantCombinations,option1:options[0].name,option2:options[1].name})} className="w-full mt-2">
+     <Button type="button" variant="outline" onClick={()=>generatePDF({productName:product.title,variantCombinations:variantCombinations,options:options})} className="w-full mt-2">
                   
                       📄 Générer le PDF d'inventaire
                     </Button>
