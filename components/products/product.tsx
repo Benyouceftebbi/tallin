@@ -4,10 +4,9 @@ import { format } from "date-fns";
 import autoTable from "jspdf-autotable";
 export const generatePDF = (product: {
   name: string;
-
   option1: string;
-  option2:string;
-  variants:any[];
+  option2: string;
+  variants: any[];
 }) => {
   const doc = new jsPDF({
     orientation: "portrait",
@@ -15,7 +14,7 @@ export const generatePDF = (product: {
     format: "a4",
   });
 
-  const currentDate = format(product.date ?? new Date(), "dd/MM/yyyy");
+  const currentDate = format(new Date(), "dd/MM/yyyy");
 
   let y = 30;
   doc.setFontSize(16);
@@ -28,14 +27,28 @@ export const generatePDF = (product: {
   doc.text(`Produit : ${product.name}`, 40, y);
   doc.text(`Date : ${currentDate}`, 400, y);
 
+  const headers = [["Couleur", "Taille", "Quantité", "Note"]];
 
-  // 📊 Table with note column empty
-  const headers = [[product.option1,product.option2, "Quantité", "Note"]];
-  const body = product.variants.map((v) => [
-    v.option1,
-    v.option2,
-    v.depots[0].quantity.toString(),
-    "", // Empty note field
+  // Extract and tag color vs other
+  const variantsWithColorSplit = product.variants.map((v) => {
+    const isColorOption1 = product.option1.toLowerCase().includes("couleur") || product.option1.toLowerCase().includes("color");
+    return {
+      color: isColorOption1 ? v.option1 : v.option2,
+      other: isColorOption1 ? v.option2 : v.option1,
+      quantity: v.depots?.[0]?.quantity ?? 0,
+    };
+  });
+
+  // Sort by color name
+  const sortedVariants = variantsWithColorSplit.sort((a, b) =>
+    a.color.localeCompare(b.color, "fr", { sensitivity: "base" })
+  );
+
+  const body = sortedVariants.map((v) => [
+    v.color || "-",
+    v.other || "-",
+    v.quantity.toString(),
+    "",
   ]);
 
   autoTable(doc, {
@@ -47,6 +60,5 @@ export const generatePDF = (product: {
     headStyles: { fillColor: [41, 128, 185], textColor: 255 },
   });
 
-  // Print instead of download
   window.open(doc.output("bloburl"), "_blank")?.print();
 };
