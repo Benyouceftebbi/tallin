@@ -39,6 +39,7 @@ import { auth, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { useAuth } from "@/context/auth-context"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
+import { generateRuptureReport } from "@/app/admin/commandes/repture/repturePdf"
 
 export function ReptureTable() {
   const {
@@ -435,7 +436,10 @@ useEffect(() => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
+    <Button type="button" variant="outline" onClick={()=>generateRuptureReport(filteredOrders)} className=" ">
+                  
+                      📄 Générer le PDF 
+                    </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
