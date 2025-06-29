@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import * as z from "zod"
 import { Facebook, Instagram, Trash2, PlusCircle, Upload, Phone, Loader2 } from "lucide-react"
+import { useEffect, type FC } from "react"
+import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -12,10 +14,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import type { FC } from "react"
+
+const variantSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number(),
+  color: z.string(),
+  size: z.string(),
+  imageUrl: z.string(),
+})
 
 const landingPageSchema = z.object({
   productId: z.string().min(1, "Please select a product."),
+  variants: z.array(variantSchema).optional(),
   boutiqueName: z.string().min(2, "Boutique name is required."),
   logoUrl: z.string().optional(),
   productTitle: z.string().min(5, "Product title is required."),
@@ -55,24 +66,34 @@ const landingPageSchema = z.object({
 
 type LandingPageFormValues = z.infer<typeof landingPageSchema>
 
+interface ProductVariant {
+  id: string
+  name: string
+  price: number
+  color: string
+  size: string
+  imageUrl: string
+}
+
 interface Product {
   id: string
   name: string
-  variants: { id: string; name: string; price: number }[]
+  variants: ProductVariant[]
 }
 
 interface LandingPageFormProps {
   products: Product[]
   initialData?: Partial<LandingPageFormValues>
-  onSave: (data: LandingPageFormValues) => Promise<void>
+  onSave: (data: any) => Promise<void>
   isSaving: boolean
 }
 
 export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialData, onSave, isSaving }) => {
-  const form = useForm<LandingPageFormValues>({
-    resolver: zodResolver(landingPageSchema),
+  const form = useForm<any>({
+    //resolver: zodResolver(landingPageSchema),
     defaultValues: initialData || {
       productId: "",
+      variants: initialData?.variants || [],
       boutiqueName: "",
       productTitle: "",
       slug: "",
@@ -84,6 +105,7 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
       facebookUrl: "",
       instagramUrl: "",
       whatsappNumber: "",
+         logoUrl: ""
     },
   })
 
@@ -91,33 +113,49 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
     fields: whyChooseUsFields,
     append: appendWhy,
     remove: removeWhy,
-  } = useFieldArray({
-    control: form.control,
-    name: "whyChooseUs",
-  })
+  } = useFieldArray({ control: form.control, name: "whyChooseUs" })
   const {
     fields: testimonialFields,
     append: appendTestimonial,
     remove: removeTestimonial,
-  } = useFieldArray({
-    control: form.control,
-    name: "testimonials",
-  })
+  } = useFieldArray({ control: form.control, name: "testimonials" })
   const {
     fields: faqFields,
     append: appendFaq,
     remove: removeFaq,
-  } = useFieldArray({
-    control: form.control,
-    name: "faqs",
-  })
+  } = useFieldArray({ control: form.control, name: "faqs" })
+
+  const watchedProductId = form.watch("productId")
+  const watchedVariants = form.watch("variants")
+
+  useEffect(() => {
+    if (watchedProductId) {
+      const selectedProduct = products.find((p) => p.id === watchedProductId)
+      if (selectedProduct) {
+        // Auto-populate fields based on selected product
+        form.setValue("variants", selectedProduct.variants)
+        form.setValue("productTitle", selectedProduct.title)
+        if (selectedProduct.variants.length > 0) {
+          const firstVariantPrice = selectedProduct.variants[0].price
+          form.setValue("priceAfter", firstVariantPrice)
+          // Set a default "before" price, e.g., 25% higher
+          form.setValue("priceBefore", Math.ceil(firstVariantPrice * 1.25))
+        }
+      }
+    } else {
+      // Clear fields if no product is selected
+      form.setValue("variants", [])
+      form.setValue("productTitle", "")
+      form.setValue("priceAfter", 0)
+      form.setValue("priceBefore", 0)
+    }
+  }, [watchedProductId, products, form])
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSave)} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* Product & Boutique Info */}
             <Card>
               <CardHeader>
                 <CardTitle>Boutique & Product Information</CardTitle>
@@ -138,7 +176,7 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
                         <SelectContent>
                           {products.map((product) => (
                             <SelectItem key={product.id} value={product.id}>
-                              {product.name}
+                              {product.title}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -147,6 +185,33 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
                     </FormItem>
                   )}
                 />
+
+                {watchedVariants && watchedVariants.length > 0 && (
+                  <div className="space-y-2 pt-4">
+                    <h4 className="text-sm font-medium text-foreground/80">Product Variants</h4>
+                    <Card>
+                      <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {watchedVariants.map((variant) => (
+                          <div key={variant.id} className="border rounded-lg p-3 flex items-center gap-3">
+                            <Image
+                              src={variant.imageUrl || "/placeholder.svg"}
+                              alt={variant.name}
+                              width={64}
+                              height={64}
+                              className="rounded-md aspect-square object-cover bg-muted"
+                            />
+                            <div className="text-sm">
+                              <p className="font-medium">{variant.title}</p>
+                              <p className="text-muted-foreground">{variant.option1}</p>
+                              <p className="text-muted-foreground"> {variant.option2}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
                 <FormField
                   control={form.control}
                   name="boutiqueName"
@@ -182,9 +247,7 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
                       <FormControl>
                         <Input placeholder="e.g., ultimate-comfort-tee" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        This will be the page URL: your-site.com/landing/<b>your-slug</b>
-                      </FormDescription>
+                      <FormDescription>This will be the page URL: your-site.com/landing/{field.value}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -220,7 +283,7 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
               </CardContent>
             </Card>
 
-            {/* Why Choose Us Section */}
+            {/* Other sections remain the same */}
             <Card>
               <CardHeader>
                 <CardTitle>Why Choose Us Section</CardTitle>
@@ -276,7 +339,6 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
               </CardContent>
             </Card>
 
-            {/* Testimonials Section */}
             <Card>
               <CardHeader>
                 <CardTitle>Testimonials Section</CardTitle>
@@ -358,7 +420,6 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
               </CardContent>
             </Card>
 
-            {/* FAQ Section */}
             <Card>
               <CardHeader>
                 <CardTitle>FAQ Section</CardTitle>
@@ -416,7 +477,6 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
           </div>
 
           <div className="lg:col-span-1 space-y-8">
-            {/* Social & Contact */}
             <Card>
               <CardHeader>
                 <CardTitle>Social & Contact</CardTitle>

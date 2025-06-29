@@ -1,14 +1,18 @@
 "use client"
 
 import { LandingPageForm } from "@/components/landing-page-form"
+import { useAppContext } from "@/context/app-context"
 import { useLandingPages } from "@/context/landing-pages-context"
 import { useState } from "react"
 
 export default function CreateLandingPage() {
-  const { products, addLandingPage } = useLandingPages()
+  const { addLandingPage } = useLandingPages()
+  const {products}=useAppContext()
   const [isSaving, setIsSaving] = useState(false)
 
   const handleSave = async (data: any) => {
+    console.log("fff", data);
+    
     setIsSaving(true)
     await addLandingPage(data)
     setIsSaving(false)

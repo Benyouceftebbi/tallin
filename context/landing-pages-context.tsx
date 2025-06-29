@@ -7,22 +7,66 @@ import { db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 
-// Mock product inventory - in a real app, this might also come from a database
+// Updated product inventory with more variant details
 const productInventory = [
   {
     id: "prod_1",
     name: "Classic Cotton Tee",
     variants: [
-      { id: "var_1a", name: "Red - S", price: 25.0 },
-      { id: "var_1b", name: "Red - M", price: 25.0 },
+      {
+        id: "var_1a",
+        name: "Red - S",
+        price: 25.0,
+        color: "Red",
+        size: "S",
+        imageUrl: "/placeholder.svg?width=100&height=100",
+      },
+      {
+        id: "var_1b",
+        name: "Red - M",
+        price: 25.0,
+        color: "Red",
+        size: "M",
+        imageUrl: "/placeholder.svg?width=100&height=100",
+      },
+      {
+        id: "var_1c",
+        name: "Blue - M",
+        price: 25.0,
+        color: "Blue",
+        size: "M",
+        imageUrl: "/placeholder.svg?width=100&height=100",
+      },
     ],
   },
   {
     id: "prod_2",
     name: "Aero-Boost X1 Sneakers",
     variants: [
-      { id: "var_2a", name: "Black - 9", price: 120.0 },
-      { id: "var_2b", name: "White - 9.5", price: 120.0 },
+      {
+        id: "var_2a",
+        name: "Black - 9",
+        price: 120.0,
+        color: "Black",
+        size: "9",
+        imageUrl: "/placeholder.svg?width=100&height=100",
+      },
+      {
+        id: "var_2b",
+        name: "White - 9.5",
+        price: 120.0,
+        color: "White",
+        size: "9.5",
+        imageUrl: "/placeholder.svg?width=100&height=100",
+      },
+      {
+        id: "var_2c",
+        name: "White - 10",
+        price: 120.0,
+        color: "White",
+        size: "10",
+        imageUrl: "/placeholder.svg?width=100&height=100",
+      },
     ],
   },
 ]
@@ -32,10 +76,19 @@ interface LandingPage {
   [key: string]: any
 }
 
+interface ProductVariant {
+  id: string
+  name: string
+  price: number
+  color: string
+  size: string
+  imageUrl: string
+}
+
 interface Product {
   id: string
   name: string
-  variants: { id: string; name: string; price: number }[]
+  variants: ProductVariant[]
 }
 
 interface LandingPagesContextType {
@@ -74,10 +127,11 @@ export const LandingPagesProvider: FC<{ children: ReactNode }> = ({ children }) 
       const landingPagesCollection = collection(db, "landingPages")
       await addDoc(landingPagesCollection, {
         ...data,
+        logoUrl:'test',
         createdAt: serverTimestamp(),
       })
       toast({ title: "Success", description: "Landing page created successfully." })
-      router.push("/dashboard/landing-pages")
+      router.push("/admin/landing-pages")
     } catch (error) {
       console.error("Error adding document: ", error)
       toast({
@@ -96,7 +150,7 @@ export const LandingPagesProvider: FC<{ children: ReactNode }> = ({ children }) 
         updatedAt: serverTimestamp(),
       })
       toast({ title: "Success", description: "Landing page updated successfully." })
-      router.push("/dashboard/landing-pages")
+      router.push("/admin/landing-pages")
     } catch (error) {
       console.error("Error updating document: ", error)
       toast({
