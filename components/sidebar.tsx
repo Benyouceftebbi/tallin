@@ -28,6 +28,7 @@ import {
   BarChart2,
   LogOut,
   Ban,
+  LayoutTemplate,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -159,6 +160,7 @@ const sidebarLinks = [
     icon: Settings,
     href: "/admin/parametres",
   },
+   { href: "/admin/landing-pages", title: "Landing Pages", icon: LayoutTemplate },
 ]
 const workersidebarLinks =  [
   {

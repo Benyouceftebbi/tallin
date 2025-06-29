@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SidebarProvider } from "@/context/sidebar-context"
 import { AppProvider } from "@/context/app-context"
 import { AuthProvider } from "@/context/auth-context"
+import { LandingPagesProvider } from "@/context/landing-pages-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,6 +27,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className={`${inter.className} bg-slate-900 text-slate-50`}>
         <AppProvider>
+            <LandingPagesProvider>
           <ShopProvider>
             <SidebarProvider>
               <div className="flex h-screen">
@@ -42,6 +44,7 @@ export default function RootLayout({
               </div>
             </SidebarProvider>
           </ShopProvider>
+           </LandingPagesProvider>
           </AppProvider>
 
       </body>

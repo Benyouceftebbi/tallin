@@ -1197,4 +1197,119 @@ exports.onOrderStatusUnconfirmed =onDocumentUpdated("orders/{orderId}", async (e
     await batch.commit();
     console.log("✅ Depot quantities restored due to status reverting to en-attente");
   });
-  
+  function formatWooAddress(address) {
+  if (!address) return undefined;
+
+  const parts = [
+    address.address_1,
+    address.address_2,
+    address.city,
+    address.state,
+    address.country
+  ].filter(Boolean);
+
+  return parts.join(', ');
+}
+
+  function convertWooOrderToCustomFormat(order) {
+  const rawProvince = order.billing?.city || order.shipping?.city || "";
+  const wilaya = extractWilayaFromProvince(rawProvince);
+ const wilayaNumber = order.billing?.state.split("-")[1];
+  const convertedOrder = {
+    id: order.number?.toString() || order.id?.toString() || "",
+    date: order.date_created?.split("T")[0] || "",
+    name: `${order.shipping?.first_name || ""} ${order.shipping?.last_name || ""}`.trim(),
+    phone: order.billing?.phone?.replace('+213', '0') || "",
+    articles: [],
+    wilaya: wilayaNumber || "",
+    commune: order.billing?.city || "",
+    deliveryType: order.shipping_lines?.[0]?.method_title?.includes("A Domicile") ? "domicile" : "stopdesk",
+    deliveryCompany: "",
+    deliveryCenter: "", // You can extract this from `method_title` with regex if needed
+    confirmationStatus: "En attente",
+    pickupPoint: "",
+    status: "en-attente", // WooCommerce doesn't have financial_status directly
+    deliveryPrice: order.shipping_total ? `${order.shipping_total} ${order.currency}` : undefined,
+    address: formatWooAddress(order.shipping),
+    additionalInfo: order.customer_note || "",
+    confirmatrice: "",
+    totalPrice: `${order.total} ${order.currency}`,
+    source: "WooCommerce",
+    statusHistory: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  // Line items to articles
+  for (const item of order.line_items || []) {
+    const option1 = item.meta_data?.find(meta => meta.display_key === "Couleur")?.display_value || null;
+    const option2 = item.meta_data?.find(meta => meta.display_key === "Pointure")?.display_value || null;
+
+    const article = {
+      product_id:"9604777640214",
+      product_name: item.parent_name,
+      variant_id: "48776763277590",
+      variant_title: `${item.parent_name} ${option1 || ""}, ${option2 || ""}`.trim(),
+      variant_options: {
+        option1,
+        option2,
+      },
+      quantity: item.quantity,
+      unit_price: item.price,
+      product_sku: item.sku || "",
+      variant_sku: item.sku || "",
+    };
+
+    convertedOrder.articles.push(article);
+  }
+
+  return convertedOrder;
+}
+
+exports.woocommerceWebhook =onRequest(async (req, res) => {
+  // Accept only POST requests
+  if (req.method !== "POST") {
+    return res.status(405).send("Method Not Allowed");
+  }
+
+  try {
+    const orderData = req.body;
+ let order =convertWooOrderToCustomFormat(orderData);
+    // Optional: Validate payload or verify WooCommerce signature here
+    const enrichedArticles = await Promise.all(
+      order.articles.map(async (article) => {
+        try {
+          const variantRef = db
+            .collection("Products")
+            .doc(article.product_id.toString())
+            .collection("variants")
+            .doc(article.variant_id.toString());
+
+          const variantSnap = await variantRef.get();
+
+          if (variantSnap.exists) {
+            const variantData = variantSnap.data();
+            if (Array.isArray(variantData.depots) && variantData.depots.length > 0) {
+              article.depot = variantData.depots[0];
+            }
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch depot for variant ${article.variant_id}:`, err);
+        }
+
+        return article;
+      })
+    );
+
+    order.articles = enrichedArticles;
+    // Save the data in Firestore under collection "WoocommerceOrders"
+    const docRef = await db.collection("orders").add(order);
+
+    console.log(`Saved WooCommerce order with ID: ${docRef.id}`);
+
+    return res.status(200).json({ status: "success", id: docRef.id });
+  } catch (error) {
+    console.error("Error saving WooCommerce order:", error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+});
