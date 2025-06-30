@@ -1,10 +1,10 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useFieldArray, useForm, useFormContext } from "react-hook-form"
 import * as z from "zod"
 import { Facebook, Instagram, Trash2, PlusCircle, Upload, Phone, Loader2 } from "lucide-react"
-import { useEffect, type FC } from "react"
+import { useEffect, useState, type FC } from "react"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { useToast } from "@/hooks/use-toast"
+import { uploadImage } from "@/app/admin/landing-pages/create/uploadImage"
 
 const variantSchema = z.object({
   id: z.string(),
@@ -87,7 +89,58 @@ interface LandingPageFormProps {
   onSave: (data: any) => Promise<void>
   isSaving: boolean
 }
+const ColorImageUploader: FC<{ colorIndex: number }> = ({ colorIndex }) => {
+  const { setValue, watch } = useFormContext<LandingPageFormValues>()
+  const { toast } = useToast()
+  const [isUploading, setIsUploading] = useState(false)
 
+  const imageUrl = watch(`colorImages.${colorIndex}.imageUrl`)
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+ const result = await uploadImage(file)
+ console.log("Upload result:", result);
+ 
+    if (result.url) {
+      setValue(`colorImages.${colorIndex}.imageUrl`, result.url, { shouldValidate: true, shouldDirty: true })
+      toast({ title: "Success", description: "Image uploaded successfully." })
+    } else {
+      toast({ title: "Error", description: result.error, variant: "destructive" })
+    }
+    setIsUploading(false)
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <Image
+        src={imageUrl || "/placeholder.svg?width=100&height=100"}
+        alt="Color image"
+        width={100}
+        height={100}
+        className="rounded-md aspect-square object-cover bg-muted border"
+      />
+      <Input
+        id={`color-upload-${colorIndex}`}
+        type="file"
+        className="hidden"
+        onChange={handleFileChange}
+        disabled={isUploading}
+        accept="image/*"
+      />
+      <Button asChild variant="outline" size="sm" disabled={isUploading} className="w-full bg-transparent">
+        <label htmlFor={`color-upload-${colorIndex}`} className="cursor-pointer">
+          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+          {isUploading ? "Uploading..." : "Change"}
+        </label>
+      </Button>
+    </div>
+  )
+}
 export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialData, onSave, isSaving }) => {
   const form = useForm<any>({
     //resolver: zodResolver(landingPageSchema),
@@ -124,7 +177,7 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
     append: appendFaq,
     remove: removeFaq,
   } = useFieldArray({ control: form.control, name: "faqs" })
-
+  const { fields: colorImageFields } = useFieldArray({ control: form.control, name: "colorImages" })
   const watchedProductId = form.watch("productId")
   const watchedVariants = form.watch("variants")
 
@@ -140,6 +193,13 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
           form.setValue("priceAfter", firstVariantPrice)
           // Set a default "before" price, e.g., 25% higher
           form.setValue("priceBefore", Math.ceil(firstVariantPrice * 1.25))
+            const uniqueColors = [...new Set(selectedProduct.variants.map((v) => v.option2))]
+        const currentColorImages = form.getValues("colorImages") || []
+        const newColorImages = uniqueColors.map((color) => {
+          const existing = currentColorImages.find((ci) => ci.color === color)
+          return existing || { color, imageUrl: "" }
+        })
+        form.setValue("colorImages", newColorImages)
         }
       }
     } else {
@@ -185,7 +245,21 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
                     </FormItem>
                   )}
                 />
-
+                {colorImageFields.length > 0 && (
+                  <div className="space-y-2 pt-4">
+                    <h4 className="text-sm font-medium text-foreground/80">Product Color Images</h4>
+                    <Card>
+                      <CardContent className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {colorImageFields.map((field, index) => (
+                          <div key={field.id} className="border rounded-lg p-3 flex flex-col gap-2 text-center">
+                            <p className="font-medium text-sm">{field.color}</p>
+                            <ColorImageUploader colorIndex={index} />
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
                 {watchedVariants && watchedVariants.length > 0 && (
                   <div className="space-y-2 pt-4">
                     <h4 className="text-sm font-medium text-foreground/80">Product Variants</h4>
@@ -193,13 +267,7 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
                       <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {watchedVariants.map((variant) => (
                           <div key={variant.id} className="border rounded-lg p-3 flex items-center gap-3">
-                            <Image
-                              src={variant.imageUrl || "/placeholder.svg"}
-                              alt={variant.name}
-                              width={64}
-                              height={64}
-                              className="rounded-md aspect-square object-cover bg-muted"
-                            />
+                        
                             <div className="text-sm">
                               <p className="font-medium">{variant.title}</p>
                               <p className="text-muted-foreground">{variant.option1}</p>
