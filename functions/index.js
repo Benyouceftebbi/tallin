@@ -421,7 +421,7 @@ exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", asy
 
   await batch.commit();
 });
-  exports.onVariantQuantityChange = onDocumentUpdated(
+exports.onVariantQuantityChange = onDocumentUpdated(
   "Products/{productId}/variants/{variantId}",
   async (event) => {
     const before = event.data?.before.data();
@@ -429,39 +429,45 @@ exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", asy
     if (!before || !after) return;
 
     const prevQty = before.depots?.[0]?.quantity ?? 0;
-    const newQty = after.depots?.[0]?.quantity ?? 0;
+    let availableQty = after.depots?.[0]?.quantity ?? 0;
 
-    if (newQty <= prevQty || newQty <= 0) return;
+    if (availableQty <= prevQty || availableQty <= 0) return;
 
     const variantId = event.params.variantId;
+    const variantRef = event.data.after.ref;
 
-    // Get all orders with status "Repture"
     const ordersSnap = await db
       .collection("orders")
       .where("status", "==", "Repture")
       .get();
 
     const batch = db.batch();
+    let totalDeducted = 0;
 
-    ordersSnap.forEach((doc) => {
+    for (const doc of ordersSnap.docs) {
       const order = doc.data();
+      let changed = false;
+
       const updatedArticles = order.articles?.map((article) => {
-          const articleVariantId = String(article.variant_id); // ensure string comparison
+        const articleVariantId = String(article.variant_id);
+
         if (
-        articleVariantId === variantId &&
-          article.quantity <= newQty &&
-          article.isRepture
+          articleVariantId === variantId &&
+          article.isRepture &&
+          article.quantity <= availableQty
         ) {
+          availableQty -= article.quantity;
+          totalDeducted += article.quantity;
           article.isRepture = false;
-          return article;
+          changed = true;
         }
+
         return article;
       });
 
-      const hadRepture = order.articles?.some((a) => a.isRepture);
+      const stillHasRepture = updatedArticles.some((a) => a.isRepture);
 
-      // If the current order no longer has any isRepture items → update status
-      if (!hadRepture) {
+      if (changed && !stillHasRepture) {
         batch.update(doc.ref, {
           articles: updatedArticles,
           status: "Confirmé",
@@ -469,7 +475,24 @@ exports.handleAchatInvoiceUpdate = onDocumentUpdated("invoices/{invoiceId}", asy
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
-    });
+
+      if (availableQty <= 0) break; // stop if no more stock
+    }
+
+    // ✅ Deduct total used quantity from variant
+    if (totalDeducted > 0) {
+      const updatedDepots = [...after.depots];
+      updatedDepots[0].quantity = Math.max(0, updatedDepots[0].quantity - totalDeducted);
+
+      batch.update(variantRef, {
+        depots: updatedDepots,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log(
+        `✅ Deducted ${totalDeducted} from variant ${variantId} after confirming orders.`
+      );
+    }
 
     await batch.commit();
   }
@@ -1315,6 +1338,7 @@ exports.onOrderStatusUnconfirmed =onDocumentUpdated("orders/{orderId}", async (e
     const option2 = item.meta_data?.find(meta => meta.display_key === "Pointure")?.display_value || null;
 
     const article = {
+      woocommerceId: item.product_id,
       product_id:"9604777640214",
       product_name: item.parent_name,
       variant_id: "48776763277590",
@@ -1348,19 +1372,24 @@ exports.woocommerceWebhook =onRequest(async (req, res) => {
     const enrichedArticles = await Promise.all(
       order.articles.map(async (article) => {
         try {
-          const variantRef = db
-            .collection("Products")
-            .doc(article.product_id.toString())
-            .collection("variants")
-            .doc(article.variant_id.toString());
+        const variantsSnap = db
+          .collection("Products")
+          .doc(productDoc.id)
+          .collection("variants")
+          .where("woocommerceId", "==", article.woocommerceId)
+          .limit(1)
+     
 
-          const variantSnap = await variantRef.get();
 
-          if (variantSnap.exists) {
-            const variantData = variantSnap.data();
+          const variantSnap = await variantsSnap.get();
+
+          if (!variantSnap.empty) {
+            const variantData = variantSnap.docs[0].data();
             if (Array.isArray(variantData.depots) && variantData.depots.length > 0) {
               article.depot = variantData.depots[0];
             }
+              article.product_id = matchedProductId;
+              article.variant_id = matchedVariant.id;
           }
         } catch (err) {
           console.warn(`Failed to fetch depot for variant ${article.variant_id}:`, err);

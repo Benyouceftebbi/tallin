@@ -380,7 +380,7 @@ useEffect(() => {
 
 
 
-  <OrderEditModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} order={editingOrder} confirm={true} />
+  <OrderEditModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} order={editingOrder}  />
       {/* Barre d'outils */}
             <Dialog open={isConfirmatriceModalOpen} onOpenChange={setIsConfirmatriceModalOpen}>
         <DialogContent className="bg-slate-900 border-slate-800">

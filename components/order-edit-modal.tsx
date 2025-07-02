@@ -2037,6 +2037,30 @@ if (!formData.wilaya || !formData.wilayaCode || !formData.wilayaName) {
             )}
           </div>
         )}
+        {formData.confirmationStatus === "Annulé" && (
+  <div className="space-y-2">
+    <Label htmlFor="annulationStatus" className="text-slate-200">
+      Motif d’annulation
+    </Label>
+    <select
+      id="annulationStatus"
+      value={formData.annulationStatus || ""}
+      onChange={(e) => handleChange("annulationStatus", e.target.value)}
+      className="w-full bg-slate-800/50 border border-slate-700 text-slate-100 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
+    >
+      <option value="">Sélectionner un motif</option>
+      <option value="Annulé par le client">Annulé par le client</option>
+      <option value="Mauvais numéro">Mauvais numéro</option>
+      <option value="Ne répond pas">Ne répond pas</option>
+      <option value="Rupture">Rupture</option>
+    </select>
+    {formData.annulationStatus && (
+      <p className="text-sm text-slate-400">
+        Annulé pour: <span className="font-medium">{formData.annulationStatus}</span>
+      </p>
+    )}
+  </div>
+)}
             </div>
           </div>
         </div>
