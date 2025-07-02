@@ -349,7 +349,31 @@ useEffect(() => {
       </div>
     )
   }
-
+  const moveBack = useCallback(() => {
+    if (selectedRows.length === 0) {
+      toast({
+        title: "Aucune commande sélectionnée",
+        description: "Veuillez sélectionner au moins une commande à déplacer.",
+        variant: "destructive",
+      })
+      return
+    }
+    if (selectedRows.length > 1) {
+      toast({
+        title: "Plus d une commande sélectionnée",
+        description: "Veuillez sélectionner une seul commande à déplacer.",
+        variant: "destructive",
+      })
+      return
+    }
+    updateMultipleOrdersStatus(selectedRows, "en-attente")
+    //updateMultipleOrdersStatustoEnAttente(selectedRows,"a modifier")
+    toast({
+      title: "Commandes déplacées",
+      description: `${selectedRows.length} commande(s) déplacée(s) vers "Confirmés".`,
+    })
+    setSelectedRows([])
+  }, [selectedRows, updateMultipleOrdersStatus])
   return (
     <div className="space-y-4">
       <Toaster />
@@ -416,7 +440,25 @@ useEffect(() => {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-
+        <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={moveBack}
+                    disabled={selectedRows.length === 0 || selectedRows.length > 1}
+                    className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700"
+                  >
+                    <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+                    <span>En attente</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Déplacer les commandes sélectionnées vers "En attente"</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -205,6 +205,75 @@ exports.shopifyOrderCreated = onRequest(async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+exports.landingPageOrderCreated = onRequest(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  try {
+      const { orderData } = req.body
+      let order=orderData
+    logger.info("Order received", orderData);
+
+    const normalizedPhone = order.phone?.trim();
+
+    // Check for duplicate orders
+    const duplicateQuerySnapshot = await db.collection("orders")
+      .where("phone", "==", normalizedPhone)
+      .where("status", "==", "en-attente")
+      .limit(1)
+      .get();
+
+    if (!duplicateQuerySnapshot.empty) {
+      order.confirmationStatus = "Double";
+    }
+
+    // Enrich each article with depot info
+    const enrichedArticles = await Promise.all(
+      order.articles.map(async (article) => {
+        try {
+          const variantRef = db
+            .collection("Products")
+            .doc(article.product_id.toString())
+            .collection("variants")
+            .doc(article.variant_id.toString());
+
+          const variantSnap = await variantRef.get();
+
+          if (variantSnap.exists) {
+            const variantData = variantSnap.data();
+            if (Array.isArray(variantData.depots) && variantData.depots.length > 0) {
+              article.depot = variantData.depots[0];
+            }
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch depot for variant ${article.variant_id}:`, err);
+        }
+
+        return article;
+      })
+    );
+
+    order.articles = enrichedArticles;
+
+    // 🧠 Generate order reference based on depot info in articles
+    const depots = enrichedArticles
+      .map((a) => a.depot)
+      .filter((d) => d && d.id); // Filter valid depots
+
+    order.orderReference = generateReferenceFromDepots(depots);
+
+    // Save to Firestore
+    await db.collection("Orders").add(orderData); // raw Shopify order
+    await db.collection("orders").add(order);     // enriched internal order
+
+     return res.status(200).send({ success: true })
+  } catch (error) {
+    logger.error("Error storing order", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
 exports.handleAchatInvoices = onDocumentCreated("invoices/{invoiceId}", async (event) => {
   const snapshot = event.data;
   if (!snapshot) return;
