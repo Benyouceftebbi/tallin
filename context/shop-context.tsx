@@ -368,7 +368,7 @@ const hasRupture = updatedOrder.articles?.some((article) =>
 );
 console.log("has", hasRupture);
 
-if (hasRupture) {
+if (hasRupture && (finalUpdate.confirmationStatus === "Confirmé Double" || finalUpdate.confirmationStatus === "Confirmé")) {
   finalUpdate.ruptureStatus = true;
   finalUpdate.status = "Repture"; // Force status to "Repture"
 }
