@@ -115,6 +115,13 @@ const TableRow = memo(
     const [noteStatus, setNoteStatus] = useState<string>("")
     const [noteOrderId, setNoteOrderId] = useState<string>("")
     const [noteText, setNoteText] = useState<string>("")
+  const [annulationReason, setAnnulationReason] = useState("");
+
+    useEffect(() => {
+      if (noteStatus === "Annulé") {
+        setNoteText(annulationReason);
+      }
+    }, [annulationReason, noteStatus]);
 
     return (
       <tr
@@ -490,13 +497,28 @@ const TableRow = memo(
           </div>
         </td>
         {/* Note Dialog */}
-        <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-          <DialogContent className="bg-slate-900 border-slate-800">
+    <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Ajouter une note</DialogTitle>
-              <DialogDescription>Ajouter une note pour le statut "{noteStatus}"</DialogDescription>
+              <DialogDescription>
+                Ajouter une note pour le statut "{noteStatus}"
+              </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
+            <div className="py-4 space-y-4">
+              {noteStatus === "Annulé" && (
+                <select
+                  value={annulationReason}
+                  onChange={(e) => setAnnulationReason(e.target.value)}
+                  className="w-full p-2 bg-slate-800 border border-slate-700 rounded text-slate-200"
+                >
+                  <option value="">Sélectionner un motif</option>
+                  <option value="Annulé par le client">Annulé par le client</option>
+                  <option value="Mauvais numéro">Mauvais numéro</option>
+                  <option value="Ne répond pas">Ne répond pas</option>
+                  <option value="Rupture">Rupture</option>
+                </select>
+              )}
               <textarea
                 className="w-full h-24 p-2 bg-slate-800 border border-slate-700 rounded-md text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="Entrez votre note ici..."
@@ -508,8 +530,9 @@ const TableRow = memo(
               <Button
                 variant="outline"
                 onClick={() => {
-                  setNoteDialogOpen(false)
-                  setNoteText("")
+                  setNoteDialogOpen(false);
+                  setNoteText("");
+                  setAnnulationReason("");
                 }}
               >
                 Annuler
@@ -517,38 +540,30 @@ const TableRow = memo(
               <Button
                 onClick={() => {
                   if (noteText.trim()) {
-                    // Add note to status history
                     const newStatusEntry = {
                       status: noteStatus,
                       note: noteText.trim(),
                       timestamp: new Date().toLocaleString(),
                       changedBy: workerName || "Système",
-                    }
-
+                    };
                     const updatedHistory = order.statusHistory
                       ? [...order.statusHistory, newStatusEntry]
-                      : [newStatusEntry]
-
-                    // Update both the status and the history
-                    updateOrder(noteOrderId, {
-                      confirmationStatus: noteStatus as ConfirmationStatus,
-                      statusHistory: updatedHistory,
-                    })
-
+                      : [newStatusEntry];
+                   
                     toast({
                       title: "Statut mis à jour avec note",
                       description: `Le statut a été changé en "${noteStatus}" avec une note.`,
-                    })
+                    });
                   } else {
-                    // If no note, just update the status
-                    updateConfirmationStatus(noteOrderId, noteStatus as ConfirmationStatus)
+                    
                     toast({
                       title: "Statut mis à jour",
                       description: `Le statut a été changé en "${noteStatus}".`,
-                    })
+                    });
                   }
-                  setNoteDialogOpen(false)
-                  setNoteText("")
+                  setNoteDialogOpen(false);
+                  setNoteText("");
+                  setAnnulationReason("");
                 }}
                 className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500"
               >

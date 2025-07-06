@@ -14,13 +14,26 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useLandingPages } from "@/context/landing-pages-context"
+import { useShop } from "@/context/shop-context"
+import { useMemo } from "react"
 
 export default function LandingPagesDashboard() {
   const { landingPages, deleteLandingPage, loading } = useLandingPages()
-
+  const {orders}=useShop()
   const handleDelete = (id: string) => {
     deleteLandingPage(id)
   }
+  const ordersBySlug = useMemo(() => {
+  const grouped: Record<string, number> = {}
+
+  for (const order of orders) {
+    if (order.slug) {
+      grouped[order.slug] = (grouped[order.slug] || 0) + 1
+    }
+  }
+
+  return grouped
+}, [orders])
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
@@ -53,6 +66,7 @@ export default function LandingPagesDashboard() {
                   <TableHead>URL</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="hidden md:table-cell">Created at</TableHead>
+                  <TableHead className="hidden md:table-cell">Commandes</TableHead>
                   <TableHead>
                     <span className="sr-only">Actions</span>
                   </TableHead>
@@ -79,6 +93,9 @@ export default function LandingPagesDashboard() {
                     <TableCell className="hidden md:table-cell">
                       {page.createdAt?.toDate().toLocaleDateString()}
                     </TableCell>
+                    <TableCell className="hidden md:table-cell">
+  {ordersBySlug[page.slug] || 0}
+</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

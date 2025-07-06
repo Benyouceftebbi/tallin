@@ -1369,35 +1369,71 @@ exports.woocommerceWebhook =onRequest(async (req, res) => {
     const orderData = req.body;
  let order =convertWooOrderToCustomFormat(orderData);
     // Optional: Validate payload or verify WooCommerce signature here
-    const enrichedArticles = await Promise.all(
-      order.articles.map(async (article) => {
-        try {
-        const variantsSnap = db
+const enrichedArticles = await Promise.all(
+  order.articles.map(async (article) => {
+    try {
+      const option1 = article.variant_options?.option1 || "";
+      const option2 = article.variant_options?.option2 || "";
+
+      // 1. Find the matching product
+      const productSnap = await db
+        .collection("Products")
+        .where("woocommerceId", "==", article.woocommerceId)
+        .limit(1)
+        .get();
+
+      if (productSnap.empty) return article;
+
+      const productDoc = productSnap.docs[0];
+      const productId = productDoc.id;
+
+      let matchedVariantDoc = null;
+
+      // 2. Try exact match: option1 == A && option2 == B
+      const exactSnap = await db
+        .collection("Products")
+        .doc(productId)
+        .collection("variants")
+        .where("option1", "==", option1)
+        .where("option2", "==", option2)
+        .limit(1)
+        .get();
+
+      if (!exactSnap.empty) {
+        matchedVariantDoc = exactSnap.docs[0];
+      } else {
+        // 3. Try reversed: option1 == B && option2 == A
+        const reversedSnap = await db
           .collection("Products")
-          .doc(productDoc.id)
+          .doc(productId)
           .collection("variants")
-          .where("woocommerceId", "==", article.woocommerceId)
+          .where("option1", "==", option2)
+          .where("option2", "==", option1)
           .limit(1)
-     
+          .get();
 
+        if (!reversedSnap.empty) {
+          matchedVariantDoc = reversedSnap.docs[0];
+        }
+      }
 
-          const variantSnap = await variantsSnap.get();
+      if (matchedVariantDoc) {
+        const variantData = matchedVariantDoc.data();
 
-          if (!variantSnap.empty) {
-            const variantData = variantSnap.docs[0].data();
-            if (Array.isArray(variantData.depots) && variantData.depots.length > 0) {
-              article.depot = variantData.depots[0];
-            }
-              article.product_id = matchedProductId;
-              article.variant_id = matchedVariant.id;
-          }
-        } catch (err) {
-          console.warn(`Failed to fetch depot for variant ${article.variant_id}:`, err);
+        if (Array.isArray(variantData.depots) && variantData.depots.length > 0) {
+          article.depot = variantData.depots[0];
         }
 
-        return article;
-      })
-    );
+        article.product_id = productId;
+        article.variant_id = matchedVariantDoc.id;
+      }
+    } catch (err) {
+      console.warn(`⚠️ Failed to enrich article ${article.woocommerceId}:`, err);
+    }
+
+    return article;
+  })
+);
 
     order.articles = enrichedArticles;
     // Save the data in Firestore under collection "WoocommerceOrders"
