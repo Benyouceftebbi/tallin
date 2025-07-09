@@ -181,36 +181,47 @@ export const LandingPageForm: FC<LandingPageFormProps> = ({ products, initialDat
   const watchedProductId = form.watch("productId")
   const watchedVariants = form.watch("variants")
 
-  useEffect(() => {
-    if (watchedProductId) {
-      const selectedProduct = products.find((p) => p.id === watchedProductId)
-      if (selectedProduct) {
-        // Auto-populate fields based on selected product
-        form.setValue("variants", selectedProduct.variants)
-        form.setValue("productTitle", selectedProduct.title)
-        if (selectedProduct.variants.length > 0) {
-          const firstVariantPrice = selectedProduct.variants[0].price
-          form.setValue("priceAfter", firstVariantPrice)
-          // Set a default "before" price, e.g., 25% higher
-          form.setValue("priceBefore", Math.ceil(firstVariantPrice * 1.25))
-            const uniqueColors = [...new Set(selectedProduct.variants.map((v) => v.option2))]
-        const currentColorImages = form.getValues("colorImages") || []
-        const newColorImages = uniqueColors.map((color) => {
-          const existing = currentColorImages.find((ci) => ci.color === color)
-          return existing || { color, imageUrl: "" }
-        })
-        form.setValue("colorImages", newColorImages)
+ useEffect(() => {
+  if (watchedProductId) {
+    const selectedProduct = products.find((p) => p.id === watchedProductId)
+    if (selectedProduct) {
+      form.setValue("variants", selectedProduct.variants)
+      form.setValue("productTitle", selectedProduct.title)
+
+      if (selectedProduct.variants.length > 0) {
+        const firstVariantPrice = selectedProduct.variants[0].price
+        form.setValue("priceAfter", firstVariantPrice)
+        form.setValue("priceBefore", Math.ceil(firstVariantPrice * 1.25))
+
+        // Determine which option contains colors
+        const colorKeywords = ["Noir", "Blanc", "bleu", "blue", "white", "black", "rouge", "red", "green", "vert", "pink", "rose"]
+        const optionColorField = ["option1", "option2"].find((opt) =>
+          selectedProduct.variants.some(v =>
+            colorKeywords.some(keyword =>
+              (v[opt] || "").toLowerCase().includes(keyword)
+            )
+          )
+        )
+
+        if (optionColorField) {
+          const uniqueColors = [...new Set(selectedProduct.variants.map((v) => v[optionColorField]))]
+          const currentColorImages = form.getValues("colorImages") || []
+          const newColorImages = uniqueColors.map((color) => {
+            const existing = currentColorImages.find((ci) => ci.color === color)
+            return existing || { color, imageUrl: "" }
+          })
+          form.setValue("colorImages", newColorImages)
+          form.setValue("options", selectedProduct.options || [])
         }
       }
-    } else {
-      // Clear fields if no product is selected
-      form.setValue("variants", [])
-      form.setValue("productTitle", "")
-      form.setValue("priceAfter", 0)
-      form.setValue("priceBefore", 0)
     }
-  }, [watchedProductId, products, form])
-
+  } else {
+    form.setValue("variants", [])
+    form.setValue("productTitle", "")
+    form.setValue("priceAfter", 0)
+    form.setValue("priceBefore", 0)
+  }
+}, [watchedProductId, products, form])
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSave)} className="space-y-8">
