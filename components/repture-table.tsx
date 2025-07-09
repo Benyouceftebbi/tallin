@@ -35,11 +35,12 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-h
 
 import { algeriaRegions, comuness, wilayass } from "@/app/admin/commandes/en-attente/data/algeria-regions"
 import { httpsCallable } from "firebase/functions"
-import { auth, functions } from "@/lib/firebase"
+import { auth, db, functions } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { useAuth } from "@/context/auth-context"
 import { useOrderSearchParams } from "@/hooks/use-search-params"
 import { generateRuptureReport } from "@/app/admin/commandes/repture/repturePdf"
+import { doc, getDoc, updateDoc } from "firebase/firestore"
 
 export function ReptureTable() {
   const {
@@ -328,6 +329,56 @@ useEffect(() => {
     })
     setSelectedRows([])
   }, [selectedRows, updateOrder])
+
+const confirmOrdersFromStock = async (orders) => {
+  try {
+    for (const order of orders) {
+      let isStockSufficient = true;
+
+      for (const article of order.articles || []) {
+        const variantRef = doc(
+          db,
+          "Products",
+          article.product_id,
+          "variants",
+          article.variant_id
+
+        );
+
+        const variantSnap = await getDoc(variantRef);
+
+        if (!variantSnap.exists()) {
+          console.warn(`❗ Variant not found for ${article.productId} / ${article.variantId}`);
+          isStockSufficient = false;
+          break;
+        }
+
+        const variantData = variantSnap.data();
+        const depotQuantity = variantData.depots?.[0]?.quantity || 0;
+
+        if (depotQuantity < article.quantity) {
+          isStockSufficient = false;
+          break;
+        }
+      }
+
+      if (isStockSufficient) {
+        const orderRef = doc(db, "orders", order.id);
+        await updateDoc(orderRef, {
+          status: "Confirmé",
+          oldStatus:"Repture",
+          updatedAt: new Date(),
+        });
+        console.log(`✅ Order ${order.id} confirmed`);
+      } else {
+        console.log(`❌ Order ${order.id} has insufficient stock`);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error confirming orders:", error);
+    throw error;
+  }
+};
   if (loading) {
     return (
       <div className="space-y-4">
@@ -459,7 +510,7 @@ useEffect(() => {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          <TooltipProvider>
+                      <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -478,6 +529,10 @@ useEffect(() => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+    <Button type="button" variant="outline" onClick={()=>confirmOrdersFromStock(filteredOrders)} className=" ">
+                  
+                      Check Repture
+                    </Button>
     <Button type="button" variant="outline" onClick={()=>generateRuptureReport(filteredOrders)} className=" ">
                   
                       📄 Générer le PDF 
