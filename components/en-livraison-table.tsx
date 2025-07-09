@@ -1357,7 +1357,7 @@ const refreshPage = useCallback(() => {
                               </h4>
                               {getTrackingHistoryForConfirmatrice(order.confirmatrice).filter(h => h.orderId === order.id).length > 0 ? (
                                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                                  {getTrackingHistoryForConfirmatrice(order.confirmatrice).map((history) => (
+                                  {getTrackingHistoryForConfirmatrice(order.confirmatrice).filter(h => h.orderId === order.id).map((history) => (
                                     <div key={history.id} className="border-b border-slate-800 pb-2">
                                       <div className="flex items-center justify-between">
                                         <Badge className={getTrackingNodeColor(history.trackingNode)} variant="outline">
