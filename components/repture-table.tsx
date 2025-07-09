@@ -331,17 +331,21 @@ useEffect(() => {
   }, [selectedRows, updateOrder])
 
 const confirmOrdersFromStock = async (orders) => {
+  console.log("Confirming orders from stock:", orders);
+  
   try {
     for (const order of orders) {
       let isStockSufficient = true;
 
       for (const article of order.articles || []) {
+        const productId = String(article.productId);
+const variantId = String(article.variantId);
         const variantRef = doc(
           db,
           "Products",
-          article.product_id,
+         productId,
           "variants",
-          article.variant_id
+          variantId
 
         );
 
