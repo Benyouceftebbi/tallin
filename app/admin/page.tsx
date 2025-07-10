@@ -17,6 +17,7 @@ import { useShop } from "@/context/shop-context"
 import { useAppContext } from "@/context/app-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { generateOrdersPDF } from "./print"
 const mockOrders = [
   {
     id: 1,
@@ -65,7 +66,7 @@ const mockOrders = [
   },
 ]
 export default function Dashboard() {
-  const { workers, loading, error, getConfirmationRate, getTodayRevenue, filters, setFilters,getDeliveryStats } = useShop()
+  const { workers, loading, error, getConfirmationRate, getTodayRevenue, filters, setFilters,getDeliveryStats,orders } = useShop()
    const [activeProvider, setActiveProvider] = useState("confirmation")
 const {products}=useAppContext()
   const [dateRange, setDateRange] = useState({
@@ -107,6 +108,13 @@ const {products}=useAppContext()
 
 
   const deliveryStats = getDeliveryStats()
+   const handleClick = async () => {
+    try {
+      await generateOrdersPDF(orders);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+    }
+  };
   if (error) {
     return (
       <>
@@ -342,6 +350,12 @@ const {products}=useAppContext()
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-3">
+                   <button
+      onClick={handleClick}
+      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow transition"
+    >
+      📄 تحميل تقرير الطلبات PDF
+    </button>
                   <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <Package className="h-8 w-8 text-green-500" />
