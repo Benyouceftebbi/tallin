@@ -115,25 +115,7 @@ export async function generateOrdersPDF(orders: any[]) {
     alternateRowStyles: { fillColor: [245, 245, 245] },
   });
 
-  // ✅ DETAILED ORDERS TABLE
-  autoTable(doc, {
-    startY: doc.lastAutoTable.finalY + 12,
-    head: [["ID", "Status", "Created At", "Articles"]],
-    body: filtered.map((order) => {
-      const created = order.createdAt?.toDate?.() || new Date(order.createdAt);
-      const articleCount = Array.isArray(order.articles)
-        ? order.articles.length
-        : 0;
-      return [
-        order.id,
-        order.status,
-        format(created, "dd MMM yyyy HH:mm"),
-        articleCount.toString(),
-      ];
-    }),
-    headStyles: { fillColor: [100, 100, 100], textColor: 255 },
-    styles: { fontSize: 8, cellPadding: 2 },
-  });
+
 
   doc.save("orders-report.pdf");
 }
