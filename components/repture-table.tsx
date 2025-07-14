@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useMemo, useEffect } from "react"
-import { Search, Edit, ArrowRight, Plus, Filter, UserCheck, Columns, MessageCircle, CheckCircle } from "lucide-react"
+import { Search, Edit, ArrowRight, Plus, Filter, UserCheck, Columns, MessageCircle, CheckCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -714,6 +714,7 @@ const variantId = String(article.variantId);
                     />
                   </th>
                   {visibleColumns.id && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">ID</th>}
+                  {visibleColumns.id && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Date de confirmation</th>}
                   {visibleColumns.name && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Client</th>
                   )}
@@ -790,7 +791,25 @@ const variantId = String(article.variantId);
                         />
                       </td>
                       {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.docId}</td>}
-
+                      {visibleColumns.id &&
+                      <td className="p-3 text-slate-300">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-slate-400" />
+<span>
+  {order?.updatedAt
+    ? new Date(order.updatedAt.seconds * 1000).toLocaleString("fr-DZ", {
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "N/A"}
+</span>
+                          </div>
+                        </td>
+                        }
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
                                             {visibleColumns.articles && (

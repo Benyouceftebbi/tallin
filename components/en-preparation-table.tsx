@@ -17,6 +17,7 @@ import {
   Printer,
   CameraOff,
   Camera,
+  Clock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -1582,6 +1583,9 @@ const response = await fetch(`/api/fetch-label?url=${encodeURIComponent(order.la
                   {visibleColumns.date && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Date</th>
                   )}
+                          {visibleColumns.date && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Date de Confirmation</th>
+                  )}
                   {visibleColumns.name && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Name</th>
                   )}
@@ -1652,6 +1656,23 @@ searchFilters.highlightOrder === order.id && "ring-2 ring-cyan-500 bg-cyan-900/2
                         {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order?.trackingId}</td>}
                       {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order?.orderReference}</td>}
                       {visibleColumns.date && <td className="p-3 text-slate-300">{order.date}</td>}
+                      <td className="p-3 text-slate-300">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-slate-400" />
+<span>
+  {order?.lastUpdated
+    ? new Date(order.lastUpdated.seconds * 1000).toLocaleString("fr-DZ", {
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "N/A"}
+</span>
+                          </div>
+                        </td>
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
                                             {visibleColumns.articles && (
