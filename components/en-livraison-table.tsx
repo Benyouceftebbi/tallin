@@ -383,7 +383,7 @@ const ordersWithTracking = useMemo(() => {
       const matchesSearch =
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.trackingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order?.trackingId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.phone.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesWilaya = wilayaFilter === "all" || order.wilaya === wilayaFilter
