@@ -117,7 +117,7 @@ const statusTranslations: Record<string, string> = {
   "in-preparation": "En préparation"
 };
 export function EnLivraisonTable() {
-  const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, updateOrder, loading } = useShop()
+  const { getOrdersByStatus, updateMultipleOrdersStatus, sendSmsReminder, updateOrder, loading,setOrders } = useShop()
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 const searchFilters = useOrderSearchParams()
@@ -430,7 +430,27 @@ const matchesstatus = statusFilter === "all" || order.lastStatus === statusFilte
     trackingNodeFilter,
     dateRange,
   ])
-
+  useEffect(() => {
+    const q = query(collection(db, "orders"));
+  
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "modified") {
+          const updatedOrder = { id: change.doc.id, ...change.doc.data() };
+          
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order.trackingId === updatedOrder.trackingId
+                ? updatedOrder
+                : order
+            )
+          );
+        }
+      });
+    });
+  
+    return () => unsubscribe();
+  }, [setOrders]);
   // Gérer la sélection de toutes les lignes - mémorisé
   const handleSelectAll = useCallback(
     (checked: boolean) => {
