@@ -46,6 +46,9 @@ import { Textarea } from "@/components/ui/textarea"
 import type { DateRange } from "@/components/date-range-picker"
 import { isWithinInterval, parseISO } from "date-fns"
 import { HoverCard, HoverCardContent,HoverCardTrigger } from "./ui/hover-card"
+import { useAuth } from "@/context/auth-context"
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 // Type pour les notes
 type OrderNote = {
@@ -170,7 +173,82 @@ export function RetourTable() {
     activeTab,
     dateRange,
   ])
+  const [trackingHistory, setTrackingHistory] = useState<any[]>([])
+  const [orderTrackingNodes, setOrderTrackingNodes] = useState<Record<string, TrackingNode>>({})
+  // Écouter les changements Firebase pour l'historique de suivi
+  useEffect(() => {
+    const unsubscribeHistory = onSnapshot(
+      query(collection(db, "trackingHistory"), orderBy("timestamp", "desc")),
+      (snapshot) => {
+        const historyData = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          historyData.push({
+            id: doc.id,
+            orderId: data.orderId,
+            trackingNode: data.trackingNode,
+            date: data.date,
+            author: data.author,
+            note: data.note,
+            timestamp: data.timestamp,
+          })
+        })
+        setTrackingHistory(historyData)
+      },
+      (error) => {
+        console.error("Error listening to tracking history:", error)
+        toast({
+          title: "Erreur de synchronisation",
+          description: "Impossible de synchroniser l'historique de suivi.",
+          variant: "destructive",
+        })
+      },
+    )
 
+    return () => unsubscribeHistory()
+  }, [])
+  useEffect(() => {
+    const unsubscribeTracking = onSnapshot(
+      collection(db, "orderTracking"),
+      (snapshot) => {
+        const trackingData: Record<string, TrackingNode> = {}
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          trackingData[data.orderId] = data.currentNode
+        })
+        setOrderTrackingNodes(trackingData)
+      },
+      (error) => {
+        console.error("Error listening to tracking nodes:", error)
+        toast({
+          title: "Erreur de synchronisation",
+          description: "Impossible de synchroniser les nœuds de suivi.",
+          variant: "destructive",
+        })
+      },
+    )
+
+    return () => unsubscribeTracking()
+  }, [])
+
+  // Obtenir les commandes
+
+  const { workerName } = useAuth()
+
+  const ordersWithTracking = useMemo(() => {
+    const baseOrders = getOrdersByStatus("Retour");
+  
+    // Filter based on workerName
+    const filteredOrders = workerName
+      ? baseOrders.filter(order => order.confirmatrice === workerName)
+      : baseOrders;
+  
+    return filteredOrders.map((order) => ({
+      ...order,
+      currentTrackingNode: orderTrackingNodes[order.id],
+      trackingHistory: trackingHistory.filter((h) => h.orderId === order.id),
+    }));
+  }, [getOrdersByStatus, orderTrackingNodes, trackingHistory, workerName]);
   // Gérer la sélection de toutes les lignes
   const handleSelectAll = useCallback(
     (checked: boolean) => {
@@ -407,7 +485,49 @@ export function RetourTable() {
     },
     [notes],
   )
-
+  // Obtenir l'historique de suivi pour une confirmatrice
+  const getTrackingHistoryForConfirmatrice = useCallback(
+    (confirmatrice: string) => {
+      return trackingHistory.filter((history) => {
+        const order = ordersWithTracking.find((o) => o.id === history.orderId)
+        return order?.confirmatrice === confirmatrice
+      })
+    },
+    [trackingHistory, ordersWithTracking],
+  )
+    // Obtenir la couleur du badge pour le statut SMS - mémorisé
+    const getTrackingNodeColor = useCallback((node: TrackingNode | undefined) => {
+      switch (node) {
+        case "ferme":
+          return "bg-gray-950/50 text-gray-400 border-gray-700";
+        case "nrp":
+          return "bg-yellow-950/50 text-yellow-400 border-yellow-700";
+        case "j attendes":
+          return "bg-blue-950/50 text-blue-400 border-blue-700";
+        case "faux numero":
+          return "bg-red-950/50 text-red-400 border-red-700";
+        case "faux commande":
+          return "bg-pink-950/50 text-pink-400 border-pink-700";
+        case "ok":
+          return "bg-green-950/50 text-green-400 border-green-700";
+        case "reporte":
+          return "bg-orange-950/50 text-orange-400 border-orange-700";
+        case "pas seriux":
+          return "bg-rose-950/50 text-rose-400 border-rose-700";
+        case "occupe":
+          return "bg-indigo-950/50 text-indigo-400 border-indigo-700";
+        case "en voyage":
+          return "bg-cyan-950/50 text-cyan-400 border-cyan-700";
+        case "sms envoye":
+          return "bg-teal-950/50 text-teal-400 border-teal-700";
+        case "achete ailleurs":
+          return "bg-fuchsia-950/50 text-fuchsia-400 border-fuchsia-700";
+        case "annule":
+          return "bg-red-950/50 text-red-400 border-red-700";
+        default:
+          return "bg-slate-950/50 text-slate-400 border-slate-700";
+      }
+    }, []);
   if (loading) {
     return (
       <div className="space-y-4">
@@ -854,12 +974,42 @@ export function RetourTable() {
                       />
                     </td>
                     <td className="p-3 font-medium text-slate-300">{order.trackingId}</td>
-                    <td className="p-3 text-slate-300">
-                      <div className="flex flex-col">
-                        <span>{order.name}</span>
-                        <span className="text-xs text-slate-400">{order.phone}</span>
-                      </div>
-                    </td>
+          
+                         <td className="p-3 text-slate-300 group relative">
+                          <div >
+                            <span className="cursor-help">{order.name}</span>
+                         
+                                                      {order.confirmatrice && (
+                            <div className="absolute z-50 invisible group-hover:visible bg-slate-900 border border-slate-800 rounded-md p-3 shadow-lg w-80 mt-1 left-0">
+                              <h4 className="font-medium text-slate-300 mb-2">
+                                Historique de suivi par {order.confirmatrice}
+                              </h4>
+                              {getTrackingHistoryForConfirmatrice(order.confirmatrice).filter(h => h.orderId === order.id).length > 0 ? (
+                                <div className="space-y-2 max-h-60 overflow-y-auto">
+                                  {getTrackingHistoryForConfirmatrice(order.confirmatrice).filter(h => h.orderId === order.id).map((history) => (
+                                    <div key={history.id} className="border-b border-slate-800 pb-2">
+                                      <div className="flex items-center justify-between">
+                                        <Badge className={getTrackingNodeColor(history.trackingNode)} variant="outline">
+                                          {history.trackingNode}
+                                        </Badge>
+                                        <span className="text-xs text-slate-500">{history.date}</span>
+                                      </div>
+                                      {history.note && (
+                                        <div className="mt-1 text-sm text-slate-400 bg-slate-800/50 p-1 rounded">
+                                          {history.note}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-slate-500">Aucun historique de suivi</p>
+                              )}
+                            </div>
+                          )}
+                          </div>
+                        </td>
+                      
                     <td className="p-3 text-slate-300">
                                                               <HoverCard>
                                                                 <HoverCardTrigger className="cursor-pointer hover:text-cyan-400 transition-colors block truncate">
