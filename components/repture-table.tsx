@@ -309,7 +309,8 @@ useEffect(() => {
 
 
   const changeConfirmatrices = (e) => {}
-    const confirmOrders = useCallback(() => {
+  // Confirmer les commandes sélectionnées
+  const confirmOrders = useCallback(() => {
     if (selectedRows.length === 0) {
       toast({
         title: "Aucune commande sélectionnée",
@@ -514,6 +515,25 @@ const variantId = String(article.variantId);
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={confirmOrders}
+                  disabled={selectedRows.length === 0}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <span>Confirmer</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Confirmer les commandes sélectionnées</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
                       <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

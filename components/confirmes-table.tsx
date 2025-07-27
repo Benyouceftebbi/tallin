@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { DateRange } from "@/components/date-range-picker"
-import { isWithinInterval, parseISO } from "date-fns"
+import { format, isWithinInterval, parseISO } from "date-fns"
 import { DateRangePicker } from "@/components/date-range-picker"
 import { Badge } from "@/components/ui/badge"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card"
@@ -792,7 +792,9 @@ setSelectedRows([]);
                     />
                   </th>
                   {visibleColumns.id && <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">ID</th>}
-
+                  {visibleColumns.name && (
+                    <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Date</th>
+                  )}
                   {visibleColumns.name && (
                     <th className="sticky top-0 bg-slate-900 p-3 text-left text-slate-400">Client</th>
                   )}
@@ -868,6 +870,7 @@ setSelectedRows([]);
                           className="bg-slate-800/50 border-slate-700 data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                         />
                       </td>
+                      <td className="p-3 text-slate-300">{format(order?.createdAt?.toDate(), 'yyyy-MM-dd HH:mm')}</td>
                       {visibleColumns.id && <td className="p-3 font-medium text-slate-300">{order.docId}</td>}
                       {visibleColumns.name && <td className="p-3 text-slate-300">{order.name}</td>}
                       {visibleColumns.phone && <td className="p-3 text-slate-300">{order.phone}</td>}
