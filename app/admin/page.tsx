@@ -1,455 +1,344 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { DatePickerWithRange } from "@/components/date-picker-range"
-import { OrderStatusMetrics } from "@/components/order-status-metrics"
-import { OrderStatusChart } from "@/components/order-status-chart"
-import { ConfirmatricePerformance } from "@/components/confirmatrice-performance"
-import { ArticlePerformance } from "@/components/article-performance"
-
-import { Topbar } from "@/components/topbar"
-import { Filter, TrendingUp, AlertCircle, CheckCircle, Truck, Package, RotateCcw, TrendingDown, AlertTriangle } from "lucide-react"
-import { addDays } from "date-fns"
+import { PerformanceFilters, type FiltersState } from "@/components/performance-filters"
+import { PerformanceKPIs } from "@/components/performance-kpis"
+import { PerformanceCharts } from "@/components/performance-charts"
 import { useShop } from "@/context/shop-context"
-import { useAppContext } from "@/context/app-context"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { generateOrdersPDF } from "./print"
-const mockOrders = [
+export interface Article {
+  depotId: string
+  depotName: string
+  isRepture: boolean
+  product_id: string
+  product_name: string
+  product_sku: string
+  quantity: number
+  unit_price: string
+  variant_id: number
+  variant_options: {
+    option1: string
+    option2: string
+  }
+  variant_sku: string
+  variant_title: string
+}
+
+export interface ShipmentTrack {
+  date: string
+  deliveryAttempts: Array<{
+    date: string
+    notes: string
+    result: string
+  }>
+  description: string
+  driver_phone: string
+  location: string
+  status: string
+  title: string
+  isIssue?: boolean
+}
+
+export interface StatusHistory {
+  changedBy: string
+  status: string
+  timestamp: string
+}
+
+export interface Order {
+  id: string
+  additionalInfo: string
+  address: string
+  articles: Article[]
+  commune: string
+  commune_id: number
+  confirmationStatus: string
+  confirmatrice: string
+  createdAt: {
+    toDate: () => Date
+  }
+  date: string
+  deliveryCenter: string
+  deliveryCompany: string
+  deliveryPrice: number
+  deliveryType: string
+  label: string
+  lastStatus: string
+  name: string
+  orderReference: string
+  phone: string
+  pickupPoint: string
+  shippmentTrack: ShipmentTrack[]
+  sku: string
+  source: string
+  status: string
+  statusHistory: StatusHistory[]
+  totalPrice: number
+  trackingId: string
+  updatedAt: {
+    toDate: () => Date
+  }
+  wilaya: string
+  wilayaCode: string
+  wilayaName: string
+}
+
+// Mock data based on the provided structure
+export const mockOrders: Order[] = [
   {
-    id: 1,
-    status: "confirmé",
-    deliveryStatus: "livré",
-    confirmatrice: "Sarah",
-    article: "Product A",
-    revenue: 2500,
-    date: "2024-01-15",
+    id: "37Knewm57byFq0bJc3ll",
+    additionalInfo: "-, 25 - Constantine قسنطينة, قسنطينة, Algeria",
+    address: "Constantine, Algeria",
+    articles: [
+      {
+        depotId: "LIg13HzP3pb9WHmnehSi",
+        depotName: "atelier",
+        isRepture: false,
+        product_id: "9604777640214",
+        product_name: "mule sabot 13028",
+        product_sku: "sabot mule 13028-37-noir mate",
+        quantity: 1,
+        unit_price: "1900.00",
+        variant_id: 48776763572502,
+        variant_options: {
+          option1: "38",
+          option2: "Noir mate"
+        },
+        variant_sku: "sabot mule 13028-37-noir mate",
+        variant_title: "37 / Noir mate"
+      },
+      {
+        depotId: "LIg13HzP3pb9WHmnehSi",
+        depotName: "atelier",
+        isRepture: false,
+        product_id: "9604777640214",
+        product_name: "mule sabot 13028",
+        product_sku: "sabot mule 13028-37-noir mate",
+        quantity: 1,
+        unit_price: "1900.00",
+        variant_id: 48776764358934,
+        variant_options: {
+          option1: "39",
+          option2: "Vert d'eaux"
+        },
+        variant_sku: "",
+        variant_title: ""
+      }
+    ],
+    commune: "Constantine",
+    commune_id: 2504,
+    confirmationStatus: "Confirmé",
+    confirmatrice: "amira",
+    createdAt: {
+      toDate: () => new Date("2025-07-18T19:52:23Z")
+    },
+    date: "2025-07-18",
+    deliveryCenter: "",
+    deliveryCompany: "tallin collection",
+    deliveryPrice: 800,
+    deliveryType: "domicile",
+    label: "https://yalidine.app/app/bordereau.php?tracking=yal-K77EWF&token=QlFpUzhBcVdNK05oQnZETUU5cGw5UT09",
+    lastStatus: "delivered",
+    name: "Moulahem//",
+    orderReference: "ATELI-OJL4AX4334",
+    phone: "0559376426",
+    pickupPoint: "",
+    shippmentTrack: [
+      {
+        date: "2025-07-19 11:34:53",
+        deliveryAttempts: [],
+        description: "Your package is being prepared for shipping",
+        driver_phone: "0559376426",
+        location: "null null null",
+        status: "in-preparation",
+        title: "En préparation"
+      },
+      {
+        date: "2025-07-21 13:34:19",
+        deliveryAttempts: [],
+        description: "Your package has been delivered",
+        driver_phone: "0559376426",
+        location: "Agence Sidi Mabrouk [Guepex] Constantine Constantine",
+        status: "delivered",
+        title: "Livré"
+      }
+    ],
+    sku: "SKU-3302",
+    source: "5690175",
+    status: "Livrés",
+    statusHistory: [
+      {
+        changedBy: "System",
+        status: "Ne répond pas 1",
+        timestamp: "2025-07-19T10:09:45.077Z"
+      }
+    ],
+    totalPrice: 4600,
+    trackingId: "yal-K77EWF",
+    updatedAt: {
+      toDate: () => new Date("2025-07-21T12:34:27Z")
+    },
+    wilaya: "Constantine",
+    wilayaCode: "25",
+    wilayaName: "Constantine"
   },
-  {
-    id: 2,
-    status: "annulé",
-    deliveryStatus: "retour",
-    confirmatrice: "Marie",
-    article: "Product B",
-    revenue: 0,
-    date: "2024-01-15",
-  },
-  {
-    id: 3,
-    status: "confirmé",
-    deliveryStatus: "en_cours",
-    confirmatrice: "Sarah",
-    article: "Product A",
-    revenue: 3000,
-    date: "2024-01-14",
-  },
-  {
-    id: 4,
-    status: "confirmé",
-    deliveryStatus: "livré",
-    confirmatrice: "Julie",
-    article: "Product C",
-    revenue: 1800,
-    date: "2024-01-14",
-  },
-  {
-    id: 5,
-    status: "en_attente",
-    deliveryStatus: "en_cours",
-    confirmatrice: "Marie",
-    article: "Product B",
-    revenue: 2200,
-    date: "2024-01-13",
-  },
+  // Generate additional mock orders
+  ...Array.from({ length: 149 }, (_, i) => ({
+    id: `order-${i + 2}`,
+    additionalInfo: `Address ${i + 2}`,
+    address: `Address ${i + 2}, Algeria`,
+    articles: [
+      {
+        depotId: "depot-" + (i % 3 + 1),
+        depotName: ["atelier", "magasin", "entrepot"][i % 3],
+        isRepture: Math.random() > 0.9,
+        product_id: `product-${i % 10 + 1}`,
+        product_name: [
+          "Nike Air Max 90",
+          "Adidas Ultraboost",
+          "Puma RS-X",
+          "New Balance 574",
+          "Converse Chuck Taylor",
+          "Vans Old Skool",
+          "Reebok Classic",
+          "Jordan 1 Retro",
+          "Asics Gel-Lyte",
+          "mule sabot 13028"
+        ][i % 10],
+        product_sku: `sku-${i + 1}`,
+        quantity: Math.floor(Math.random() * 3) + 1,
+        unit_price: (Math.floor(Math.random() * 200) + 50).toString() + ".00",
+        variant_id: 48776763572502 + i,
+        variant_options: {
+          option1: ["36", "37", "38", "39", "40", "41", "42"][Math.floor(Math.random() * 7)],
+          option2: ["Noir", "Blanc", "Rouge", "Bleu", "Vert"][Math.floor(Math.random() * 5)]
+        },
+        variant_sku: `variant-sku-${i + 1}`,
+        variant_title: "Size / Color"
+      }
+    ],
+    commune: ["Constantine", "Alger", "Oran", "Annaba", "Batna"][Math.floor(Math.random() * 5)],
+    commune_id: 2500 + (i % 100),
+    confirmationStatus: ["Confirmé", "En attente", "Annulé"][Math.floor(Math.random() * 3)],
+    confirmatrice: ["amira", "sarah", "fatima", "aicha", "khadija"][Math.floor(Math.random() * 5)],
+    createdAt: {
+      toDate: () => new Date(2025, 0, Math.floor(Math.random() * 30) + 1, Math.floor(Math.random() * 24))
+    },
+    date: `2025-01-${String(Math.floor(Math.random() * 30) + 1).padStart(2, '0')}`,
+    deliveryCenter: "",
+    deliveryCompany: ["yalidine", "tallin collection", "zr express"][Math.floor(Math.random() * 3)],
+    deliveryPrice: [400, 600, 800][Math.floor(Math.random() * 3)],
+    deliveryType: ["domicile", "bureau", "point relais"][Math.floor(Math.random() * 3)],
+    label: `https://tracking.example.com/${i + 1}`,
+    lastStatus: ["in-preparation", "shipped", "out-for-delivery", "delivered", "delivery-failed"][Math.floor(Math.random() * 5)],
+    name: `Client ${i + 1}`,
+    orderReference: `ORDER-${String(i + 1).padStart(6, '0')}`,
+    phone: `055${String(Math.floor(Math.random() * 10000000)).padStart(7, '0')}`,
+    pickupPoint: "",
+    shippmentTrack: [],
+    sku: `SKU-${i + 1}`,
+    source: String(Math.floor(Math.random() * 1000000)),
+    status: ["En attente", "Confirmé", "En préparation", "En livraison", "Livrés", "Retourné"][Math.floor(Math.random() * 6)],
+    statusHistory: [],
+    totalPrice: Math.floor(Math.random() * 5000) + 1000,
+    trackingId: `track-${i + 1}`,
+    updatedAt: {
+      toDate: () => new Date(2025, 0, Math.floor(Math.random() * 30) + 1, Math.floor(Math.random() * 24))
+    },
+    wilaya: ["Constantine", "Alger", "Oran", "Annaba", "Batna"][Math.floor(Math.random() * 5)],
+    wilayaCode: String(25 + (i % 48)),
+    wilayaName: ["Constantine", "Alger", "Oran", "Annaba", "Batna"][Math.floor(Math.random() * 5)]
+  }))
 ]
-export default function Dashboard() {
-  const { workers, loading, error, getConfirmationRate, getTodayRevenue, filters, setFilters,getDeliveryStats,orders } = useShop()
-   const [activeProvider, setActiveProvider] = useState("confirmation")
-const {products}=useAppContext()
-  const [dateRange, setDateRange] = useState({
-    from: new Date(),
-    to: addDays(new Date(), 7),
+
+
+export default function PerformancePage() {
+  const [filters, setFilters] = useState<FiltersState>({
+    from: "",
+    to: "",
+    confirmatrices: [],
+    articles: [],
   })
+const {orders}=useShop()
+  const [isLoading, setIsLoading] = useState(false)
 
-
-  // Update filters when local state changes
-  useEffect(() => {
-    setFilters({
-      ...filters,
-      dateRange: filters.dateFilter === "custom" ? dateRange : undefined,
-    })
-  }, [dateRange]) // Removed filters.dateFilter from dependency array
-
-  const handleDateFilterChange = (value: string) => {
-    setFilters({
-      ...filters,
-      dateFilter: value,
-      dateRange: value === "custom" ? dateRange : undefined,
-    })
+  const handleFiltersChange = (newFilters: FiltersState) => {
+    setIsLoading(true)
+    setFilters(newFilters)
+    // Simulate API call
+    setTimeout(() => setIsLoading(false), 500)
   }
-
-  const handleConfirmatriceChange = (value: string) => {
-    setFilters({
-      ...filters,
-      confirmatrice: value,
-    })
-  }
-
-  const handleArticleChange = (value: string) => {
-    setFilters({
-      ...filters,
-      article: value,
-    })
-  }
-
-
-
-  const deliveryStats = getDeliveryStats()
-   const handleClick = async () => {
-    try {
-      await generateOrdersPDF(orders);
-    } catch (err) {
-      console.error("Failed to generate PDF:", err);
-    }
+  const normalizeDate = (value) => {
+    if (!value) return null;
+    if (typeof value?.toDate === "function") return value.toDate(); // Firestore Timestamp
+    if (value instanceof Date) return value;
+    return new Date(value); // string, number
   };
-  if (error) {
-    return (
-      <>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Card className="border-red-800 bg-red-900/50 backdrop-blur-xl">
-            <CardContent className="flex items-center gap-4 p-6">
-              <AlertCircle className="h-8 w-8 text-red-400" />
-              <div>
-                <h3 className="text-lg font-semibold text-red-100">Erreur de connexion</h3>
-                <p className="text-red-300">{error}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    )
-  }
+  // Filter orders based on current filters
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      // Date filter
+
+      
+      const orderDate = normalizeDate(order.createdAt);
+      
+      if (filters.from) {
+        const fromDate = normalizeDate(filters.from);
+        if (orderDate < fromDate) return false;
+      }
+      
+      if (filters.to) {
+        const toDate = normalizeDate(filters.to);
+        if (orderDate > toDate) return false;
+      }
+      // Confirmatrice filter
+      if (filters.confirmatrices.length > 0) {
+        if (!filters.confirmatrices.includes(order.confirmatrice)) return false
+      }
+
+      // Articles filter
+      if (filters.articles.length > 0) {
+        const hasMatchingArticle = order.articles.some(article => 
+          filters.articles.includes(article.product_name)
+        )
+        if (!hasMatchingArticle) return false
+      }
+
+      return true
+    })
+  }, [filters])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-              Tableau de bord - Performance Confirmatrices
-            </h1>
-            <p className="text-slate-400 mt-2">Suivi en temps réel des commandes et performance des équipes</p>
-          </div>
-          <div className="text-sm text-slate-400">
-            Dernière mise à jour: <span className="text-white">Aujourd'hui, 14:32</span>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-          <CardHeader>
-            <CardTitle className="text-slate-100 flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtres
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Période</label>
-                <Select value={filters.dateFilter} onValueChange={handleDateFilterChange}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Aujourd'hui</SelectItem>
-                    <SelectItem value="yesterday">Hier</SelectItem>
-                    <SelectItem value="lastweek">7 derniers jours</SelectItem>
-                    <SelectItem value="custom">Période personnalisée</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {filters.dateFilter === "custom" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">Intervalle de dates</label>
-                  <DatePickerWithRange date={dateRange} setDate={setDateRange} />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Confirmatrice</label>
-                {loading ? (
-                  <Skeleton className="h-10 w-full" />
-                ) : (
-                  <Select value={filters.confirmatrice} onValueChange={handleConfirmatriceChange}>
-                    <SelectTrigger className="bg-slate-800 border-slate-700">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes les confirmatrices</SelectItem>
-                      {workers.map((worker) => (
-                        <SelectItem key={worker.name} value={worker.name}>
-                          {worker.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-                <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Article</label>
-                {loading ? (
-                  <Skeleton className="h-10 w-full" />
-                ) : (
-                  <Select value={filters.article} onValueChange={handleArticleChange}>
-                    <SelectTrigger className="bg-slate-800 border-slate-700">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tous les articles</SelectItem>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          {product.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-   <Tabs value={activeProvider} onValueChange={setActiveProvider} className="w-full">
-     <TabsList className="grid w-full grid-cols-2 bg-slate-800 border-slate-700">
-            <TabsTrigger
-              value="confirmation"
-              className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Statistiques de Confirmation
-            </TabsTrigger>
-            <TabsTrigger value="delivery" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
-              <Truck className="h-4 w-4 mr-2" />
-              Statistiques de Livraisons
-            </TabsTrigger>
-          </TabsList>
-             <TabsContent value="confirmation" className="space-y-6">
-        {/* Order Status Metrics */}
-        <OrderStatusMetrics />
-
-        {/* Summary Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-400">Taux de confirmation</p>
-                  {loading ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <p className="text-2xl font-bold text-white">{getConfirmationRate(true).toFixed(1)}%</p>
-                  )}
-                </div>
-                <div className="h-12 w-12 bg-green-500/20 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-green-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-400">Revenus (période filtrée)</p>
-                  {loading ? (
-                    <Skeleton className="h-8 w-24" />
-                  ) : (
-                    <p className="text-2xl font-bold text-white">{getTodayRevenue(true).toLocaleString()} DZD</p>
-                  )}
-                </div>
-                <div className="h-12 w-12 bg-cyan-500/20 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-cyan-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-400">Temps moyen de traitement</p>
-                  <p className="text-2xl font-bold text-white">2.4h</p>
-                </div>
-                <div className="h-12 w-12 bg-purple-500/20 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-purple-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="text-slate-100 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Évolution des statuts
-              </CardTitle>
-              <CardDescription>Tendance des commandes par statut (données filtrées)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OrderStatusChart />
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="text-slate-100">Distribution des statuts</CardTitle>
-              <CardDescription>Répartition actuelle des commandes (données filtrées)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OrderStatusChart type="pie" />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Performance Charts */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ConfirmatricePerformance />
-          <ArticlePerformance />
-        </div>
-
-        {/* Orders Table */}
-        <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-          <CardHeader>
-            <CardTitle className="text-slate-100">Commandes détaillées</CardTitle>
-            <CardDescription>Liste complète des commandes avec filtres appliqués</CardDescription>
-          </CardHeader>
-          <CardContent>
-    
-          </CardContent>
-        </Card>
-        </TabsContent>
-                  <TabsContent value="delivery" className="space-y-6">
-
-
-            {/* Delivery Status Overview */}
-            <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="text-slate-100">Aperçu des statuts de livraison</CardTitle>
-                <CardDescription>Répartition des commandes par statut de livraison</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
-                   <button
-      onClick={handleClick}
-      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow transition"
-    >
-      📄 تحميل تقرير الطلبات PDF
-    </button>
-                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Package className="h-8 w-8 text-green-500" />
-                      <div>
-                        <p className="font-medium text-white">Livrées</p>
-                        <p className="text-sm text-slate-400">{deliveryStats.delivered} commandes</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="bg-green-500/20 text-green-400">
-                      {deliveryStats.deliveryRate.toFixed(1)}%
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Truck className="h-8 w-8 text-blue-500" />
-                      <div>
-                        <p className="font-medium text-white">En cours</p>
-                        <p className="text-sm text-slate-400">{deliveryStats.inProgress} commandes</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
-                      {((deliveryStats.inProgress / deliveryStats.total) * 100).toFixed(1)}%
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <RotateCcw className="h-8 w-8 text-red-500" />
-                      <div>
-                        <p className="font-medium text-white">Retours</p>
-                        <p className="text-sm text-slate-400">{deliveryStats.returned} commandes</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="bg-red-500/20 text-red-400">
-                      {deliveryStats.returnRate.toFixed(1)}%
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Delivery Performance Trends */}
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Tendance des livraisons
-                  </CardTitle>
-                  <CardDescription>Évolution du taux de livraison sur la période</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-center h-32 text-slate-400">
-                    Graphique des tendances de livraison
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 flex items-center gap-2">
-                    <TrendingDown className="h-5 w-5" />
-                    Analyse des retours
-                  </CardTitle>
-                  <CardDescription>Raisons principales des retours</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-300">Client absent</span>
-                      <Badge variant="outline" className="text-slate-400">
-                        45%
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-300">Adresse incorrecte</span>
-                      <Badge variant="outline" className="text-slate-400">
-                        30%
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-300">Refus du colis</span>
-                      <Badge variant="outline" className="text-slate-400">
-                        25%
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Performance & Analytics</h2>
       </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtres</CardTitle>
+          <CardDescription>
+            Filtrez les données par période, confirmatrice et articles
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PerformanceFilters 
+            filters={filters} 
+            onFiltersChange={handleFiltersChange}
+            orders={orders}
+          />
+        </CardContent>
+      </Card>
+
+      <PerformanceKPIs 
+        orders={filteredOrders} 
+        isLoading={isLoading}
+      />
+
+      <PerformanceCharts 
+        orders={filteredOrders} 
+        isLoading={isLoading}
+      />
     </div>
   )
 }
