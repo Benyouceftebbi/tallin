@@ -19,26 +19,50 @@ const normalize = (v?: string) => (v ?? "").toString().trim().toLowerCase()
 const EN_LIVRAISON_STATUSES = new Set(['en préparation', 'dispatcher', 'en livraison'])
 
 export function PerformanceKPIs({ orders, isLoading }: PerformanceKPIsProps) {
+
+
+
   // KPIs base
   const totalOrders = orders.length
   const recues = totalOrders
+// Count by status
+const statusCount: Record<string, number> = {};
+
+orders.forEach(o => {
+  const status = o.status || "Unknown";
+  if (! o.status) {
+    console.log(o.id)
+  };
+  statusCount[status] = (statusCount[status] || 0) + 1;
+});
+console.log("📊 Orders by status:", statusCount);
+
+
+// Count their statuses
 
   // Confirmation-layer counts
-  const confirmees = orders.filter(o => new Set(["Confirmé Double","Confirmé"]).has(o.confirmationStatus)).length
+  const confirmees = orders.filter(o => ["en livraison","en préparation",'livrés','retour'].includes(normalize(o.status))).length
   const enAttente = orders.filter(o => normalize(o.status) === 'en-attente').length
   const annulees = orders.filter(o =>
-    ['annulé', 'annulée', 'annule'].includes(normalize(o.confirmationStatus)) ||
+
     ['annulé', 'annulée', 'annule'].includes(normalize(o.status))
   ).length
   const doublons = orders.filter(o => normalize(o.confirmationStatus) === 'double').length
 
-  // Delivery-layer counts (overall)
-  const enLivraison = orders.filter(o => EN_LIVRAISON_STATUSES.has(normalize(o.status))).length
-  const livrees = orders.filter(o => normalize(o.lastStatus) === 'delivered' || normalize(o.status) === 'livrés').length
-  const retournees = orders.filter(o => ['retour', 'retourné', 'retournée'].includes(normalize(o.status))).length
+  const rupture = orders.filter(o =>
+    normalize(o.status) === 'repture'
+  ).length;
+  
+  const reporte = orders.filter(o =>
+    normalize(o.status) === 'reporté' 
+  ).length;
 
   // Delivery-layer counts **among confirmed**
-  const confirmedOrders = orders.filter(o => new Set(["Confirmé Double","Confirmé"]).has(o.confirmationStatus))
+  const confirmedOrders = orders.filter(
+    o =>
+      new Set(["Confirmé Double", "Confirmé"]).has(o.confirmationStatus) &&
+      !["repture", "en-attente"].includes(normalize(o.status))
+  );
   const confirmedTotal = confirmedOrders.length
 
   const enLivraisonAmongConfirmed = confirmedOrders.filter(o =>
@@ -53,24 +77,16 @@ export function PerformanceKPIs({ orders, isLoading }: PerformanceKPIsProps) {
     ['retour', 'retourné', 'retournée'].includes(normalize(o.status))
   ).length
 
-  const kpis = [
-    { title: "Reçues", value: recues, percentage: totalOrders > 0 ? Math.round((recues / totalOrders) * 100) : 0, icon: ShoppingCart, color: "bg-blue-500", trend: "up" as const },
-    { title: "En attente", value: enAttente, percentage: totalOrders > 0 ? Math.round((enAttente / totalOrders) * 100) : 0, icon: Clock, color: "bg-yellow-500", trend: "stable" as const },
-    { title: "Confirmées", value: confirmees, percentage: totalOrders > 0 ? Math.round((confirmees / totalOrders) * 100) : 0, icon: CheckCircle, color: "bg-green-500", trend: "up" as const },
-    { title: "En livraison", value: enLivraison, percentage: totalOrders > 0 ? Math.round((enLivraison / totalOrders) * 100) : 0, icon: Truck, color: "bg-orange-500", trend: "stable" as const },
-    { title: "Livrées", value: livrees, percentage: totalOrders > 0 ? Math.round((livrees / totalOrders) * 100) : 0, icon: Package, color: "bg-emerald-500", trend: "up" as const },
-    { title: "Retournées", value: retournees, percentage: totalOrders > 0 ? Math.round((retournees / totalOrders) * 100) : 0, icon: RotateCcw, color: "bg-red-500", trend: "down" as const },
-    { title: "Doublons", value: doublons, percentage: totalOrders > 0 ? Math.round((doublons / totalOrders) * 100) : 0, icon: Copy, color: "bg-purple-500", trend: "down" as const },
-  ] as const
 
-  // Cards for the tabs
   const confirmationCards = [
     { title: "Reçues", value: recues, pctBase: totalOrders, icon: ShoppingCart, color: "bg-blue-500", trend: "up" as const },
     { title: "Confirmées", value: confirmees, pctBase: totalOrders, icon: CheckCircle, color: "bg-green-500", trend: "up" as const },
     { title: "En attente", value: enAttente, pctBase: totalOrders, icon: Clock, color: "bg-yellow-500", trend: "stable" as const },
     { title: "Annulées", value: annulees, pctBase: totalOrders, icon: XCircle, color: "bg-rose-500", trend: "down" as const },
     { title: "Doublons", value: doublons, pctBase: totalOrders, icon: Copy, color: "bg-purple-500", trend: "down" as const },
-  ] as const
+    { title: "Rupture", value: rupture, pctBase: totalOrders, icon: RotateCcw, color: "bg-orange-600", trend: "down" as const },
+    { title: "Reporté", value: reporte, pctBase: totalOrders, icon: Package, color: "bg-cyan-600", trend: "stable" as const },
+  ] as const;
 
   const livraisonAmongConfirmedCards = [
     { title: "En livraison", value: enLivraisonAmongConfirmed, pctBase: confirmedTotal, icon: Truck, color: "bg-orange-500", trend: "stable" as const },
